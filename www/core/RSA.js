@@ -51,8 +51,8 @@
 
 
 // (unused:) var biRadixBase = 2;
-var biRadixBits = 16;
-// (unused:) var bitsPerDigit = biRadixBits;
+// (unused:) var biRadixBits = 16;
+var bitsPerDigit = 16;
 var biRadix = 1 << 16; // = 2^16 = 65536
 var biHalfRadix = biRadix >>> 1;
 var biRadixSquared = biRadix * biRadix;
