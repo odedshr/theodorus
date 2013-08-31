@@ -1,0 +1,298 @@
+@import "elements";
+@import "reset.css";
+@import "404";
+
+@headerHeight : 4.5rem;
+@elementBorder : #aaa;
+@hoverColor: #eee;
+@theodorusColor: #677f8f;
+
+.align(@horizontalAlign, @verticalAlign) {
+  /* Internet Explorer 10 */
+  display:-ms-flexbox;
+  -ms-flex-pack:@horizontalAlign;
+  -ms-flex-align:@verticalAlign;
+
+  /* Firefox */
+  display:-moz-box;
+  -moz-box-pack:@horizontalAlign;
+  -moz-box-align:@verticalAlign;
+
+  /* Safari, Chrome, and Opera */
+  display:-webkit-box;
+  -webkit-box-pack:@horizontalAlign;
+  -webkit-box-align:@verticalAlign;
+
+  /* W3C */
+  display:box;
+  box-pack:@horizontalAlign;
+  box-align:@verticalAlign;
+}
+
+.columns (@count, @gap) {
+  -webkit-column-break-inside:avoid;
+  -moz-column-break-inside:avoid;
+  -o-column-break-inside:avoid;
+  -ms-column-break-inside:avoid;
+  column-break-inside:avoid;
+
+  -moz-column-count: @count;
+  -moz-column-gap: @gap;
+  -webkit-column-count: @count;
+  -webkit-column-gap: @gap;
+  column-count: @count;
+  column-gap: @gap;
+}
+
+body {
+  background-color:white;
+  direction:rtl;
+
+  input[type="email"], input[type="password"] { direction: ltr; }
+}
+
+input:required {}
+
+input:required:invalid, input:focus:invalid {
+  borer-bottom:1px solid red;
+}
+
+/*input:valid { background-color: green; }
+input:invalid { background-color: red; }*/
+
+header {
+  .drop-shadow(5px 5px, 3px, rgba(0, 0, 0, 0.6));
+  border-bottom:1px solid @elementBorder;
+  height: @headerHeight;
+  position:fixed;
+  background:#FFF;
+  margin:0 auto 5px;
+  top:0;
+  width:100%;
+  z-index: 100;
+
+  h1 {
+    background-image: url(/ui/img/theodorus_logo_small.png);
+    background-repeat: no-repeat;
+    float:right;
+    height:55px;
+    margin:0.5rem;
+    width: 173px;
+    span { display:none;}
+  }
+
+  #account { float: left;
+    width:20rem;
+
+    a.button {
+      background-color: @theodorusColor;
+      border: 0.1rem solid @elementBorder;
+      color: white;
+      cursor: pointer;
+      text-decoration: none;
+      padding: 0 0.5rem;
+      line-height: 2rem;
+      margin: 0.5rem 0 0 0.5rem;
+      display: block;
+      float: left;
+    }
+    a.button:hover {
+      background-color: white;
+      color: #677f8f;
+      border: 0.2rem solid;
+      padding: 0 0.35rem;
+      line-height: 1.8rem;
+    }
+    a.button:active {
+      padding: 0.3rem 0.5rem;
+      margin: 0.2rem;
+    }
+
+    #menu {
+      background-image: url(/ui/img/glyphicons-halflings.png);
+      background-position: -163px 3px;
+      background-repeat:no-repeat;
+      border: 1px solid #ececec;
+      cursor: pointer;
+      float:left;
+      height: 1.40rem;
+      width: 1.40rem;
+      span {
+        height: 1.4rem;
+        visibility: hidden;
+        display: block;
+      }
+      nav {
+        .drop-shadow(0.1rem,0.1rem,0.1rem,0.5);
+        background-color:white;
+        border:1px solid @elementBorder;
+        width: 5rem;
+
+        a {
+          display:block;
+          color: #333;
+          padding:0.5rem;
+          text-decoration: none;
+        }
+        a:hover {
+          background-color: @hoverColor;
+        }
+      }
+    }
+    #user_name {
+      float: left;
+      line-height: 1.40rem;
+      padding-left: 0.5rem;
+    }
+    #menu_content {
+      display:none;
+      float:left;
+    }
+    #menu:hover {
+      #menu_content { display:block; }
+    }
+  }
+}
+
+#loading_system {
+  margin-top:@headerHeight;
+}
+
+#form_search {
+  display:none;
+  .tag {
+    background-color: #e1e1e8;
+    border:1px solid lightsteelblue;
+    cursor:pointer;
+    font-size:0.5rem;
+    margin:0.1rem
+  }
+}
+
+#main {
+  background-color:#eee;
+  height: 100%;
+}
+
+#feed {
+  padding-top:@headerHeight+0.5rem
+}
+
+#popup_placeholder:not(:empty) {
+  .align(center, center);
+  .gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.65), rgba(0,0,0,0.85));
+  height:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:101;
+
+}
+#popup_placeholder > :first-child {
+  .rounded(0.5rem);
+  .drop-shadow(0.5rem,0.5rem,2rem,0.5);
+  background-color:white;
+  border:1px solid #333;
+  padding:1rem;
+}
+
+#form_add_topic {
+  #topic_complete_slug { display:block; direction: ltr; }
+}
+
+#topics {
+  width: 1200px;
+  margin: 0 auto;
+
+  ul {
+    .columns(6,0.1rem);
+    width: 1200px;
+  }
+
+  .topic {
+    .drop-shadow(0.1rem, 0.1rem, 0.1rem, 0.5);
+    background-color:white;
+    border:1px solid  @elementBorder;
+    box-sizing: border-box;
+    column-break-inside : avoid;
+    display: inline-block;
+    line-height:1.5rem;
+    margin:0.2rem;
+    width: 98%;
+
+    .title { padding: 0.5rem 0.5rem 0 0.5rem; }
+    .title:before { content: open-quote;   }
+    .title:after { content: close-quote;   }
+    .created {
+      color:#666;
+      font-size:0.7rem;
+      padding: 0.5rem;
+    }
+    .inititiator {
+      color:#333;
+      font-size:0.9rem;
+      float:left;
+      padding: 0 0.5rem 0 0.5rem;
+    }
+  }
+}
+
+.responsiveTopicList (@columns, @listWidth) {
+  #topics {
+    .columns(@columns,0.1rem);
+    width: @listWidth;
+    ul {
+       width: @listWidth;
+    }
+  }
+}
+
+@media only screen and (max-width : 1199px),
+only screen and (max-device-width : 1199px){
+  .responsiveTopicList (5, 1000px);
+}
+
+@media only screen and (max-width : 999px),
+only screen and (max-device-width : 999px){
+  .responsiveTopicList (4, 800px);
+}
+
+@media only screen and (max-width : 799px),
+only screen and (max-device-width : 799px){
+  .responsiveTopicList (3, 600px);
+}
+
+@media only screen and (max-width : 599px),
+only screen and (max-device-width : 599px){
+  .responsiveTopicList (2, 400px);
+}
+
+@media only screen and (max-width : 399px),
+only screen and (max-device-width : 399px){
+  .responsiveTopicList (1, 200px);
+}
+
+.form_authentication {
+  h2 {
+    display: block;
+    margin: 0 auto 0.5rem;
+    width: 10rem;
+    font-size: 1.5rem;
+  }
+  div{ clear: both;}
+  label {
+    display:block;
+    float:right;
+    width: 3rem;
+  }
+  label:nth-child(2) { width: auto; }
+  input {
+    float:right;
+  }
+  .form-buttons {
+    clear: both;
+    float:left;
+    button { float: left; }
+  }
+}

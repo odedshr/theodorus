@@ -1,0 +1,20 @@
+{
+    "mode":"prod",      // if mode!=dev it will not used the compiled javascripts
+    "port":8080,        // to which server.js should listen? usually, 8080
+    "theme":"default",  // folder in themes folder from which the ui should be taken
+    "table_prefix":"",  // can be used to distinguish all required tables
+    "db_type":"mysql",  // can be mysql, dynamo, or mongo (only mysql is up-to-date)
+    "mysql_host":"MYSQL_LOCALHOST*",
+    "mysql_port":8889,
+    "mysql_user":"MYSQL_USER*",
+    "mysql_password":"MYSQL_PASSWORD*",
+    "mysql_schema":"MYSQL_SHCEMA*",
+    "aws_accessKeyId":"ACCESS_KEY*",
+    "aws_secretAccessKey":"SECRET_ACCESS_KEY*", // all items with * should be replaced !!
+    "aws_region":"REGION*",
+    "rsa_keys" :{ "encryption":"RSA_ENC*",
+                  "decryption":"RSA_DEC*",
+                  "modulus":"RSA_MOD*"
+    },
+    "cookie_token":"COOKIE_NAME*"
+}
