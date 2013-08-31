@@ -1,6 +1,8 @@
-delimiter $$
+delimiter ;
 
-CREATE DATABASE `theodorus` /*!40100 DEFAULT CHARACTER SET utf8 */;
+CREATE DATABASE IF NOT EXISTS `theodorus` DEFAULT CHARACTER SET utf8;
+
+USE `theodorus`;
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -70,7 +72,7 @@ CREATE TABLE `topics` (
   KEY `idx_topic_modified` (`modified`),
   KEY `idx_topic_initiator` (`initiator`,`modified`),
   KEY `idx_topic_score` (`score`,`modified`),
-  FULLTEXT INDEX `idx_topic_title` (`content` ASC)
+  FULLTEXT INDEX `idx_topic_title` (`title` ASC)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `topic_read` (
@@ -133,5 +135,4 @@ CREATE TABLE `user_comment` (
   `endorse` tinyint(1) DEFAULT NULL,
   `report` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8$$
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

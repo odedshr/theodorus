@@ -1,11 +1,11 @@
-var Backbone = (Backbone || require("Backbone"));
+var Backbone = (Backbone || require("backbone"));
 
 var AbstractModel = Backbone.Model.extend({
     autoId: false,
     initialize: function(data) {
         var schema = this.schema;
         for (var key in schema) {
-            if (data && data[key]) {
+            if (data && data.hasOwnProperty(key)) {
                 this.set(key, data[key]);
             } else {
                 switch (schema[key]) {
