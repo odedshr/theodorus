@@ -51,12 +51,11 @@
 
 
 // (unused:) var biRadixBase = 2;
-// (unused:) var biRadixBits = 16;
-var bitsPerDigit = 16;
-var biRadix = 1 << 16; // = 2^16 = 65536
-var biHalfRadix = biRadix >>> 1;
-var biRadixSquared = biRadix * biRadix;
-var maxDigitVal = biRadix - 1;
+var bitsPerDigit = biRadixBits = 16,
+    biRadix = 1 << 16, // = 2^16 = 65536
+    biHalfRadix = biRadix >>> 1,
+    biRadixSquared = biRadix * biRadix,
+    maxDigitVal = biRadix - 1;
 // (unused:) var maxInteger = 9999999999999998;
 
 // maxDigits:
