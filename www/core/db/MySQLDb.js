@@ -9,19 +9,16 @@ exports.init = function (config) {
         host     : config.mysql_host,
         port     : config.mysql_port,
         user     : config.mysql_user,
-        password : config.mysql_password,
+        password : config.mysql_password
     });
     prefix = config.mysql_schema+"."+config.table_prefix;
-}
+};
 
-function createDb (connection, callback) {
-    exports.query
-}
 function update (connection, item, callback) {
-    var jsonized = sanitizeJSONObject(item);
-    var itemKey = item.get(item.key)
+    var jsonized = sanitizeJSONObject(item),
+        itemKey = item.get(item.key),
+        parameters = [];
     delete jsonized[item.key];
-    var parameters = [];
     for (var key in jsonized) {
         parameters.push(key + " = '"+jsonized[key]+"'");
     }
@@ -39,7 +36,7 @@ function update (connection, item, callback) {
 
 function insert (connection, item, callback) {
     var jsonized = sanitizeJSONObject(item);
-    var query = "INSERT INTO "+prefix+item.collection + " ("+_.keys(jsonized).join(",")+") VALUES ('"+_.values(jsonized).join("','")+"');"
+    var query = "INSERT INTO "+prefix+item.collection + " ("+_.keys(jsonized).join(",")+") VALUES ('"+_.values(jsonized).join("','")+"');";
     connection.query(query , function(err, result) {
         if (err) {
             throw err;
@@ -52,25 +49,26 @@ function insert (connection, item, callback) {
 }
 
 exports.save = function (item, callback) {
-    var query = null
+    var query = null;
     pool.getConnection(function(err, connection) {
-        try {
-            if (err) {
-                throw err;
-            } else {
+        if (err) {
+            console.error("save/getConnection error:" + error +"\n"+query);
+            callback (false);
+        } else {
+            try {
                 if (typeof item.get(item.key) !== "undefined") {
                     update(connection,item,callback);
                 } else {
                     insert (connection, item, callback);
                 }
+                connection.end();
+            } catch (error) {
+                console.error("save error:" + error +"\n"+query);
+                callback (false);
             }
-            connection.end();
-        } catch (error) {
-            console.error("save error:" + error +"\n"+query);
-            callback (false);
         }
     });
-}
+};
 
 function sanitizeJSONObject (item) {
     var json = item.toJSON();
@@ -85,7 +83,7 @@ function parseJSON (JSONData, schema) {
     var newData = {};
     for (var key in schema) {
         if (JSONData[key]) {
-            var newValue = (JSONData[key]) //TODO: convert back' and "
+            var newValue = (JSONData[key]); //TODO: convert back' and "
             newData[key] = schema[key]!="array" ? newValue : JSON.parse(newValue);
         }
     }
@@ -97,25 +95,26 @@ exports.getItem = function (sampleModel,key,callback) {
     exports.query ("SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1", function(rows) {
         callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
     });
-}
+};
 
 exports.getItems = function (sampleModel,queryOptions,callback) {
     //TODO: parse queryOptions to get SORTBY and WHERE filters
     exports.query ("SELECT * FROM "+prefix+sampleModel.collection, function(rows) {
-        var schema =sampleModel.schema
+        var schema =sampleModel.schema;
         rows.forEach(function(value,key,array) {
             array[key] = parseJSON(value, schema);
         });
         callback(rows);
     });
-}
+};
 
 exports.query = function (query,callback) {
     pool.getConnection(function(err, connection) {
-        try {
-            if (err) {
-                throw err;
-            } else {
+        if (err) {
+            console.error("query/getConnection error:" + error);
+            callback (false);
+        } else {
+            try {
                 connection.query(query , function(err, rows) {
                     if (err) {
                         throw err;
@@ -127,11 +126,11 @@ exports.query = function (query,callback) {
                         callback (false);
                     }
                 });
+                connection.end();
+            } catch (error) {
+                console.error("query error:" + error);
+                callback (false);
             }
-            connection.end();
-        } catch (error) {
-            console.log("query error:" + error);
-            callback (false);
         }
     });
-}
+};
