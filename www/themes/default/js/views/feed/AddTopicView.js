@@ -1,7 +1,7 @@
 Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
     initialize : function () {
         this.setElement("#add_topic");
-        _.bindAll(this,"onsubmit","onSlugKeyUp","cancel","setup");
+        _.bindAll(this,"onsubmit","onSlugKeyUp","onTitleKeyUp","updateTitleCharsLeft","close","setup");
     },
 
     render : function(callback) {
@@ -21,13 +21,26 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
     },
 
     setup: function (callback) {
+        this.titleCharsleft = $("#topic_title_chars_left");
+        var titleField =document.getElementById("topic_title");
+        this.updateTitleCharsLeft(titleField);
+        titleField.onkeyup = this.onTitleKeyUp;
         document.getElementById("form_add_topic").onsubmit = this.onsubmit;
         document.getElementById("slug").onkeyup = this.onSlugKeyUp;
-        document.getElementById("button_cancel").onclick = this.cancel;
+        document.getElementById("button_cancel").onclick = this.close;
+
         if (callback){
             callback();
         }
         return this;
+    },
+
+    updateTitleCharsLeft: function (titleField) {
+        this.titleCharsleft.html(titleField.maxLength-titleField.value.length);
+    },
+
+    onTitleKeyUp : function (event) {
+        this.updateTitleCharsLeft(event.target);
     },
 
     onSlugKeyUp : function(event) {
@@ -52,13 +65,12 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
                 transform($("#messages"),"<message type='error' message='"+result.error+"' />");
             } else {
                 $("#messages").html("");
-                //TODO: refresh feed
             }
         });
         return false;
     },
 
-    cancel : function () {
+    close : function () {
         document.getElementById("form_add_topic").remove();
         return false;
     }

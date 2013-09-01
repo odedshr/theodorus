@@ -7,7 +7,14 @@ Theodorus.namespace("feed").AddTopicController =  Class.extend({
 
     submit: function (action,data, callback) {
         //TODO: validate data prior sending, not need to check slug availability
-        $.post(action,data,callback);
+        var This = this;
+        $.post(action,data,function (result) {
+            callback(result);
+            if (!result.error) {
+                This.view.close();
+                alert ("refreshing the feed not yet implemented. please refresh manually");
+            }
+        });
     },
 
     isSlugAvailable: function (slug, callback) {

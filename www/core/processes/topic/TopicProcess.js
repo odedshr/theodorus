@@ -60,7 +60,7 @@ function addTopic(req,res) {
                     } else {
                         io.db.save(topic,function (result,error){
                             if (result) {
-                                io.jsonAppend({"error":"success", "topic":result.toJSON()},res);
+                                io.jsonAppend(result.toJSON(),res);
                             } else {
                                 console.error("error saving topic" + JSON.stringify(error));
                                 io.jsonAppend({"error":error},res);

@@ -59,7 +59,7 @@
                     <button class="tag"><span>תיירות</span></button>
                 </form>
                 <xsl:if test="addTopic">
-                    <a id="link_suggest_topic" href="/topics/add"><xsl:value-of select="$link_suggest_topic" /></a>
+                    <a id="link_suggest_topic" href="/topics/add" class="button"><xsl:value-of select="$link_suggest_topic" /></a>
                 </xsl:if>
             </header>
             <div id="feed">
@@ -72,6 +72,7 @@
                 <div>
                     <label><xsl:value-of select="$lbl_topic_title" /></label>
                     <textarea name="title" id="topic_title" maxlength="140" required="required" pattern="{{5,}}" placeholder="{$example_topic_title}" />
+                    <div><span id="topic_title_chars_left"/><span><xsl:value-of select="$characters_left" /></span></div>
                 </div>
                 <div>
                     <label><xsl:value-of select="$lbl_topic_slug" /></label>
