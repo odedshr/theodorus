@@ -1,6 +1,7 @@
 @import "elements";
 @import "reset.css";
 @import "404";
+@import "../fonts/carmelit/stylesheet.css";
 
 @headerHeight : 4.5rem;
 @elementBorder : #aaa;
@@ -47,6 +48,7 @@
 body {
   background-color:white;
   direction:rtl;
+  font-family: 'carmelit_regularregular', 'arial','halvetica';
 
   input[type="email"], input[type="password"] { direction: ltr; }
 }
@@ -59,6 +61,30 @@ input:required:invalid, input:focus:invalid {
 
 /*input:valid { background-color: green; }
 input:invalid { background-color: red; }*/
+
+a.button {
+  background-color: @theodorusColor;
+  border: 0.1rem solid @elementBorder;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0 0.5rem;
+  line-height: 2rem;
+  margin: 0.5rem 0 0 0.5rem;
+  display: block;
+  float: left;
+}
+a.button:hover {
+  background-color: white;
+  color: #677f8f;
+  border: 0.2rem solid;
+  padding: 0 0.35rem;
+  line-height: 1.8rem;
+}
+a.button:active {
+  padding: 0.3rem 0.5rem;
+  margin: 0.2rem;
+}
 
 header {
   .drop-shadow(5px 5px, 3px, rgba(0, 0, 0, 0.6));
@@ -83,30 +109,6 @@ header {
 
   #account { float: left;
     width:20rem;
-
-    a.button {
-      background-color: @theodorusColor;
-      border: 0.1rem solid @elementBorder;
-      color: white;
-      cursor: pointer;
-      text-decoration: none;
-      padding: 0 0.5rem;
-      line-height: 2rem;
-      margin: 0.5rem 0 0 0.5rem;
-      display: block;
-      float: left;
-    }
-    a.button:hover {
-      background-color: white;
-      color: #677f8f;
-      border: 0.2rem solid;
-      padding: 0 0.35rem;
-      line-height: 1.8rem;
-    }
-    a.button:active {
-      padding: 0.3rem 0.5rem;
-      margin: 0.2rem;
-    }
 
     #menu {
       background-image: url(/ui/img/glyphicons-halflings.png);
@@ -197,6 +199,7 @@ header {
   padding:1rem;
 }
 
+#link_suggest_topic { clear: both; }
 #form_add_topic {
   #topic_complete_slug { display:block; direction: ltr; }
 }
