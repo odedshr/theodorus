@@ -111,7 +111,7 @@ exports.getItems = function (sampleModel,queryOptions,callback) {
 exports.query = function (query,callback) {
     pool.getConnection(function(err, connection) {
         if (err) {
-            console.error("query/getConnection error:" + error);
+            console.error("query/getConnection error:" + err);
             callback (false);
         } else {
             try {
