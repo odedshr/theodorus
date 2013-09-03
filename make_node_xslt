@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd www/node_modules/node_xslt/
+node-gyp rebuild
+cd ../../..
