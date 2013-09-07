@@ -1,6 +1,6 @@
 Theodorus.namespace("feed").AddTopicController =  Class.extend({
-    init: function (parent) {
-        this.parent = parent;
+    init: function (io) {
+        this.io = io;
         this.view = new Theodorus.feed.AddTopicView();
         this.view.setController(this);
     },
@@ -12,7 +12,7 @@ Theodorus.namespace("feed").AddTopicController =  Class.extend({
             callback(result);
             if (!result.error) {
                 This.view.close();
-                alert ("refreshing the feed not yet implemented. please refresh manually");
+                This.io.refreshFeed();
             }
         });
     },
@@ -21,18 +21,16 @@ Theodorus.namespace("feed").AddTopicController =  Class.extend({
         if (slug.length===0) {
             callback({"result":"slug-is-too-short"});
         } else if (Topic.isSlugValid(slug)) {
-            //TODO: check server side if it's actually available!!
-            callback({"result":"slug-is-available"});
+            $.get("/*"+slug+"/exists",function(output) {
+                callback(output);
+            });
         } else {
             callback({"result":"slug-is-invalid"});
         }
     },
 
     URLPrefix: function () {
-        return document.URL.match(/^http[s]?:\/\/[a-zA-Z0-9\.\-_]*(:(\d)*)?\//)[0] + "*";
-    },
-
-    me: function () {
-        return this.parent.me();
+        var matches = document.URL.match(/^http[s]?:\/\/[a-zA-Z0-9\.\-_]*(:(\d)*)?\//);
+        return matches[0] + "*";
     }
 });

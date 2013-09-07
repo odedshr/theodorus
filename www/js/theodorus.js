@@ -1,56 +1,44 @@
 ////////////////////////////////////////////////////
 
 var Theodorus = _.extend({}, {
-
     init : function () {
-        this.docUrl = document.URL.replace(/^http[s]?:\/\/[a-zA-Z0-9._-]*(:(\d)*)?\//,"");
-
         $.ajaxSetup({ // all jquery.ajax communications should be json
             contentType: "application/json; charset=utf-8",
             dataType: "json"
         });
+        this.io.refreshFeed = this.io.refreshFeed.bind(this);
+        this.io.openPage = this.io.openPage.bind(this);
 
-        switch (this.docUrl.split("/")[0]) {
+        window.addEventListener('popstate', this.parseURL.bind(this), false);
+    },
+
+    parseURL : function () {
+        var docURL = document.URL.replace(/^http[s]?:\/\/[a-zA-Z0-9._-]*(:(\d)*)?\//,"");
+        this.io.docURL = docURL;
+        switch (docURL.split("/")[0]) {
+            case "test": break;
             case "signout": break;
-            case "signin": this.app = new this.user.SigninController (this); break;
-            case "signup": this.app = new this.user.SignupController (this); break;
+            case "signin": this.app = new this.user.SigninController (this.io); break;
+            case "signup": this.app = new this.user.SignupController (this.io); break;
             default:
-                if (this.docUrl.substr(0,1)=="*" || this.docUrl.indexOf("topics")==0) {
-                    alert ("open topic");
+                if (docURL.substr(0,1)=="*" || docURL.indexOf("topics")==0) {
+                    //this.app = new this.topic.TopicController (this.io);
+                    alert (docURL);
                 } else {
-                    this.app = new this.feed.FeedController (this);
+                    this.app = new this.feed.FeedController (this.io);
+                }
+                if (this.io.user) {
+                    this.app.render();
+                } else {
                     $.get("/me", this.onAccountLoaded);
                 }
                 break;
         }
-        _.bindAll(this,"onAccountLoaded");
     },
 
     onAccountLoaded : function (accountData) {
-        this.currentUser = new User.Account(accountData);
+        this.io.user = new User.Account(accountData);
         this.app.render();
-    },
-
-    refresh : function () {
-        var userXML = "";
-        var temp = "guest";
-        switch (temp) { //Credentials.user.status
-            case "signUp": jQuery.getScript("/core/EditUserDetailsController.js"); break;
-            case "active": userXML = User.xml();
-            case "guest":
-            default:
-                transform("#main","<page type=\"mainfeed\">"+userXML+"</page>",function (){
-                    var clickButtons = function (event) { return !ExternalWindow.open (event.target.href, function (data) { alert ("I got here " +JSON.stringify(data))} ); };
-                    document.getElementById("btn_signin").onclick =clickButtons;
-                    document.getElementById("btn_signup").onclick =clickButtons;
-                    document.getElementById("btn_signout").onclick = function () {$.delete("/me", function () { alert ("here"); })};
-                });
-                break;
-        }
-    },
-
-    me: function () {
-        return this.currentUser;
     },
 
     log : function log() {
@@ -63,6 +51,27 @@ var Theodorus = _.extend({}, {
                 alert(Array.prototype.join.call( arguments, " "));
             }
         }
+    },
+
+    /*
+        ClientController is the API from any controller back to the here, thus creating io-center.
+     */
+    io: {
+      docURL:null,
+      message: function(){},
+      notification: function(){},
+      refreshFeed: function () {
+          if (this.app.reload) {
+              this.app.refreshTopicList();
+          }
+      },
+      openPage: function (url, title, callback) {
+          window.history.pushState({"state":url}, event.target.innerHTML, url);
+          alert ("openPage");
+          this.parseURL();
+          (callback && callback());
+      },
+      user: null
     },
 
     namespace : function (name) {
@@ -80,5 +89,5 @@ var Theodorus = _.extend({}, {
     }
 });
 
-_.bindAll(Theodorus, "refresh","init","namespace", "onAccountLoaded");
+_.bindAll(Theodorus, "init","namespace", "onAccountLoaded","parseURL");
 $(window).load(Theodorus.init) ;

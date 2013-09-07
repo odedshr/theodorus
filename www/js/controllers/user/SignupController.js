@@ -1,8 +1,8 @@
 var MIN_PASSWORD_LENGTH = 3;
 
 Theodorus.namespace("user").SignupController =  Class.extend({
-    init: function (parent) {
-        this.parent = parent;
+    init: function (io) {
+        this.parent = io;
         this.view = new Theodorus.user.SignupView();
         this.view.setController(this);
         this.callback = ExternalWindow.windowCallback;
@@ -36,6 +36,7 @@ Theodorus.namespace("user").SignupController =  Class.extend({
                 }
 
             });
+            return {};
         }
     },
 
@@ -51,9 +52,5 @@ Theodorus.namespace("user").SignupController =  Class.extend({
         } else {
             return 0; //console.log ("password is too weak");
         }
-    },
-
-    me: function () {
-        return this.parent.me;
     }
 });

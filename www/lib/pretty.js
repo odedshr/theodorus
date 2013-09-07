@@ -12,7 +12,7 @@ function prettyDate(time){
 		day_diff = Math.floor(diff / 86400);
 			
 	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 )
-		return;
+		return time;
 			
 	return day_diff == 0 && (
 			diff < 60 && "just-now" ||
@@ -28,8 +28,8 @@ function prettyDate(time){
 		day_diff == 1 && "yesterday" ||
         day_diff == 2 && "two-days-ago" ||
 		day_diff < 7 && day_diff + "-days-ago" ||
-        day_diff < 14 && day_diff + "a-week-ago" ||
-        day_diff < 21 && day_diff + "two-week-ago" ||
+        day_diff < 14 && "a-week-ago" ||
+        day_diff < 21 && "two-week-ago" ||
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + "-weeks-ago";
 }
 

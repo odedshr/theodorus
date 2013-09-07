@@ -1,13 +1,13 @@
 Theodorus.namespace("feed").FeedController =  Class.extend({
-    init: function (parent) {
-        _.bindAll(this, "openAddTopicWindow");
+    init: function (io) {
+        _.bindAll(this, "openAddTopicWindow","refreshTopicList");
 
-        this.parent = parent;
+        this.io = io;
         this.view = new Theodorus.feed.FeedView();
         this.view.setController(this);
 
-        this.account = new Theodorus.user.AccountController(this);
-        this.topics = new Theodorus.feed.TopicListController(this);
+        this.account = new Theodorus.user.AccountController(io);
+        this.topics = new Theodorus.feed.TopicListController(io);
 
         // init sub units
         /*
@@ -28,13 +28,14 @@ Theodorus.namespace("feed").FeedController =  Class.extend({
     },
 
     openAddTopicWindow: function () {
-        this.addTopic = new Theodorus.feed.AddTopicController(this);
+        this.addTopic = new Theodorus.feed.AddTopicController(io);
         this.addTopic.view.setAsPopUp(true);
         this.addTopic.view.render();
     },
 
-    me: function () {
-        return this.parent.me();
+    refreshTopicList: function () {
+        alert ("?");
+        this.topics.load();
     }
 });
 

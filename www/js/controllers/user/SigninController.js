@@ -1,6 +1,6 @@
 Theodorus.namespace("user").SigninController =  Class.extend({
-    init: function (parent) {
-        this.parent = parent;
+    init: function (io) {
+        this.parent = io;
         this.view = new Theodorus.user.SigninView();
         this.view.setController(this);
         this.callback = ExternalWindow.windowCallback;
@@ -24,9 +24,5 @@ Theodorus.namespace("user").SigninController =  Class.extend({
             }
 
         });
-    },
-
-    user: function () {
-        return this.parent.user;
     }
 });

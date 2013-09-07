@@ -224,7 +224,16 @@ header {
     margin:0.2rem;
     width: 98%;
 
-    .title { padding: 0.5rem 0.5rem 0 0.5rem; }
+    .title {
+      color: #333;
+      display: block;
+      padding: 0.5rem 0.5rem 0 0.5rem;
+      text-decoration: none;
+    }
+    .title:hover {
+      color: #000080;
+      text-decoration: underline;
+    }
     .title:before { content: open-quote;   }
     .title:after { content: close-quote;   }
     .created {
@@ -237,6 +246,26 @@ header {
       font-size:0.9rem;
       float:left;
       padding: 0 0.5rem 0 0.5rem;
+    }
+    .button-action {
+      .rounded(0.2rem);
+      background-color:#ececec;
+      border:1px solid @elementBorder;
+      color: #333;
+      display:block;
+      float:right;
+      font-size:0.8rem;
+      height:1rem;
+      line-height: 1.2rem;
+      margin: 0 0.2rem 0.2rem 0;
+      padding: 0 0.2rem 0 0.2rem;
+      text-decoration: none;
+      .count:not(:empty):before { content: " ("; }
+      .count:not(:empty):after { content: ")"; }
+    }
+    .button-action.pressed {
+      .inner-shadow();
+      background-color:@elementBorder;
     }
   }
 }
@@ -298,4 +327,52 @@ only screen and (max-device-width : 399px){
     float:left;
     button { float: left; }
   }
+}
+
+#item_not_found {
+  .rounded(0.2rem);
+  .drop-shadow(0.5rem,0.5rem,2rem,0.5);
+  background-color:white;
+  border:1px solid @elementBorder;
+  margin:0 auto 0 auto;
+  padding:1rem;
+  position: relative;
+  top:1rem;
+  width:40rem;
+
+  li { display: block; }
+  #instructions {
+
+  }
+}
+#unitTests {
+  direction: ltr;
+  background-color:white;
+  border:1px solid @elementBorder;
+  margin:1rem;
+  th {
+    font-size:1rem;
+    padding:0.5rem;
+  }
+  td {
+    font-size:0.8rem;
+    padding:0.2rem;
+  }
+  td, th {
+    border-left: 1px solid @elementBorder;
+    border-bottom: 1px solid @elementBorder;
+  }
+  td:first-child, th:first-child {
+    border-left: none;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .process{ width: 10rem; }
+  .method { width: 10rem; }
+  .url    { width: 10rem; }
+  .input  { width: 10rem; }
+  .expectedOutput {width: 10rem; }
+  .output { width: 10rem; }
+  .result { width: 10rem; }
 }

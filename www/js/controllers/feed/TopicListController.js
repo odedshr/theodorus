@@ -1,10 +1,10 @@
 Theodorus.namespace("feed").TopicListController =  Class.extend({
-    init: function (parent) {
-        this.parent = parent;
+    init: function (io) {
+        this.io = io;
         this.view = new Theodorus.feed.TopicListView();
         this.view.setController(this);
         this.collection = new Topics();
-        _.bindAll(this,"load","loadCallback");
+        _.bindAll(this,"load","loadCallback","openTopic");
     },
 
     loadCallback: function() { // collection, response, options
@@ -25,11 +25,25 @@ Theodorus.namespace("feed").TopicListController =  Class.extend({
         });
     },
 
-    render: function () {
-        this.view.render();
+    render: function (callback) {
+        this.view.render(function (){
+            if (callback) {
+                callback();
+            }
+        });
     },
 
-    me: function () {
-        return this.parent.me();
+    sendFeedback: function(action, callback) {
+        $.get(action,function(output){
+            callback(output ? output : {"error":"no-result"});
+        });
+    },
+
+    openTopic: function (url,title, callback) {
+        this.io.openPage(url,title,function () {
+            if (callback) {
+                callback();
+            }
+        });
     }
 });

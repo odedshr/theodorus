@@ -12,7 +12,8 @@
         <!ENTITY euro   "&#8364;">
         ]>
     <xsl:stylesheet id="sheet" version="1.0"
-                    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                    xmlns:exslt="http://exslt.org/common">
         <xsl:output method="html" encoding="UTF-8"/>
 
         <xsl:template match="mainfeed">
@@ -59,7 +60,7 @@
                     <button class="tag"><span>תיירות</span></button>
                 </form>
                 <xsl:if test="addTopic">
-                    <a id="link_suggest_topic" href="/topics/add" class="button"><xsl:value-of select="$link_suggest_topic" /></a>
+                    <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
                 </xsl:if>
             </header>
             <div id="feed">
@@ -78,50 +79,77 @@
                     <label><xsl:value-of select="$lbl_topic_slug" /></label>
                     <span id="topic_complete_slug">
                         <span id="slug_prefix"><xsl:value-of select="@prefix" /></span>
-                        <input type="text" name="slug" id="slug" placeholder="{$example_topic_title_slug}" pattern="[a-zA-Z0-9\.\-_\$]{{0,140}}"></input>
+                        <input type="text" name="slug" id="slug" placeholder="{$example_topic_title_slug}" pattern="[a-zA-Z0-9\.\-_\$]{{0,140}}" />
                         <div id="slug_result" />
                     </span>
                 </div>
                 <div>
                     <label><xsl:value-of select="$lbl_topic_tags" /></label>
-                    <input type="text" name="tags" id="topic_tags" placeholder="{$example_topic_tags}"></input>
+                    <input type="text" name="tags" id="topic_tags" placeholder="{$example_topic_tags}" />
                 </div>
                 <div>
-                    <button id="button_suggest"><xsl:value-of select="$btn_suggest" /></button>
-                    <button id="button_cancel" type="reset"><xsl:value-of select="$btn_cancel" /></button>
+                    <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
+                    <button id="button_cancel" type="reset" accesskey="x"><xsl:value-of select="$btn_cancel" /></button>
                 </div>
             </form>
         </xsl:template>
 
         <xsl:template match="slugTest">
             <xsl:variable name="vSelector" select="@result"/>
-            <xsl:variable name="resultMessage" select="ext:node-set($slugResults)/*[@type=$vSelector]"/>
-            <xsl:if test="count(ext:node-set($slugResults)/*[@type=$vSelector]) &gt; 0">
+            <xsl:variable name="resultMessage" select="exslt:node-set($slugResults)/*[@type=$vSelector]"/>
+            <xsl:if test="count(exslt:node-set($slugResults)/*[@type=$vSelector]) &gt; 0">
                 <xsl:value-of select="$resultMessage"/>
             </xsl:if>
         </xsl:template>
 
         <xsl:template match="topics">
             <ul>
-                <xsl:apply-templates match="topic" />
+                <xsl:apply-templates select="topic" />
             </ul>
         </xsl:template>
 
         <xsl:template match="topic">
             <xsl:variable name="vSelector" select="created"/>
-            <xsl:variable name="prettyCreated" select="ext:node-set($timestamps)/*[@id=$vSelector]"/>
-            <!--<xsl:variable name="prettyCreated">
+            <!--<xsl:variable name="prettyCreated" select="exslt:node-set($timestamps)/*[@id=$vSelector]"/> -->
+            <xsl:variable name="prettyCreated">
                 <xsl:call-template name="string-replace-all">
-                    <xsl:with-param name="text" select="ext:node-set($timestamps)/*[@type=$vSelector]" />
+                    <xsl:with-param name="text" select="exslt:node-set($timestamps)/*[@id=$vSelector]" />
                     <xsl:with-param name="replace" select="'#'" />
                     <xsl:with-param name="by" select="created/@value" />
                 </xsl:call-template>
-            </xsl:variable>-->
+            </xsl:variable>
 
             <li class="topic">
-                <div class="title"><xsl:value-of select="title" /></div>
+                <a href="{url}" class="title"><xsl:value-of select="title" /></a>
                 <a class="inititiator"><xsl:value-of select="user/display_name" /></a>
                 <time class="created" datetime="{created/@timestamp}"><xsl:value-of select="$prettyCreated" /></time>
+                <div class="actions">
+                    <a class="button-action" href="{url}/endorse">
+                        <xsl:if test="endorse/@me = 'true'">
+                            <xsl:attribute name="href">/<xsl:value-of select="url"/>/unendorse</xsl:attribute>
+                            <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="$btn_endorse" />
+                        <span class="count"><xsl:value-of select="endorse" /></span>
+
+                    </a>
+                    <a class="button-action" href="{url}/follow">
+                        <xsl:if test="follow/@me = 'true'">
+                            <xsl:attribute name="href">/<xsl:value-of select="url"/>/unfollow</xsl:attribute>
+                            <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="$btn_follow" />
+                        <span class="count"><xsl:value-of select="follow" /></span>
+                    </a>
+                    <a class="button-action" href="{url}/report">
+                    <xsl:if test="report/@me = 'true'">
+                        <xsl:attribute name="href">/<xsl:value-of select="url"/>/unreport</xsl:attribute>
+                        <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                    </xsl:if>
+                    <xsl:value-of select="$btn_report" />
+                    <span class="count"><xsl:value-of select="report" /></span>
+                </a>
+                </div>
             </li>
         </xsl:template>
     </xsl:stylesheet>

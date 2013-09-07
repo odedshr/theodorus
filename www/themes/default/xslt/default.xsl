@@ -13,7 +13,7 @@
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:ext="http://exslt.org/common">
+                xmlns:exslt="http://exslt.org/common">
     <xsl:import href="common.xsl" />
     <xsl:output method="html" encoding="UTF-8"/>
 
@@ -48,18 +48,18 @@
         <timeLabel id="just-now">הרגע</timeLabel>
         <timeLabel id="a-minute-ago">לפני דקה</timeLabel>
         <timeLabel id="two-mintues-ago">לפני דקותיים</timeLabel>
-        <timeLabel id="x-minutes-ago">לפני # דקות</timeLabel>
+        <timeLabel id="#-minutes-ago">לפני # דקות</timeLabel>
         <timeLabel id="quarter-of-an-hour-ago">לפני רבע שעה</timeLabel>
         <timeLabel id="half-an-hour-ago">לפני חצי שעה</timeLabel>
         <timeLabel id="an-hour-ago">לפני שעה</timeLabel>
         <timeLabel id="two-hours-ago">לפני שעתיים</timeLabel>
-        <timeLabel id="x-hours-ago">לפני # שעות</timeLabel>
+        <timeLabel id="#-hours-ago">לפני # שעות</timeLabel>
         <timeLabel id="yesterday">אתמול</timeLabel>
         <timeLabel id="two-days-ago">שלשום</timeLabel>
-        <timeLabel id="x-days-ago">לפני # ימים</timeLabel>
-        <timeLabel id="a-weeks-ago">לפני שבוע</timeLabel>
+        <timeLabel id="#-days-ago">לפני # ימים</timeLabel>
+        <timeLabel id="a-week-ago">לפני שבוע</timeLabel>
         <timeLabel id="two-weeks-ago">לפני שבועיים</timeLabel>
-        <timeLabel id="x-weeks-ago">לפני # שבועות</timeLabel>
+        <timeLabel id="#-weeks-ago">לפני # שבועות</timeLabel>
     </xsl:variable>
 
     <xsl:param name="title_signin" select="'תיאודורוס: התחברות'"/>
@@ -142,6 +142,20 @@
     <xsl:param name="btn_suggest" select="'הצע'"/>
 
     <xsl:param name="link_suggest_topic" select="'הצע רעיון'"/>
+    <xsl:param name="btn_endorse" select="'תמוך'"/>
+    <xsl:param name="btn_follow" select="'עקוב'"/>
+    <xsl:param name="btn_report" select="'דווח'"/>
+
+    <xsl:param name="file_not_found_title" select="'הפריט שחיפשת לא קיים'"/>
+    <xsl:param name="file_not_found-what_to_do">
+        <p>עימך הסליחה, אבל הפריט אליו ניסית לגשת לא קיים</p>
+        <ul>
+            <li>ייתכן ויש שגיאה בכתובת?</li>
+            <li>ייתכן והלינק לא מעודכן?</li>
+        </ul>
+        <p>חזור ל<a href="/">דף הראשי</a></p>
+    </xsl:param>
+
 
     <xsl:template match="/">
         <xsl:apply-templates />
