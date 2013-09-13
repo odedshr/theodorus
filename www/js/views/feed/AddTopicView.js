@@ -60,14 +60,9 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
     },
 
     onsubmit : function (event) {
-        var jMessages = $("#messages")
-        transform(jMessages,"<message type='info' message='sending-data' />");
+        io.notify("info","sending-data");
         this.controller.submit(event.target.action, getFormFields(event.target), function (result) {
-            if (result.error) {
-                transform(jMessages,"<message type='error' message='"+result.error+"' />");
-            } else {
-                jMessages.html("");
-            }
+            io.notify("error",result.error);
         });
         return false;
     },

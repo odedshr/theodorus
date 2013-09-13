@@ -2,16 +2,14 @@
 
 clear
 
-readyjs ./www/core/models -o theodorus.models.min.js
+readyjs ./www/js/models -o theodorus.models.min.js
 mv theodorus.models.min.js ./www/js
 
 readyjs ./www/js/controllers -o theodorus.controllers.min.js
 mv theodorus.controllers.min.js ./www/js
 
-readyjs ./www/themes/default/js/views -o theodorus.views.min.js
-mv theodorus.views.min.js ./www/themes/default/js
-
-export theodorus_config_file=~/git/theodorus.config.json
+readyjs ./www/js/views -o theodorus.views.min.js
+mv theodorus.views.min.js ./www/js
 
 # Invoke the Forever module (to START our Node.js server).
 ./www/node_modules/forever/bin/forever \
@@ -19,4 +17,4 @@ start \
 -al forever.log \
 -ao logs/out.log \
 -ae logs/err.log \
-./www/server.js
+./www/web.js

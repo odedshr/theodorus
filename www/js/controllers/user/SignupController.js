@@ -42,15 +42,15 @@ Theodorus.namespace("user").SignupController =  Class.extend({
 
     verifyPasswordComplexity : function (password) {
         if (/(?=^.{8,}$)(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(password)) {
-            return 4; //console.log ("password is Super Secure Complex Password");
+            return 4; //password is Super Secure Complex Password
         } else if (/(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(password)) {
-            return 3; //console.log ("password is complex");
+            return 3; //password is complex
         } else if (/(?=^.{6,}$)(?=.*\d)(?=.*[A-Za-z]).*$/.test(password)) {
-            return 2; //console.log ("password is moderate");
+            return 2; //password is moderate
         } else if (/[a-zA-Z0-9\_\-]{3,}$/i.test(password)) {
-            return 1; //console.log ("password is weak");
+            return 1; //password is weak
         } else {
-            return 0; //console.log ("password is too weak");
+            return 0; //password is too weak
         }
     }
 });

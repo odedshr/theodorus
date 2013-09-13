@@ -70,7 +70,7 @@ a.button {
   text-decoration: none;
   padding: 0 0.5rem;
   line-height: 2rem;
-  margin: 0.5rem 0 0 0.5rem;
+  margin: 0.5rem;
   display: block;
   float: left;
 }
@@ -177,40 +177,24 @@ header {
 }
 
 #feed {
-  padding-top:@headerHeight+0.5rem
+  padding-top:@headerHeight+0.5rem;
+  margin: 0 auto;
+  width: 100rem;
 }
 
-#popup_placeholder:not(:empty) {
-  .align(center, center);
-  .gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.65), rgba(0,0,0,0.85));
-  height:100%;
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  z-index:101;
-
-}
-#popup_placeholder > :first-child {
-  .rounded(0.5rem);
-  .drop-shadow(0.5rem,0.5rem,2rem,0.5);
+#sidebar {
   background-color:white;
-  border:1px solid #333;
-  padding:1rem;
-}
-
-#link_suggest_topic { clear: both; }
-#form_add_topic {
-  #topic_complete_slug { display:block; direction: ltr; }
+  float: left;
+  padding:0.2rem;
+  width: 12rem;
 }
 
 #topics {
-  width: 1200px;
-  margin: 0 auto;
+  width: 87.5rem;
 
   ul {
     .columns(6,0.1rem);
-    width: 1200px;
+    width: 100%;
   }
 
   .topic {
@@ -305,6 +289,30 @@ only screen and (max-device-width : 399px){
   .responsiveTopicList (1, 200px);
 }
 
+#link_suggest_topic { clear: both; }
+#form_add_topic {
+  #topic_complete_slug { display:block; direction: ltr; }
+}
+
+#popup_placeholder:not(:empty) {
+  .align(center, center);
+  .gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.65), rgba(0,0,0,0.85));
+  height:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:101;
+
+}
+#popup_placeholder > :first-child {
+  .rounded(0.5rem);
+  .drop-shadow(0.5rem,0.5rem,2rem,0.5);
+  background-color:white;
+  border:1px solid #333;
+  padding:1rem;
+}
+
 .form_authentication {
   h2 {
     display: block;
@@ -350,6 +358,9 @@ only screen and (max-device-width : 399px){
   background-color:white;
   border:1px solid @elementBorder;
   margin:1rem;
+  .result-true   { background-color: palegreen; }
+  .result-false  { background-color: lightpink; }
+  .result-na     { background-color: #ffff66; }
   th {
     font-size:1rem;
     padding:0.5rem;

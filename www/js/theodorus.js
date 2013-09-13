@@ -22,8 +22,7 @@ var Theodorus = _.extend({}, {
             case "signup": this.app = new this.user.SignupController (this.io); break;
             default:
                 if (docURL.substr(0,1)=="*" || docURL.indexOf("topics")==0) {
-                    //this.app = new this.topic.TopicController (this.io);
-                    alert (docURL);
+                    this.app = new this.topic.TopicController (this.io);
                 } else {
                     this.app = new this.feed.FeedController (this.io);
                 }
@@ -58,8 +57,8 @@ var Theodorus = _.extend({}, {
      */
     io: {
       docURL:null,
-      message: function(){},
-      notification: function(){},
+      statusBar:$("#messages"),
+
       refreshFeed: function () {
           if (this.app.reload) {
               this.app.refreshTopicList();
@@ -67,9 +66,32 @@ var Theodorus = _.extend({}, {
       },
       openPage: function (url, title, callback) {
           window.history.pushState({"state":url}, event.target.innerHTML, url);
-          alert ("openPage");
           this.parseURL();
-          (callback && callback());
+          if (callback) {
+              callback()
+          }
+      },
+      notify: function(type,message) {
+          switch(type) {
+              case "notify":
+                  console.log(type+":"+message);
+                  break;
+              case "error":
+              case "info":
+                  if (typeof message=="undefined") {
+                      type="info";
+                      message="";
+                  }
+                  if (this.statusBar.size()==0) {
+                      this.statusBar = $(this.statusBar.selector);
+                  }
+                  transform(this.statusBar,"<message type='"+type+"' message='"+message+"' />");
+                  break;
+              case "announcement":
+              case "critical":
+                  alert (type+":" +message);
+                  break;
+          }
       },
       user: null
     },

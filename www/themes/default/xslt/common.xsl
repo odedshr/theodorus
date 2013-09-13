@@ -109,12 +109,12 @@
             <thead>
                 <tr>
                     <th class="process">Process</th>
+                    <th class="process">Test</th>
                     <th class="method">Method</th>
                     <th class="url">URL</th>
                     <th class="input">Input</th>
                     <th class="expectedOutput">Expected Output</th>
                     <th class="output">Output</th>
-                    <th class="result">Result</th>
                 </tr>
             </thead>
             <tbody>
@@ -124,14 +124,14 @@
     </xsl:template>
 
     <xsl:template match="test">
-        <tr>
+        <tr class="result-{result}">
             <td><xsl:value-of select="process" /></td>
+            <td><xsl:value-of select="name" /></td>
             <td><xsl:value-of select="method" /></td>
             <td><xsl:value-of select="url" /></td>
             <td><xsl:value-of select="input" /></td>
-            <td><xsl:value-of select="expectedOutput" /></td>
-            <td><xsl:value-of select="output" /></td>
-            <td><pre><xsl:value-of select="result" /></pre></td>
+            <td><pre><xsl:value-of select="expectedOutput" /></pre></td>
+            <td><pre><xsl:value-of select="output" /></pre></td>
         </tr>
     </xsl:template>
 

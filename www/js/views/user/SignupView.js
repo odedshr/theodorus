@@ -31,11 +31,9 @@ Theodorus.namespace("user").SignupView = Theodorus.View.extend({
     },
 
     onsubmit : function (event) {
-        transform($("#messages"),"<message type='info' message='sending-data' />");
+        io.notify("info","sending-data");
         this.controller.submit(event.target.action,getFormFields(event.target), function (result) {
-            if (result.error) {
-                transform($("#messages"),"<message type='error' message='"+result.error+"' />");
-            }
+            io.notify("error",result.error);
         });
         return false;
     },

@@ -38,11 +38,11 @@ var AccountProcess = (function () {
         },
 
         getSignInPage: function  (session,callback) {
-            callback ("<app>"+Theodorus.getScriptListXML()+"<signin /></app>");
+            callback ("<app>"+io.getScriptListXML()+"<signin /></app>");
         },
         getSignUpPage: function  (session,callback) {
             var input = session.input;
-            callback("<app>"+Theodorus.getScriptListXML()+"<signup>" +
+            callback("<app>"+io.getScriptListXML()+"<signup>" +
                 "<email>"+input.email+"</email>" +
                 "<password>"+(input.md5 ? "" : input.password)+"</password>" +
                 "<password_repeat>"+(input.md5 ? "" : input.password_repeat)+"</password_repeat>" +
@@ -50,38 +50,44 @@ var AccountProcess = (function () {
         },
 
         authenticate: function (session,callback) {
-            var input = session.input;
-            var failed = function () {
-                callback({"error":"bad-credentials"});
-            };
-            var email = input.email;
-            var password = input.password;
-            if ("true"!=input.md5) {
-                if (password.length==0) {
+            var input = session ? session.input : false,
+                failed = function () {
+                    callback({"error":"bad-credentials"});
+                };
+            if (!input || (typeof input === "undefined")) {
+                failed();
+            } else {
+                var email = input.email;
+                var password = input.password;
+                if (!email || email.length==0 || !password) {
                     failed();
                 } else {
-                    password= io.crypto.createHash('md5').update(password).digest('hex');
-                }
-            }
-            if (email.length==0) {
-                failed();
-            }
-            io.db.getCredentials(email,function (credentials) {
-                if (!credentials) { // email not listed
-                    failed();
-                } else  {
-                    if (credentials.get("password") != password) {
-                        failed();
-                    } else {
-                        //TODO: write last login date
-                        var userId = credentials.get("user_id");
-                        session.cookie(userId, input["remember"]);
-                        io.db.getAccount(userId,function (user) {
-                            callback((user ? user : new User()).toJSON());
-                        });
+                    if ("true"!=(input.md5+"")) {
+                        if (password.length==0) {
+                            failed();
+                        } else {
+                            password= io.crypto.createHash('md5').update(password).digest('hex');
+                        }
                     }
+
+                    io.db.getCredentials(email,function (credentials) {
+                        if (!credentials) { // email not listed
+                            failed();
+                        } else  {
+                            if (credentials.get("password") != password) {
+                                failed();
+                            } else {
+                                //TODO: write last login date
+                                var userId = credentials.get("user_id");
+                                session.cookie(userId, input["remember"]);
+                                io.db.getAccount(userId,function (user) {
+                                    callback((user ? user : new User()).toJSON());
+                                });
+                            }
+                        }
+                    });
                 }
-            });
+            }
         },
 
         createCredentials: function (session,callback) {
@@ -94,10 +100,10 @@ var AccountProcess = (function () {
             if ("true"!=input.md5) {
                 if (password.length<=io.config.minimum_password_length) {
                     callback({"error":"password-too-short"});
-                    return
+                } else {
+                    password= io.crypto.createHash('md5').update(password).digest('hex');
+                    passwordRepeat= io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
                 }
-                password= io.crypto.createHash('md5').update(password).digest('hex');
-                passwordRepeat= io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
             }
             var emailPattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             if (!emailPattern.test(email)) {

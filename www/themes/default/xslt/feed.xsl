@@ -59,11 +59,13 @@
                     <button class="tag"><span>תקשורת</span></button>
                     <button class="tag"><span>תיירות</span></button>
                 </form>
-                <xsl:if test="addTopic">
-                    <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
-                </xsl:if>
             </header>
             <div id="feed">
+                <div id="sidebar">
+                    <xsl:if test="addTopic">
+                        <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
+                    </xsl:if>
+                </div>
                 <div id="topics" />
             </div>
         </xsl:template>

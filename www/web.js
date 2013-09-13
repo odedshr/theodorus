@@ -1,4 +1,5 @@
-var config = require(process.env.theodorus_config_file),
+var appConfig = require("../application.json"),
+    config = require(appConfig.privateSettings),
     _ = require("underscore"),
     express = require('express'),
     xslt = require('node_xslt'),
@@ -11,7 +12,7 @@ app.use(express.cookieParser());
 app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
 });
 
-var TheodorusServer = (function () {
+var WebApplication = (function () {
     function Session(req,res) {
         this.req = req;
         this.res = res;
@@ -25,7 +26,7 @@ var TheodorusServer = (function () {
                     "userId": userId,
                     "remember": remember
                 });
-                this.res.cookie( config.cookie_token, TheodorusServer.rsa.generateKey(config.rsa_keys).encrypt(cookieString),
+                this.res.cookie( config.cookie_token, WebApplication.rsa.generateKey(config.rsa_keys).encrypt(cookieString),
                     { maxAge: remember ? 31536000000 : 900000, httpOnly: false}); // remember ? year : 15m
                 return true;
             } else {
@@ -43,7 +44,7 @@ var TheodorusServer = (function () {
             var This = this;
             this.req.on('data', function (data) { body +=data; });
             this.req.on('end',function(){
-                var data = (0<body.length) ? TheodorusServer.qs.parse(body) : {};
+                var data = (0<body.length) ? WebApplication.qs.parse(body) : {};
                 //TODO: sanitize input
                 This.input = data;
                 callback(data);
@@ -53,9 +54,9 @@ var TheodorusServer = (function () {
         this.useUserId =  function (callback) {
             var token = this.cookie(),
                 userId= false;
-            if (token = (token ? TheodorusServer.qs.unescape(token) : false)) {
+            if (token = (token ? WebApplication.qs.unescape(token) : false)) {
                 try {
-                    token = JSON.parse(TheodorusServer.rsa.generateKey(TheodorusServer.config.rsa_keys).decrypt(token));
+                    token = JSON.parse(WebApplication.rsa.generateKey(WebApplication.config.rsa_keys).decrypt(token));
                     if (token.ip==this.req.socket.remoteAddress) {
                         this.cookie(token.userId,token.remember); // re-set the cookie
                         userId = token.userId
@@ -70,7 +71,7 @@ var TheodorusServer = (function () {
 
         this.get404 = function () {
             res.status(404);
-            return this.isJSON ? { "error": 'item-not-found' } : "<app><fileNotFound /></app>";
+            return this.isJSON ? { "error": 'item-not-found' } : "<app >"+WebApplication.getScriptListXML()+"<fileNotFound /></app>";
         }
     }
 
@@ -82,74 +83,7 @@ var TheodorusServer = (function () {
         "rsa" : require("./js/RSA"),
 
         "getScriptList": function () {
-            return (this.config.mode=="dev") ? [
-                "/js/controllers/feed/TopicListController.js",
-                    "/js/controllers/feed/AddTopicController.js",
-                    "/js/controllers/feed/FeedController.js",
-                    "/js/controllers/feed/SearchController.js",
-                    "/js/controllers/feed/TagCloudController.js",
-                    "/js/controllers/moderator/IssueController.js",
-                    "/js/controllers/moderator/IssueListController.js",
-                    "/js/controllers/moderator/ModeratorController.js",
-                    "/js/controllers/tools/BugReportController.js",
-                    "/js/controllers/tools/MessageController.js",
-                    "/js/controllers/topic/comment/AddCommentController.js",
-                    "/js/controllers/topic/comment/CommentController.js",
-                    "/js/controllers/topic/comment/CommentListController.js",
-                    "/js/controllers/topic/AlternativeSectionController.js",
-                    "/js/controllers/topic/SectionController.js",
-                    "/js/controllers/topic/TopicContentController.js",
-                    "/js/controllers/topic/TopicController.js",
-                    "/js/controllers/topic/TopicTagsController.js",
-                    "/js/controllers/user/notification/NotificationController.js",
-                    "/js/controllers/user/notification/NotificationCountController.js",
-                    "/js/controllers/user/notification/NotificationListController.js",
-                    "/js/controllers/user/settings/ChangePasswordController.js",
-                    "/js/controllers/user/settings/ChangeProfilePictureController.js",
-                    "/js/controllers/user/settings/SettingsController.js",
-                    "/js/controllers/user/AccountController.js",
-                    "/js/controllers/user/UserController.js",
-                    "/js/controllers/user/ResetPasswordController.js",
-                    "/js/controllers/user/SigninController.js",
-                    "/js/controllers/user/SignupController.js",
-                    "/js/views/AbstractView.js",
-                    "/js/views/feed/TopicListView.js",
-                    "/js/views/feed/AddTopicView.js",
-                    "/js/views/feed/FeedView.js",
-                    "/js/views/feed/SearchCloudView.js",
-                    "/js/views/feed/TagCloudView.js",
-                    "/js/views/moderator/IssueView.js",
-                    "/js/views/moderator/IssueListView.js",
-                    "/js/views/moderator/ModeratorView.js",
-                    "/js/views/tools/BugReportView.js",
-                    "/js/views/tools/MessageView.js",
-                    "/js/views/topic/comment/AddCommentView.js",
-                    "/js/views/topic/comment/CommentView.js",
-                    "/js/views/topic/comment/CommentListView.js",
-                    "/js/views/topic/AlternativeParagraphView.js",
-                    "/js/views/topic/ParagraphView.js",
-                    "/js/views/topic/TopicContentView.js",
-                    "/js/views/topic/TopicView.js",
-                    "/js/views/topic/TopicTagsView.js",
-                    "/js/views/user/notification/NotificationView.js",
-                    "/js/views/user/notification/NotificationCountView.js",
-                    "/js/views/user/notification/NotificationListView.js",
-                    "/js/views/user/settings/ChangePasswordView.js",
-                    "/js/views/user/settings/ChangeProfilePictureView.js",
-                    "/js/views/user/settings/SettingsView.js",
-                    "/js/views/user/AccountView.js",
-                    "/js/views/user/UserView.js",
-                    "/js/views/user/ResetPasswordView.js",
-                    "/js/views/user/SigninView.js",
-                    "/js/views/user/SignupView.js",
-                    "/js/models/AbstractModel.js",
-                    "/js/models/Topic.js",
-                    "/js/models/Credentials.js",
-                    "/js/models/User.js"] : [
-                "/js/theodorus.models.min.js",
-                "/js/theodorus.controllers.min.js",
-                "/js/theodorus.views.min.js"
-            ];
+            return (this.config.mode=="dev") ? appConfig.clientScripts : appConfig.clientScriptsDebug;
 
         },
         "getScriptListXML": function () {
@@ -205,25 +139,21 @@ var TheodorusServer = (function () {
         },
         "initProcesses": function () {
             var This = this;
-            [   "processes/TestUnitProcess",
-                "processes/AccountProcess",
-                "processes/UserProcess",
-                "processes/TopicProcess"
-            ].forEach( function(libraryName) {
+            appConfig.processes.forEach( function(libraryName) {
                 require("./js/"+libraryName).init(This).forEach(This.addHandler.bind(This));
             });
         }
     };
 }());
 
-TheodorusServer.initProcesses();
+WebApplication.initProcesses();
 
-TheodorusServer.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
-    xml = TheodorusServer.getScriptListXML();
+WebApplication.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
+    xml = WebApplication.getScriptListXML();
     callback("<app>"+xml+"<mainfeed /></app>");
 }});
 
-TheodorusServer.addHandler({"method":"GET", "url":"/server.js", "handler":function(session,callback) {
+WebApplication.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
     callback({"error":"no-permission-to-access-file"});
 }});
 

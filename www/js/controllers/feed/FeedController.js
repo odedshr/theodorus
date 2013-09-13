@@ -34,7 +34,6 @@ Theodorus.namespace("feed").FeedController =  Class.extend({
     },
 
     refreshTopicList: function () {
-        alert ("?");
         this.topics.load();
     }
 });

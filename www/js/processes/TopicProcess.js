@@ -72,6 +72,7 @@ var TopicProcess = (function () {
         getTopic: function (session,callback) {
             callback(session.get404());
         },
+
         getTopicIndexByUrl: function (url) {
             var regexMatch;
             if (regexMatch = url.match(/\*([a-zA-Z0-9_-]{3,140})\/?/)) {

@@ -16,5 +16,7 @@
                   "decryption":"RSA_DEC*",
                   "modulus":"RSA_MOD*"
     },
-    "cookie_token":"COOKIE_NAME*"
+    "cookie_token":"COOKIE_NAME*",
+    "minimum_password_length":3,
+    "minimum_display_name_length":4
 }

@@ -9,10 +9,11 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
     },
 
     can: function (permission) {
-        var permissions = this.getPrivate("permissions");
+        var permissions = this.get("permissions");
         return ((typeof permissions == "undefined") || permissions.indexOf(permission)!=-1);
     },
 
+/*  I might use this data-holders for plug-in information
     data: function (store, key,value) {
         var dataObj = this.get(store);
         if (arguments.length==3) {
@@ -38,27 +39,21 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
 
     setPublic: function (key,value) {
         return this.data("public",key,value);
-    },
+    },*/
 
     xml: function () {
         //TODO: add penalties, badges, scores
         var obj = this.toJSON(),
-            privateObj = this.get("private"),
-            publicObj = this.get("public"),
             xml = this.xmlAttribute("email")+
                   this.xmlAttribute("display_name")+
                   this.xmlAttribute("slug");
-        if (privateObj) {
-            xml +=  (privateObj.email ? "<email>"+privateObj.email+"</email>" : "")+
-                    (privateObj.SN ? "<sn>"+privateObj.SN+"</sn>" : "");
-        }
-        if (publicObj) {
-            xml +=  (publicObj.bio ? "<bio>"+publicObj.bio+"</bio>" : "")+
-                    (publicObj.picture ? "<picture>"+publicObj.picture+"</picture>" : "")+
-                    (publicObj.birthday ? "<birthday>"+publicObj.birthday+"</birthday>" : "")+
-                    (publicObj.language ? "<language>"+publicObj.language+"</language>" : "")+
-                    (publicObj.score ? "<score>"+publicObj.score+"</score>" : "");
-        }
+                  this.xmlAttribute("SN");
+                  this.xmlAttribute("bio");
+                  this.xmlAttribute("picture");
+                  this.xmlAttribute("birthday");
+                  this.xmlAttribute("language");
+                  this.xmlAttribute("score");
+                  this.xmlAttribute("badges");
         return "<user"+(obj.user_id ? ' id="'+obj.user_id+'"' : '')+">" + xml + "</user>";
     },
 

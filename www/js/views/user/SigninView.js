@@ -30,11 +30,9 @@ Theodorus.namespace("user").SigninView = Theodorus.View.extend({
     },
 
     onsubmit : function (event) {
-        transform($("#messages"),"<message type='info' message='authenticating' />");
+        io.notify("info","authenticating");
         this.controller.submit(event.target.action,getFormFields(event.target), function () {
-            if (result.error) {
-                transform($("#messages"),"<message type='error' message='"+result.error+"' />");
-            }
+            io.notify("error",result.error);
         });
         return false;
     },
