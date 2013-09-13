@@ -31,7 +31,7 @@ var TestUnitProcess = (function () {
         executeTests : function (methods, tests,processName) {
             tests.forEach(function(test) {
                 try {
-                    var method = methods.filter(function(method) { return (method.url==test.url) && (method.method==test.method)}; )
+                    var method = methods.filter(function(method) { return (method.url==test.url) && (method.method==test.method)} );
                     if (method.length>0) {
                         method[0].handler(test.session,function (output){
                             test.output = output;
