@@ -26,18 +26,15 @@ var TopicProcess = (function () {
                     "initiator":userId,
                     "title":input.title,
                     "slug":input.slug,
-                    "endorsements":0,
-                    "follows":0,
-                    "reports":0,
                     "tags":input.tags.split(" ")});
                 if (input.slug.length===0) {
                     callback({"error":"slug-is-too-short"});
-                } else if (!Topic.isSlugValid(data.slug)) {
+                } else if (!Topic.isSlugValid(input.slug)) {
                     callback({"error":"slug-is-invalid"});
                 } else {
-                    io.db.load(Topic,{"slug":data.slug}, function (result) {
+                    io.db.load(Topic,{"slug":input.slug}, function (result) {
                         if (result) {
-                            callback({"error":error});
+                            callback({"error":"slug-not-available"});
                         } else {
                             io.db.save(topic,function (result,error){
                                 if (result) {

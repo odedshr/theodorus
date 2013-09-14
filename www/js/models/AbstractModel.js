@@ -32,9 +32,10 @@ var AbstractModel = Backbone.Model.extend({
             return value.xml();
         }
         if (this.schema[attribute]=="date" && (typeof prettyDate !== "undefined")) {
+            var formattedDate = (new Date(value)).format();
             var dateCode =prettyDate(value);
             var numValue = Number(dateCode.replace(/\D/g,""));
-            return "<"+attribute+" timestamp='"+value+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
+            return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
         }
         return "<"+attribute+">"+value+"</"+attribute+">";
     }

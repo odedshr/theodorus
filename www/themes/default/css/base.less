@@ -46,7 +46,7 @@
 }
 
 body {
-  background-color:white;
+  background-color:#eee;
   direction:rtl;
   font-family: 'carmelit_regularregular', 'arial','halvetica';
 
@@ -108,7 +108,7 @@ header {
   }
 
   #account { float: left;
-    width:20rem;
+    width:12rem;
 
     #menu {
       background-image: url(/ui/img/glyphicons-halflings.png);
@@ -160,6 +160,18 @@ header {
   margin-top:@headerHeight;
 }
 
+#messages:not(:empty) {
+  .border-radius(0, 0.5rem, 0.5rem, 0);
+  .drop-shadow(0.1rem,0.1rem,0.5rem,0.1);
+  background-color:lightcyan;
+  border:1px solid @elementBorder;
+  border-top: none;
+  position: absolute;
+  z-index: 101;
+  padding: 0.5rem;
+  right: 50%;
+}
+
 #form_search {
   display:none;
   .tag {
@@ -172,24 +184,24 @@ header {
 }
 
 #main {
-  background-color:#eee;
   height: 100%;
 }
 
-#feed {
+#feed_wrapper {
+  display:table;
   padding-top:@headerHeight+0.5rem;
   margin: 0 auto;
+}
+#feed {
+  display:table-row;
   width: 100rem;
 }
 
-#sidebar {
-  background-color:white;
-  float: left;
-  padding:0.2rem;
-  width: 12rem;
-}
-
 #topics {
+  display:table-cell;
+  height:100%;
+  padding-left: 0.5rem;
+  vertical-align:top;
   width: 87.5rem;
 
   ul {
@@ -205,7 +217,7 @@ header {
     column-break-inside : avoid;
     display: inline-block;
     line-height:1.5rem;
-    margin:0.2rem;
+    margin:0 0.2rem 0.2rem;
     width: 98%;
 
     .title {
@@ -256,37 +268,77 @@ header {
 
 .responsiveTopicList (@columns, @listWidth) {
   #topics {
-    .columns(@columns,0.1rem);
     width: @listWidth;
     ul {
+      .columns(@columns,0.1rem);
        width: @listWidth;
     }
   }
 }
 
-@media only screen and (max-width : 1199px),
-only screen and (max-device-width : 1199px){
-  .responsiveTopicList (5, 1000px);
+@media only screen and (max-width : 80rem),
+only screen and (max-device-width : 80rem){
+  .responsiveTopicList (5, 55rem);
 }
 
-@media only screen and (max-width : 999px),
-only screen and (max-device-width : 999px){
-  .responsiveTopicList (4, 800px);
+@media only screen and (max-width : 70rem),
+only screen and (max-device-width : 70rem){
+  .responsiveTopicList (4, 45rem);
 }
 
-@media only screen and (max-width : 799px),
-only screen and (max-device-width : 799px){
-  .responsiveTopicList (3, 600px);
+@media only screen and (max-width : 60rem),
+only screen and (max-device-width : 60rem){
+  .responsiveTopicList (3, 35rem);
 }
 
-@media only screen and (max-width : 599px),
-only screen and (max-device-width : 599px){
-  .responsiveTopicList (2, 400px);
+@media only screen and (max-width : 50rem),
+only screen and (max-device-width : 50rem){
+  .responsiveTopicList (2, 25rem);
 }
 
-@media only screen and (max-width : 399px),
-only screen and (max-device-width : 399px){
-  .responsiveTopicList (1, 200px);
+@media only screen and (max-width : 40rem),
+only screen and (max-device-width : 40rem){
+  .responsiveTopicList (1, 12rem);
+}
+
+#sidebar {
+  background-color:white;
+  box-sizing: border-box;
+  display:table-cell;
+  height:100%;
+  padding:0.5rem;
+  vertical-align:top;
+  width: 12rem;
+
+  #tags {
+    .tag {
+      height:1.1rem;
+    }
+    .tag a {
+      color:#333;
+      padding:0.2rem;
+      text-decoration: none;
+    }
+    .tag a:hover {
+      color:blue;
+      text-decoration: underline;
+    }
+    .tag-color {
+      .rounded(0.5rem);
+      border:1px solid @elementBorder;
+      float: right;
+      display: block;
+      height: 0.5rem;
+      width: 0.5rem;
+      margin: 0.1rem;
+    }
+    .tag-count:before { content: "("; }
+    .tag-count {
+      color:#666;
+      font-size:0.9rem;
+    }
+    .tag-count:after { content: ")"; }
+  }
 }
 
 #link_suggest_topic { clear: both; }
@@ -305,7 +357,7 @@ only screen and (max-device-width : 399px){
   z-index:101;
 
 }
-#popup_placeholder > :first-child {
+#popup_placeholder > form {
   .rounded(0.5rem);
   .drop-shadow(0.5rem,0.5rem,2rem,0.5);
   background-color:white;

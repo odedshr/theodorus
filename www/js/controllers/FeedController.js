@@ -1,13 +1,13 @@
-Theodorus.namespace("feed").FeedController =  Class.extend({
+Theodorus.namespace("feed").FeedController =  Theodorus.Controller.extend({
     init: function (io) {
-        _.bindAll(this, "openAddTopicWindow","refreshTopicList");
-
-        this.io = io;
         this.view = new Theodorus.feed.FeedView();
-        this.view.setController(this);
+        this._super(io);
+
+        _.bindAll(this, "openAddTopicWindow","refreshTopicList","reload");
 
         this.account = new Theodorus.user.AccountController(io);
         this.topics = new Theodorus.feed.TopicListController(io);
+        this.tags = new Theodorus.feed.TagCloudController(io);
 
         // init sub units
         /*
@@ -19,22 +19,30 @@ Theodorus.namespace("feed").FeedController =  Class.extend({
          * */
      },
 
-    render: function () {
+    setup: function () {
         var This = this;
-        this.view.render(function () {
-            This.account.view.setup();
+        this.view.setup(function () {
+            This.account.setup();
+            This.tags.setup();
+            This.tags.load();
+            This.topics.setup();
             This.topics.load();
         });
     },
 
     openAddTopicWindow: function () {
-        this.addTopic = new Theodorus.feed.AddTopicController(io);
+        this.addTopic = new Theodorus.feed.AddTopicController(this.io);
         this.addTopic.view.setAsPopUp(true);
-        this.addTopic.view.render();
+        this.addTopic.render();
     },
 
     refreshTopicList: function () {
         this.topics.load();
+    },
+
+    reload: function () {
+        this.refreshTopicList();
+        //this.refreshTags();
     }
 });
 

@@ -1,6 +1,7 @@
 Theodorus.namespace("user").AccountView = Theodorus.View.extend({
+    el : "#account",
+
     initialize : function () {
-        this.setElement("#account");
         _.bindAll(this,"openAuthenticationWindow");
     },
 
@@ -22,9 +23,8 @@ Theodorus.namespace("user").AccountView = Theodorus.View.extend({
         $("#btn_signup").click( this.openAuthenticationWindow);
         $("#btn_signin").click( this.openAuthenticationWindow);
         $("#btn_signout").click( function () { return !This.controller.signout(); });
-        if (callback){
-            callback();
-        }
+
+        return Theodorus.View.prototype.setup.call(this,callback);
     },
 
     openAuthenticationWindow: function (event) {

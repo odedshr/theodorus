@@ -9,11 +9,12 @@
     User = require("../models/User").model(),
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
+    Tag = require("../models/Tag").model(),
     prefix = "";
 
 exports.init = function (config) {
     db.init(config);
-    prefix = config.mysql_schema+"."+config.table_prefix;
+    prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
 };
 
 exports.load = function (itemClass, itemId, callback) {
@@ -43,6 +44,7 @@ exports.getCredentials = function(authKey,callback) { exports.load(Credentials, 
 exports.getUser = function(userId,callback) { exports.load(User, userId, callback); };
 exports.getUserByName = function(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
 exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
+exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
 exports.getTopics = function (callback) {
     db.query(

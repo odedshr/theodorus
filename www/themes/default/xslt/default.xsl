@@ -13,7 +13,7 @@
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:exslt="http://exslt.org/common">
+                xmlns:exslt="http://exslt.org/common"><!-- keep xslt here. it's used by feed.xsl-->
     <xsl:import href="common.xsl" />
     <xsl:output method="html" encoding="UTF-8"/>
 
@@ -140,6 +140,7 @@
     <xsl:param name="lbl_topic_tags" select="'תגיות'"/>
     <xsl:param name="example_topic_tags" select="'ממשל'"/>
     <xsl:param name="btn_suggest" select="'הצע'"/>
+    <xsl:param name="lbl_tags" select="'תגיות'"/>
 
     <xsl:param name="link_suggest_topic" select="'הצע רעיון'"/>
     <xsl:param name="btn_endorse" select="'תמוך'"/>

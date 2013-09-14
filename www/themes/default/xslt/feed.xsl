@@ -60,13 +60,16 @@
                     <button class="tag"><span>תיירות</span></button>
                 </form>
             </header>
-            <div id="feed">
-                <div id="sidebar">
-                    <xsl:if test="addTopic">
-                        <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
-                    </xsl:if>
+            <div id="feed_wrapper">
+                <div id="feed">
+                    <div id="topics" />
+                    <div id="sidebar">
+                        <xsl:if test="addTopic">
+                            <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
+                        </xsl:if>
+                        <div id="tags" />
+                    </div>
                 </div>
-                <div id="topics" />
             </div>
         </xsl:template>
 
@@ -104,6 +107,20 @@
             </xsl:if>
         </xsl:template>
 
+        <xsl:template match="tags">
+            <h2><xsl:value-of select="$lbl_tags" /></h2>
+            <ul>
+                <xsl:for-each select="tag">
+                    <xsl:sort select="@count" data-type="number" order="descending"/>
+                    <li class="tag">
+                        <span class="tag-color" style="background-color:{@color}">&nbsp;</span>
+                        <a href="/#{current()}"><xsl:apply-templates select="current()" /></a>
+                        <span class="tag-count"><xsl:apply-templates select="@count" /></span>
+                    </li>
+                </xsl:for-each>
+            </ul>
+        </xsl:template>
+
         <xsl:template match="topics">
             <ul>
                 <xsl:apply-templates select="topic" />
@@ -124,7 +141,7 @@
             <li class="topic">
                 <a href="{url}" class="title"><xsl:value-of select="title" /></a>
                 <a class="inititiator"><xsl:value-of select="user/display_name" /></a>
-                <time class="created" datetime="{created/@timestamp}"><xsl:value-of select="$prettyCreated" /></time>
+                <time class="created" datetime="{created/@timestamp}" title="{created/@formatted}"><xsl:value-of select="$prettyCreated" /></time>
                 <div class="actions">
                     <a class="button-action" href="{url}/endorse">
                         <xsl:if test="endorse/@me = 'true'">

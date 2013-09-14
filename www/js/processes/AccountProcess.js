@@ -123,7 +123,7 @@ var AccountProcess = (function () {
                             if (result) {
                                 callback({"error":"email-in-use"});
                             } else  {
-                                var user = new User ({"email":email,"display_name":name, "permissions":{"suggest":true},"status":"participant"});
+                                var user = new User ({"email":email,"display_name":name, "permissions":{"suggest":true}});
                                 io.db.save(user,
                                     function (user) {
                                         if (!user) {

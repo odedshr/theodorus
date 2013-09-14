@@ -1,12 +1,7 @@
 Theodorus.namespace("user").SigninView = Theodorus.View.extend({
-    initialize : function () {
-        this.setElement("#main");
+    el : "#main",
 
-        /*if (document.getElementById("form_signin")) {
-            this.setup();
-        } else {
-            this.render();
-        }*/
+    initialize : function () {
         _.bindAll(this,"render","setup","onsubmit","cancel");
     },
 
@@ -24,15 +19,15 @@ Theodorus.namespace("user").SigninView = Theodorus.View.extend({
     setup : function (callback) {
         document.getElementById("form_signin").onsubmit = this.onsubmit;
         document.getElementById("button-cancel").onclick = this.cancel;
-        if (callback){
-            callback(this);
-        }
+
+        return Theodorus.View.prototype.setup.call(this,callback);
     },
 
     onsubmit : function (event) {
-        io.notify("info","authenticating");
-        this.controller.submit(event.target.action,getFormFields(event.target), function () {
-            io.notify("error",result.error);
+        var This = this;
+        this.controller.io.notify("info","authenticating");
+        this.controller.submit(event.target.action,getFormFields(event.target), function (result) {
+            This.controller.io.notify("error",result.error);
         });
         return false;
     },

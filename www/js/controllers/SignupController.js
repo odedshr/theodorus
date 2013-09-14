@@ -1,10 +1,9 @@
 var MIN_PASSWORD_LENGTH = 3;
 
-Theodorus.namespace("user").SignupController =  Class.extend({
+Theodorus.namespace("user").SignupController =  Theodorus.Controller.extend({
     init: function (io) {
-        this.parent = io;
         this.view = new Theodorus.user.SignupView();
-        this.view.setController(this);
+        this._super(io);
         this.callback = ExternalWindow.windowCallback;
 
         $.getScript("/lib/md5.js", function () {});
@@ -13,7 +12,8 @@ Theodorus.namespace("user").SignupController =  Class.extend({
     },
 
     submit: function (action,data) {
-        var password =data.password,
+        var This = this,
+            password =data.password,
             passwordRepeat =data.password_repeat;
         if (!data.terms_of_use) {
             return {"error":"terms-of-use-not-approved"};

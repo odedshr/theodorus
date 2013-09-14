@@ -1,10 +1,16 @@
 Theodorus.View = Backbone.View.extend({
+    xslt : null,
+
     setController : function (controller) {
         this.controller = controller;
     },
 
-    setElement : function (element) {
-        this.jElement = ((typeof element == "string") || (element instanceof HTMLElement)) ? $(element) : element;
+    setup : function (callback) {
+        this.$el = ( this.$el ? $(this.$el.selector) : null);
+        if (callback){
+            callback();
+        }
+        return this;
     },
 
     setAsPopUp : function (yes) {
@@ -14,14 +20,14 @@ Theodorus.View = Backbone.View.extend({
     transform :  function ( xml, successFunction) {
         var jObj = $;
         var sFunction = successFunction;
-        if (!this.isPopup && this.jElement) {
-            if (this.jElement.size()===0) {
-                this.jElement = $(this.jElement.selector);
+        if (!this.isPopup && this.$el) {
+            if (this.$el.size()===0) {
+                this.$el = $(this.$el.selector);
             }
-            if (this.jElement.size()>0) {
-                jObj = this.jElement;
+            if (this.$el.size()>0) {
+                jObj = this.$el;
             } else {
-                console.log("failed to find element ("+this.jElement.selector+") for \n"+xml);
+                console.log("failed to find element ("+this.$el.selector+") for \n"+xml);
             }
         }
         if (this.isPopup) {

@@ -1,8 +1,7 @@
-Theodorus.namespace("feed").TopicListController =  Class.extend({
+Theodorus.namespace("feed").TopicListController =  Theodorus.Controller.extend({
     init: function (io) {
-        this.io = io;
         this.view = new Theodorus.feed.TopicListView();
-        this.view.setController(this);
+        this._super(io);
         this.collection = new Topics();
         _.bindAll(this,"load","loadCallback","openTopic");
     },
@@ -22,14 +21,6 @@ Theodorus.namespace("feed").TopicListController =  Class.extend({
             reset:true,
             success:this.loadCallback,
             error:this.loadCallback
-        });
-    },
-
-    render: function (callback) {
-        this.view.render(function (){
-            if (callback) {
-                callback();
-            }
         });
     },
 

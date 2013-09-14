@@ -1,8 +1,7 @@
-Theodorus.namespace("feed").AddTopicController =  Class.extend({
+Theodorus.namespace("feed").AddTopicController =  Theodorus.Controller.extend({
     init: function (io) {
-        this.io = io;
         this.view = new Theodorus.feed.AddTopicView();
-        this.view.setController(this);
+        this._super(io);
     },
 
     submit: function (action,data, callback) {

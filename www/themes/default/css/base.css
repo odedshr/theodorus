@@ -126,7 +126,7 @@
   border: 0;
 }
 body {
-  background-color: white;
+  background-color: #eee;
   direction: rtl;
   font-family: 'carmelit_regularregular', 'arial', 'halvetica';
 }
@@ -189,7 +189,7 @@ header h1 span {
 }
 header #account {
   float: left;
-  width: 20rem;
+  width: 12rem;
 }
 header #account #menu {
   background-image: url(/ui/img/glyphicons-halflings.png);
@@ -238,6 +238,33 @@ header #account #menu:hover #menu_content {
 #loading_system {
   margin-top: 4.5rem;
 }
+#messages:not(:empty) {
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-right-radius: 0.5rem;
+  -webkit-border-bottom-left-radius: 0.5rem;
+  -webkit-border-top-left-radius: 0;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-bottomright: 0.5rem;
+  -moz-border-radius-bottomleft: 0.5rem;
+  -moz-border-radius-topleft: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  border-top-left-radius: 0;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  -webkit-box-shadow: 0.1rem 0.1rem 0.5rem rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0.1rem 0.1rem 0.5rem rgba(0, 0, 0, 0.1);
+  box-shadow: 0.1rem 0.1rem 0.5rem rgba(0, 0, 0, 0.1);
+  background-color: lightcyan;
+  border: 1px solid #aaaaaa;
+  border-top: none;
+  position: absolute;
+  z-index: 101;
+  padding: 0.5rem;
+  right: 50%;
+}
 #form_search {
   display: none;
 }
@@ -249,21 +276,22 @@ header #account #menu:hover #menu_content {
   margin: 0.1rem;
 }
 #main {
-  background-color: #eee;
   height: 100%;
 }
-#feed {
+#feed_wrapper {
+  display: table;
   padding-top: 5rem;
   margin: 0 auto;
+}
+#feed {
+  display: table-row;
   width: 100rem;
 }
-#sidebar {
-  background-color: white;
-  float: left;
-  padding: 0.2rem;
-  width: 12rem;
-}
 #topics {
+  display: table-cell;
+  height: 100%;
+  padding-left: 0.5rem;
+  vertical-align: top;
   width: 87.5rem;
 }
 #topics ul {
@@ -308,7 +336,7 @@ header #account #menu:hover #menu_content {
   column-break-inside: avoid;
   display: inline-block;
   line-height: 1.5rem;
-  margin: 0.2rem;
+  margin: 0 0.2rem 0.2rem;
   width: 98%;
 }
 #topics .topic .title {
@@ -366,8 +394,11 @@ header #account #menu:hover #menu_content {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
   background-color: #aaaaaa;
 }
-@media only screen and (max-width: 1199px), only screen and (max-device-width: 1199px) {
+@media only screen and (max-width: 80rem), only screen and (max-device-width: 80rem) {
   #topics {
+    width: 55rem;
+  }
+  #topics ul {
     -moz-column-width: 5;
     -moz-column-count: 0.1rem;
     -moz-column-gap: 50px;
@@ -397,14 +428,14 @@ header #account #menu:hover #menu_content {
     -webkit-column-gap: 0.1rem;
     column-count: 5;
     column-gap: 0.1rem;
-    width: 1000px;
-  }
-  #topics ul {
-    width: 1000px;
+    width: 55rem;
   }
 }
-@media only screen and (max-width: 999px), only screen and (max-device-width: 999px) {
+@media only screen and (max-width: 70rem), only screen and (max-device-width: 70rem) {
   #topics {
+    width: 45rem;
+  }
+  #topics ul {
     -moz-column-width: 4;
     -moz-column-count: 0.1rem;
     -moz-column-gap: 50px;
@@ -434,14 +465,14 @@ header #account #menu:hover #menu_content {
     -webkit-column-gap: 0.1rem;
     column-count: 4;
     column-gap: 0.1rem;
-    width: 800px;
-  }
-  #topics ul {
-    width: 800px;
+    width: 45rem;
   }
 }
-@media only screen and (max-width: 799px), only screen and (max-device-width: 799px) {
+@media only screen and (max-width: 60rem), only screen and (max-device-width: 60rem) {
   #topics {
+    width: 35rem;
+  }
+  #topics ul {
     -moz-column-width: 3;
     -moz-column-count: 0.1rem;
     -moz-column-gap: 50px;
@@ -471,14 +502,14 @@ header #account #menu:hover #menu_content {
     -webkit-column-gap: 0.1rem;
     column-count: 3;
     column-gap: 0.1rem;
-    width: 600px;
-  }
-  #topics ul {
-    width: 600px;
+    width: 35rem;
   }
 }
-@media only screen and (max-width: 599px), only screen and (max-device-width: 599px) {
+@media only screen and (max-width: 50rem), only screen and (max-device-width: 50rem) {
   #topics {
+    width: 25rem;
+  }
+  #topics ul {
     -moz-column-width: 2;
     -moz-column-count: 0.1rem;
     -moz-column-gap: 50px;
@@ -508,14 +539,14 @@ header #account #menu:hover #menu_content {
     -webkit-column-gap: 0.1rem;
     column-count: 2;
     column-gap: 0.1rem;
-    width: 400px;
-  }
-  #topics ul {
-    width: 400px;
+    width: 25rem;
   }
 }
-@media only screen and (max-width: 399px), only screen and (max-device-width: 399px) {
+@media only screen and (max-width: 40rem), only screen and (max-device-width: 40rem) {
   #topics {
+    width: 12rem;
+  }
+  #topics ul {
     -moz-column-width: 1;
     -moz-column-count: 0.1rem;
     -moz-column-gap: 50px;
@@ -545,11 +576,50 @@ header #account #menu:hover #menu_content {
     -webkit-column-gap: 0.1rem;
     column-count: 1;
     column-gap: 0.1rem;
-    width: 200px;
+    width: 12rem;
   }
-  #topics ul {
-    width: 200px;
-  }
+}
+#sidebar {
+  background-color: white;
+  box-sizing: border-box;
+  display: table-cell;
+  height: 100%;
+  padding: 0.5rem;
+  vertical-align: top;
+  width: 12rem;
+}
+#sidebar #tags .tag {
+  height: 1.1rem;
+}
+#sidebar #tags .tag a {
+  color: #333;
+  padding: 0.2rem;
+  text-decoration: none;
+}
+#sidebar #tags .tag a:hover {
+  color: blue;
+  text-decoration: underline;
+}
+#sidebar #tags .tag-color {
+  -webkit-border-radius: 0.5rem;
+  -moz-border-radius: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #aaaaaa;
+  float: right;
+  display: block;
+  height: 0.5rem;
+  width: 0.5rem;
+  margin: 0.1rem;
+}
+#sidebar #tags .tag-count:before {
+  content: "(";
+}
+#sidebar #tags .tag-count {
+  color: #666;
+  font-size: 0.9rem;
+}
+#sidebar #tags .tag-count:after {
+  content: ")";
 }
 #link_suggest_topic {
   clear: both;
@@ -592,7 +662,7 @@ header #account #menu:hover #menu_content {
   width: 100%;
   z-index: 101;
 }
-#popup_placeholder > :first-child {
+#popup_placeholder > form {
   -webkit-border-radius: 0.5rem;
   -moz-border-radius: 0.5rem;
   border-radius: 0.5rem;

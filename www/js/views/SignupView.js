@@ -1,12 +1,7 @@
 Theodorus.namespace("user").SignupView = Theodorus.View.extend({
-    initialize : function () {
-        this.setElement("#main");
+    el : "#main",
 
-        /*if (document.getElementById("form_signin")) {
-         this.setup();
-         } else {
-         this.render();
-         }*/
+    initialize : function () {
         _.bindAll(this,"render","setup","onsubmit","cancel");
     },
 
@@ -25,16 +20,21 @@ Theodorus.namespace("user").SignupView = Theodorus.View.extend({
         document.getElementById("form_signup").onsubmit = this.onsubmit;
         document.getElementById("button-cancel").onclick = this.cancel;
         //TODO: add verify password complexity
-        if (callback){
-            callback();
-        }
+
+        return Theodorus.View.prototype.setup.call(this,callback);
     },
 
     onsubmit : function (event) {
-        io.notify("info","sending-data");
-        this.controller.submit(event.target.action,getFormFields(event.target), function (result) {
-            io.notify("error",result.error);
-        });
+        try {
+            var This = this;
+            this.controller.io.notify("info","sending-data");
+            this.controller.submit(event.target.action,getFormFields(event.target), function (result) {
+                This.controller.io.notify("error",result.error);
+            });
+        }
+        catch (err) {
+            alert (err);
+        }
         return false;
     },
 

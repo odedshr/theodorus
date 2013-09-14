@@ -57,11 +57,10 @@ var Theodorus = _.extend({}, {
      */
     io: {
       docURL:null,
-      statusBar:$("#messages"),
 
       refreshFeed: function () {
           if (this.app.reload) {
-              this.app.refreshTopicList();
+              this.app.reload();
           }
       },
       openPage: function (url, title, callback) {
@@ -79,13 +78,10 @@ var Theodorus = _.extend({}, {
               case "error":
               case "info":
                   if (typeof message=="undefined") {
-                      type="info";
-                      message="";
+                      $("#messages").html("");
+                  } else {
+                      transform("#messages","<message type='"+type+"' message='"+message+"' />");
                   }
-                  if (this.statusBar.size()==0) {
-                      this.statusBar = $(this.statusBar.selector);
-                  }
-                  transform(this.statusBar,"<message type='"+type+"' message='"+message+"' />");
                   break;
               case "announcement":
               case "critical":

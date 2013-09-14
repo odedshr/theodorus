@@ -1,6 +1,7 @@
 Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
+    el : "#add_topic",
+
     initialize : function () {
-        this.setElement("#add_topic");
         _.bindAll(this,"onsubmit","onSlugKeyUp","onTitleKeyUp","updateTitleCharsLeft","close","setup");
     },
 
@@ -15,7 +16,7 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
         if (this.controller.io.user.can("suggest")) {
             this.transform("<addTopic prefix='"+this.controller.URLPrefix()+"'/>",after);
         } else {
-            this.jElement.html("");
+            this.$el.html("");
         }
         return this;
     },
@@ -29,10 +30,7 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
         document.getElementById("slug").onkeyup = this.onSlugKeyUp;
         document.getElementById("button_cancel").onclick = this.close;
 
-        if (callback){
-            callback();
-        }
-        return this;
+        return Theodorus.View.prototype.setup.call(this,callback);
     },
 
     updateTitleCharsLeft: function (titleField) {
@@ -60,9 +58,11 @@ Theodorus.namespace("feed").AddTopicView = Theodorus.View.extend({
     },
 
     onsubmit : function (event) {
-        io.notify("info","sending-data");
+        var This =this;
+        this.controller.io.notify("info","sending-data");
         this.controller.submit(event.target.action, getFormFields(event.target), function (result) {
-            io.notify("error",result.error);
+            alert ("here");
+            This.controller.io.notify("error",result.error);
         });
         return false;
     },

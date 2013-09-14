@@ -1,7 +1,6 @@
 Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
-    initialize : function () {
-        this.setElement("#topics");
-    },
+    el: "#topics",
+    initialize : function () {},
 
     render : function(callback) {
         var This = this;
@@ -17,9 +16,8 @@ Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
     setup: function (callback) {
         $(".topic .title").click(this.titlePressed.bind(this));
         $(".button-action").click(this.actionPressed.bind(this));
-        if (callback) {
-            callback();
-        }
+
+        return Theodorus.View.prototype.setup.call(this,callback);
     },
 
     titlePressed: function (event) {

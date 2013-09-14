@@ -1,16 +1,16 @@
 var DEFAULT_LANGUAGE = "he";
-    //VALID_STATUS  = ["guest","participant","resident","citizen","delegate"];
 
 var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model()).extend({
     autoId: true,
     defaults: {
         "score": 0,
-        "language": DEFAULT_LANGUAGE
+        "language": DEFAULT_LANGUAGE,
+        permissions: {}
     },
 
     can: function (permission) {
         var permissions = this.get("permissions");
-        return ((typeof permissions == "undefined") || permissions.indexOf(permission)!=-1);
+        return ((typeof permissions == "undefined") || permissions[permission]);
     },
 
 /*  I might use this data-holders for plug-in information
@@ -89,8 +89,7 @@ User.Account = User.extend({
         "penalties":"number",
         "permissions":"array",
         "revoked":"array",
-        "badges":"array",
-        "bio":"string"
+        "badges":"array"
     }
 });
 

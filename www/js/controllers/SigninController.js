@@ -1,8 +1,7 @@
-Theodorus.namespace("user").SigninController =  Class.extend({
+Theodorus.namespace("user").SigninController =  Theodorus.Controller.extend({
     init: function (io) {
-        this.parent = io;
         this.view = new Theodorus.user.SigninView();
-        this.view.setController(this);
+        this._super(io);
         this.callback = ExternalWindow.windowCallback;
 
         $.getScript("/lib/md5.js", function () {});

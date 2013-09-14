@@ -1,8 +1,7 @@
-Theodorus.namespace("user").AccountController =  Class.extend({
-    init: function (parent) {
-        this.parent = parent;
+Theodorus.namespace("user").AccountController =  Theodorus.Controller.extend({
+    init: function (io) {
         this.view = new Theodorus.user.AccountView();
-        this.view.setController(this);
+        this._super(io);
         _.bindAll(this,"openAuthenticationWindow","onAuthenticationCompleted","signout");
     },
 
@@ -13,10 +12,10 @@ Theodorus.namespace("user").AccountController =  Class.extend({
     },*/
 
     openAuthenticationWindow: function (hasAccount) {
-        var authenticationPopup = hasAccount ? (new Theodorus.user.SigninController(this)) : (new Theodorus.user.SignupController(this));
+        var authenticationPopup = hasAccount ? (new Theodorus.user.SigninController(this.io)) : (new Theodorus.user.SignupController(this.io));
         authenticationPopup.callback = this.onAuthenticationCompleted;
         authenticationPopup.view.setAsPopUp(true);
-        authenticationPopup.view.render();
+        authenticationPopup.render();
     },
 
     onAuthenticationCompleted: function (output) {

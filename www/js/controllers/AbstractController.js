@@ -1,6 +1,5 @@
-Theodorus.AbstractController =  Class.extend({
+Theodorus.Controller =  Class.extend({
     init: function (io) {
-        alert ("1");
         _.bindAll(this, "render");
         this.io = io;
         if (this.view) {

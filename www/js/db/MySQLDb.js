@@ -9,12 +9,12 @@ var mysql      = require('mysql'),
 
 exports.init = function (config) {
     pool  = mysql.createPool({
-        host     : config.mysql_host,
-        port     : config.mysql_port,
-        user     : config.mysql_user,
-        password : config.mysql_password
+        host     : process.env.THEODORUS_MYSQL_HOST,
+        port     : process.env.THEODORUS_MYSQL_PORT,
+        user     : process.env.THEODORUS_MYSQL_USER,
+        password : process.env.THEODORUS_MYSQL_PASSWORD
     });
-    prefix = config.mysql_schema+"."+config.table_prefix;
+    prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
 };
 
 function update (connection, item, callback) {
@@ -66,6 +66,7 @@ function insert (connection, item, callback) {
     var query = "INSERT INTO "+prefix+item.collection + " ("+keys.join(",")+") VALUES ('"+values.join("','")+"');";
     connection.query(query , function(err, result) {
         if (err) {
+            console.error("INSERT failed: \n"+query+"\n"+err);
             throw err;
         }
         if (item.autoId) {
@@ -140,9 +141,11 @@ exports.getItems = function (sampleModel,queryOptions,callback) {
     //TODO: parse queryOptions to get SORTBY and WHERE filters
     exports.query ("SELECT * FROM "+prefix+sampleModel.collection, function(rows) {
         var schema =sampleModel.schema;
-        rows.forEach(function(value,key,array) {
-            array[key] = parseJSON(value, schema);
-        });
+        if (rows) {
+            rows.forEach(function(value,key,array) {
+                array[key] = parseJSON(value, schema);
+            });
+        }
         callback(rows);
     });
 };

@@ -1,5 +1,4 @@
-var appConfig = require("../application.json"),
-    config = require(appConfig.privateSettings),
+var config = require("../config.json"),
     _ = require("underscore"),
     express = require('express'),
     xslt = require('node_xslt'),
@@ -26,7 +25,7 @@ var WebApplication = (function () {
                     "userId": userId,
                     "remember": remember
                 });
-                this.res.cookie( config.cookie_token, WebApplication.rsa.generateKey(config.rsa_keys).encrypt(cookieString),
+                this.res.cookie( config.cookie_token, WebApplication.rsa.generateKey(WebApplication.rsa_keys).encrypt(cookieString),
                     { maxAge: remember ? 31536000000 : 900000, httpOnly: false}); // remember ? year : 15m
                 return true;
             } else {
@@ -56,7 +55,7 @@ var WebApplication = (function () {
                 userId= false;
             if (token = (token ? WebApplication.qs.unescape(token) : false)) {
                 try {
-                    token = JSON.parse(WebApplication.rsa.generateKey(WebApplication.config.rsa_keys).decrypt(token));
+                    token = JSON.parse(WebApplication.rsa.generateKey(WebApplication.rsa_keys).decrypt(token));
                     if (token.ip==this.req.socket.remoteAddress) {
                         this.cookie(token.userId,token.remember); // re-set the cookie
                         userId = token.userId
@@ -81,9 +80,14 @@ var WebApplication = (function () {
         "qs" : require("querystring"),
         "db" : require ('./js/db/DbApi').get(config),
         "rsa" : require("./js/RSA"),
+        "rsa_keys": {
+            "encryption":process.env.THEODORUS_RSA_ENCRYPT,
+            "decryption":process.env.THEODORUS_RSA_DECRYPT,
+            "modulus":process.env.THEODORUS_RSA_MODULUS
+        },
 
         "getScriptList": function () {
-            return (this.config.mode=="dev") ? appConfig.clientScripts : appConfig.clientScriptsDebug;
+            return (process.env.THEODORUS_MODE=="dev") ? config.clientScripts : config.clientScriptsDebug;
 
         },
         "getScriptListXML": function () {
@@ -139,7 +143,7 @@ var WebApplication = (function () {
         },
         "initProcesses": function () {
             var This = this;
-            appConfig.processes.forEach( function(libraryName) {
+            config.processes.forEach( function(libraryName) {
                 require("./js/"+libraryName).init(This).forEach(This.addHandler.bind(This));
             });
         }
@@ -149,8 +153,7 @@ var WebApplication = (function () {
 WebApplication.initProcesses();
 
 WebApplication.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
-    xml = WebApplication.getScriptListXML();
-    callback("<app>"+xml+"<mainfeed /></app>");
+    callback("<app>"+WebApplication.getScriptListXML()+"<mainfeed /></app>");
 }});
 
 WebApplication.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
@@ -162,11 +165,6 @@ function getMethodNotImplementedMessage (req,res) {
     res.setHeader('Content-Type', 'application/json' );
     res.end(JSON.stringify({"error":"not-implemented","method":req.method+"/"+req.url}));
 }
-// tags actions
-app.get("/tags", getMethodNotImplementedMessage);
-app.get("/tags/dictionary", getMethodNotImplementedMessage);
-// get items by tag
-app.get(/^\/#[a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage);
 // comments
 app.get(/^\/~[a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage);
 // search

@@ -1,4 +1,4 @@
 #!/bin/bash
  
 # Invoke the Forever module (to STOP our Node.js server).
-./www/node_modules/forever/bin/forever stop www/web.js
+./www/node_modules/forever/bin/forever stop server.js

@@ -17,4 +17,4 @@ start \
 -al forever.log \
 -ao logs/out.log \
 -ae logs/err.log \
-./www/web.js
+./server.js
