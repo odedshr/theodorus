@@ -62,13 +62,14 @@ var Topic = AbstractModel.extend({
                 var user_value = This.get("user_"+attribute);
                 return (value>0) ? ("<"+attribute+" me='"+(user_value?"true":"false")+"'>"+(value?value:0)+"</"+attribute+">") : "";
             },
+
             url = this.get("slug");
         return '<topic id="'+this.get("topic_id")+'">' +
             "\n\t"+this.xmlAttribute("title")+
             "\n\t"+this.xmlAttribute("created")+
             "\n\t"+this.xmlAttribute("modified")+
             "\n\t"+"<url>"+(((typeof url == "string") && url.length>0) ? "*"+url : "/topics/"+this.get("topic_id")) + "</url>"+
-            "\n\t"+this.xmlAttribute("slug")+
+            "\n\t"+this.xmlAttribute("tags")+
             "\n\t"+this.xmlAttribute("initiator")+
             "\n\t"+this.xmlAttribute("status")+
             "\n\t"+this.xmlAttribute("report_status")+

@@ -23,10 +23,11 @@ Theodorus.namespace("feed").FeedController =  Theodorus.Controller.extend({
         var This = this;
         this.view.setup(function () {
             This.account.setup();
-            This.tags.setup();
-            This.tags.load();
             This.topics.setup();
-            This.topics.load();
+            This.tags.setup();
+            This.tags.load(function () {
+                This.topics.load();
+            });
         });
     },
 

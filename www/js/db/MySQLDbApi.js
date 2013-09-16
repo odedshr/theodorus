@@ -47,18 +47,19 @@ exports.getAccount = function(userId,callback) { exports.load(User.Account, user
 exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
 exports.getTopics = function (callback) {
-    db.query(
-        "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
-            "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-count(distinct(t.modified))) +"+
-            "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
-            "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, extra,"+
-            "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.report AS report, t.status AS status, report_status,"+
-            "\n\t"+"ut.follow AS user_follow, ut.endorse AS user_endorse, ut.report AS user_report"+
-            "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
-            "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
-            "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON t.initiator=ut.user_id AND t.topic_id = ut.topic_id"+
-            "\n\t"+"GROUP BY topic_id"+
-            "\n\t"+"ORDER BY score DESC, t.modified DESC;",
+    var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
+                "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-count(distinct(t.modified))) +"+
+                "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
+                "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, tags,"+
+                "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.report AS report, t.status AS status, report_status,"+
+                "\n\t"+"ut.follow AS user_follow, ut.endorse AS user_endorse, ut.report AS user_report"+
+                "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
+                "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
+                "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON t.initiator=ut.user_id AND t.topic_id = ut.topic_id"+
+                "\n\t"+"GROUP BY topic_id"+
+                "\n\t"+"ORDER BY score DESC, t.modified DESC;";
+    console.log(query);
+    db.query(query,
         function (results) {
             var topics = [];
             if (results) {
@@ -69,7 +70,7 @@ exports.getTopics = function (callback) {
                         "created":topicData.created,
                         "modified":topicData.modified,
                         "title":topicData.title,
-                        "tags":topicData.tags,
+                        "tags":topicData.tags ? JSON.parse(topicData.tags) : null,
                         "endorse":topicData.endorse,
                         "follow":topicData.follow,
                         "report":topicData.report,

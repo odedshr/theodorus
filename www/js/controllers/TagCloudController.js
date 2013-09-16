@@ -3,15 +3,24 @@ Theodorus.namespace("feed").TagCloudController = Theodorus.Controller.extend({
         this.view = new Theodorus.feed.TagCloudView();
         this._super(io);
         this.collection = new Tags();
-        _.bindAll(this,"load","selectTag","render");
+        io.getTagColor = this.getTagColor.bind(this);
+        _.bindAll(this,"load","selectTag","render","getTagColor");
     },
 
-    load: function () { //{data: {page: 3}
+    load: function (callback) { //{data: {page: 3}
+        var This = this,
+            after = function () { This.render(callback);};
         this.collection.fetch({
             reset:true,
-            success:this.render,
-            error:this.render
+            success:after,
+            error:after
         });
+    },
+
+    getTagColor:function (tag) {
+        var defaultColor = new Tag();
+        var tagElement = this.collection.findWhere({"tag":tag});
+        return (tagElement ? tagElement: defaultColor).get("color") ;
     },
 
     selectTag: function(tag) {

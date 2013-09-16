@@ -243,6 +243,28 @@ header {
       float:left;
       padding: 0 0.5rem 0 0.5rem;
     }
+    .tags {
+      clear:both;
+      float:right;
+      margin:0.2rem;
+      width:100%;
+      .tag {
+          .rounded (0.3rem);
+          border:1px solid #999;
+          float:right;
+          height:0.9rem;
+          margin-left:0.1rem;
+          padding-right:0.1rem;
+          a {
+            font-size:0.8rem;
+            line-height: 1.3rem;
+          }
+      }
+      .tag-color {
+        margin-top:0.2rem;
+      }
+    }
+    .actions { }
     .button-action {
       .rounded(0.2rem);
       background-color:#ececec;
@@ -311,27 +333,7 @@ only screen and (max-device-width : 40rem){
   width: 12rem;
 
   #tags {
-    .tag {
-      height:1.1rem;
-    }
-    .tag a {
-      color:#333;
-      padding:0.2rem;
-      text-decoration: none;
-    }
-    .tag a:hover {
-      color:blue;
-      text-decoration: underline;
-    }
-    .tag-color {
-      .rounded(0.5rem);
-      border:1px solid @elementBorder;
-      float: right;
-      display: block;
-      height: 0.5rem;
-      width: 0.5rem;
-      margin: 0.1rem;
-    }
+    .tag {}
     .tag-count:before { content: "("; }
     .tag-count {
       color:#666;
@@ -341,7 +343,13 @@ only screen and (max-device-width : 40rem){
   }
 }
 
-#link_suggest_topic { clear: both; }
+#suggest_topic {
+  height: 3rem;
+  width: 100%;
+
+  #link_suggest_topic { clear: both; }
+}
+
 #form_add_topic {
   #topic_complete_slug { display:block; direction: ltr; }
 }
@@ -438,4 +446,28 @@ only screen and (max-device-width : 40rem){
   .expectedOutput {width: 10rem; }
   .output { width: 10rem; }
   .result { width: 10rem; }
+}
+
+.tag {
+  height:1.1rem;
+
+  .tag-color {
+    .rounded(0.5rem);
+    border:1px solid @elementBorder;
+    float: right;
+    display: block;
+    height: 0.5rem;
+    width: 0.5rem;
+    margin: 0.1rem;
+  }
+
+  a {
+    color:#333;
+    padding:0.2rem;
+    text-decoration: none;
+  }
+  a:hover {
+    color:blue;
+    text-decoration: underline;
+  }
 }

@@ -4,6 +4,7 @@ Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
 
     render : function(callback) {
         var This = this;
+        console.log(this.controller.collection.xml());
         this.transform(this.controller.collection.xml(),function (output) {
             This.setup();
             if (callback) {

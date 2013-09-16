@@ -366,6 +366,29 @@ header #account #menu:hover #menu_content {
   float: left;
   padding: 0 0.5rem 0 0.5rem;
 }
+#topics .topic .tags {
+  clear: both;
+  float: right;
+  margin: 0.2rem;
+  width: 100%;
+}
+#topics .topic .tags .tag {
+  -webkit-border-radius: 0.3rem;
+  -moz-border-radius: 0.3rem;
+  border-radius: 0.3rem;
+  border: 1px solid #999;
+  float: right;
+  height: 0.9rem;
+  margin-left: 0.1rem;
+  padding-right: 0.1rem;
+}
+#topics .topic .tags .tag a {
+  font-size: 0.8rem;
+  line-height: 1.3rem;
+}
+#topics .topic .tags .tag-color {
+  margin-top: 0.2rem;
+}
 #topics .topic .button-action {
   -webkit-border-radius: 0.2rem;
   -moz-border-radius: 0.2rem;
@@ -588,29 +611,6 @@ header #account #menu:hover #menu_content {
   vertical-align: top;
   width: 12rem;
 }
-#sidebar #tags .tag {
-  height: 1.1rem;
-}
-#sidebar #tags .tag a {
-  color: #333;
-  padding: 0.2rem;
-  text-decoration: none;
-}
-#sidebar #tags .tag a:hover {
-  color: blue;
-  text-decoration: underline;
-}
-#sidebar #tags .tag-color {
-  -webkit-border-radius: 0.5rem;
-  -moz-border-radius: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #aaaaaa;
-  float: right;
-  display: block;
-  height: 0.5rem;
-  width: 0.5rem;
-  margin: 0.1rem;
-}
 #sidebar #tags .tag-count:before {
   content: "(";
 }
@@ -621,7 +621,11 @@ header #account #menu:hover #menu_content {
 #sidebar #tags .tag-count:after {
   content: ")";
 }
-#link_suggest_topic {
+#suggest_topic {
+  height: 3rem;
+  width: 100%;
+}
+#suggest_topic #link_suggest_topic {
   clear: both;
 }
 #form_add_topic #topic_complete_slug {
@@ -773,4 +777,27 @@ header #account #menu:hover #menu_content {
 }
 #unitTests .result {
   width: 10rem;
+}
+.tag {
+  height: 1.1rem;
+}
+.tag .tag-color {
+  -webkit-border-radius: 0.5rem;
+  -moz-border-radius: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #aaaaaa;
+  float: right;
+  display: block;
+  height: 0.5rem;
+  width: 0.5rem;
+  margin: 0.1rem;
+}
+.tag a {
+  color: #333;
+  padding: 0.2rem;
+  text-decoration: none;
+}
+.tag a:hover {
+  color: blue;
+  text-decoration: underline;
 }

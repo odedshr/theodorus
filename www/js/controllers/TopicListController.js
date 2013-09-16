@@ -7,10 +7,19 @@ Theodorus.namespace("feed").TopicListController =  Theodorus.Controller.extend({
     },
 
     loadCallback: function() { // collection, response, options
+        var io = this.io;
         this.collection.models.forEach(function (model) {
             var value = model.get("initiator");
             if (typeof value == "object") {
                 model.set("initiator",new User(value));
+            }
+            value = model.get("tags");
+            if (typeof value == "object") {
+                var tags = new Tags();
+                for (var i in value) {
+                    tags.add({"tag":value[i], "color":io.getTagColor(value[i])});
+                }
+                model.set("tags",tags);
             }
         });
         this.render();
