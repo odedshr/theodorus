@@ -1,17 +1,21 @@
 var config = require("../config.json"),
     _ = require("underscore"),
     express = require('express'),
-    xslt = require('node_xslt'),
-    app = express();
+    xslt = require('node_xslt');
 
-app.use(express.cookieParser());
+var WebApplication = function () {
+    var self = this;
+    self.config = config;
+    self.crypto = require("crypto");
+    self.qs = require("querystring");
+    self.db = require ('./js/db/DbApi').get(config);
+    self.rsa = require("./js/RSA");
+    self.rsa_keys =  {
+        "encryption":process.env.THEODORUS_RSA_ENCRYPT,
+        "decryption":process.env.THEODORUS_RSA_DECRYPT,
+        "modulus":process.env.THEODORUS_RSA_MODULUS
+    };
 
-/* the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:*/
-//req.protocol + "://" + req.get('host') + ":" +req.port + "/" +
-app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
-});
-
-var WebApplication = (function () {
     function Session(req,res) {
         this.req = req;
         this.res = res;
@@ -25,7 +29,7 @@ var WebApplication = (function () {
                     "userId": userId,
                     "remember": remember
                 });
-                this.res.cookie( config.cookie_token, WebApplication.rsa.generateKey(WebApplication.rsa_keys).encrypt(cookieString),
+                this.res.cookie( config.cookie_token, self.rsa.generateKey(self.rsa_keys).encrypt(cookieString),
                     { maxAge: remember ? 31536000000 : 900000, httpOnly: false}); // remember ? year : 15m
                 return true;
             } else {
@@ -43,7 +47,7 @@ var WebApplication = (function () {
             var This = this;
             this.req.on('data', function (data) { body +=data; });
             this.req.on('end',function(){
-                var data = (0<body.length) ? WebApplication.qs.parse(body) : {};
+                var data = (0<body.length) ? self.qs.parse(body) : {};
                 //TODO: sanitize input
                 This.input = data;
                 callback(data);
@@ -53,9 +57,9 @@ var WebApplication = (function () {
         this.useUserId =  function (callback) {
             var token = this.cookie(),
                 userId= false;
-            if (token = (token ? WebApplication.qs.unescape(token) : false)) {
+            if (token = (token ? self.qs.unescape(token) : false)) {
                 try {
-                    token = JSON.parse(WebApplication.rsa.generateKey(WebApplication.rsa_keys).decrypt(token));
+                    token = JSON.parse(self.rsa.generateKey(self.rsa_keys).decrypt(token));
                     if (token.ip==this.req.socket.remoteAddress) {
                         this.cookie(token.userId,token.remember); // re-set the cookie
                         userId = token.userId
@@ -70,108 +74,142 @@ var WebApplication = (function () {
 
         this.get404 = function () {
             res.status(404);
-            return this.isJSON ? { "error": 'item-not-found' } : "<app >"+WebApplication.getScriptListXML()+"<fileNotFound /></app>";
+            return this.isJSON ? { "error": 'item-not-found' } : "<app >"+self.getScriptListXML()+"<fileNotFound /></app>";
         }
     }
 
-    return {
-        "config": config,
-        "crypto" : require("crypto"),
-        "qs" : require("querystring"),
-        "db" : require ('./js/db/DbApi').get(config),
-        "rsa" : require("./js/RSA"),
-        "rsa_keys": {
-            "encryption":process.env.THEODORUS_RSA_ENCRYPT,
-            "decryption":process.env.THEODORUS_RSA_DECRYPT,
-            "modulus":process.env.THEODORUS_RSA_MODULUS
-        },
+    /*  ================================================================  */
+    /*  Helper functions.                                                 */
+    /*  ================================================================  */
 
-        "getScriptList": function () {
-            return (process.env.THEODORUS_MODE=="dev") ? config.clientScripts : config.clientScriptsDebug;
+    self.setupVariables = function() {
+        //  Set the environment variables we need.
+        self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
+        self.port      = process.env.OPENSHIFT_NODEJS_PORT || config.port || 8080;
 
-        },
-        "getScriptListXML": function () {
-            var list = this.getScriptList();
-            var xml = "";
-            list.forEach(function(script) {
-                xml+= "<script src='"+script+"' />";
-            });
-            return xml;
-        },
-        "plugins" : function (url,session,mainFunc,callback) {
-            mainFunc(session,function(output) {
-                callback(output);
-            });
-        },
-        "xslt" : function (xmlString) {
-            if (typeof xmlString === "object") {
-                return "<pre>"+JSON.stringify(xmlString)+"</pre>";
-            }
-            var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl");
-            var xmlDocument = xslt.readXmlString("<xml>"+xmlString+"</xml>");
-            return xslt.transform( xsltDocument,xmlDocument, [])
-        },
-        "getSession" : function (req, res) {
-            return new Session(req,res);
-        },
-        "addHandler": function (handlerDef) {
-            var This = this;
-            var functionWrapper = (handlerDef.method=="GET" || handlerDef.method=="DELETE") ?
-                function (req,res) {
-                    var session = This.getSession(req,res);
-                    res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
+        if (typeof self.ipaddress === "undefined") {
+            //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
+            //  allows us to run/test the app locally.
+            console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
+            self.ipaddress = "127.0.0.1";
+        }
+    };
+
+    self.getScriptList = function () {
+        return (process.env.THEODORUS_MODE=="dev") ? config.clientScripts : config.clientScriptsDebug;
+    };
+
+    self.getScriptListXML = function () {
+        var list = self.getScriptList();
+        var xml = "";
+        list.forEach(function(script) {
+            xml+= "<script src='"+script+"' />";
+        });
+        return xml;
+    };
+
+    self.plugins = function (url,session,mainFunc,callback) {
+        mainFunc(session,function(output) {
+            callback(output);
+        });
+    };
+
+    self.xslt = function (xmlString) {
+        if (typeof xmlString === "object") {
+            return "<pre>"+JSON.stringify(xmlString)+"</pre>";
+        }
+        var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl");
+        var xmlDocument = xslt.readXmlString("<xml>"+xmlString+"</xml>");
+        return xslt.transform( xsltDocument,xmlDocument, [])
+    };
+
+    self.getSession = function (req, res) {
+        return new Session(req,res);
+    };
+
+    self.addHandler = function (handlerDef) {
+        var This = this;
+        var functionWrapper = (handlerDef.method=="GET" || handlerDef.method=="DELETE") ?
+            function (req,res) {
+                var session = This.getSession(req,res);
+                res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
+                This.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
+                    res.end(session.isJSON ? JSON.stringify(output) : This.xslt(output));
+                });
+            } :
+            function (req,res) {
+                var session = This.getSession(req,res);
+                res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
+                session.useInput(function() {
                     This.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
                         res.end(session.isJSON ? JSON.stringify(output) : This.xslt(output));
                     });
-                } :
-                function (req,res) {
-                    var session = This.getSession(req,res);
-                    res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
-                    session.useInput(function() {
-                        This.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
-                            res.end(session.isJSON ? JSON.stringify(output) : This.xslt(output));
-                        });
-                    });
-                };
+                });
+            };
 
-            switch(handlerDef.method) {
-                case "GET": app.get(handlerDef.url, functionWrapper); break;
-                case "POST": app.post(handlerDef.url, functionWrapper); break;
-                case "DELETE": app.delete(handlerDef.url, functionWrapper); break;
-                case "PUT": app.put(handlerDef.url, functionWrapper); break;
-            }
-        },
-        "initProcesses": function () {
-            var This = this;
-            config.processes.forEach( function(libraryName) {
-                require("./js/"+libraryName).init(This).forEach(This.addHandler.bind(This));
-            });
+        switch(handlerDef.method) {
+            case "GET": self.app.get(handlerDef.url, functionWrapper); break;
+            case "POST": self.app.post(handlerDef.url, functionWrapper); break;
+            case "DELETE": self.app.delete(handlerDef.url, functionWrapper); break;
+            case "PUT": self.app.put(handlerDef.url, functionWrapper); break;
         }
     };
-}());
 
-WebApplication.initProcesses();
+    self.initProcesses =  function () {
+        config.processes.forEach( function(libraryName) {
+            require("./js/"+libraryName).init(self).forEach(self.addHandler.bind(self));
+        });
+    };
 
-WebApplication.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
-    callback("<app>"+WebApplication.getScriptListXML()+"<mainfeed /></app>");
-}});
+    self.initialize = function () {
+        var app = self.app = express();
+        app.use(express.cookieParser());
+        app.use(express.static(__dirname ));
+        // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
+        app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
+        });
+        self.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
+            callback("<app>"+self.getScriptListXML()+"<mainfeed /></app>");
+        }});
 
-WebApplication.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
-    callback({"error":"no-permission-to-access-file"});
-}});
+        self.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
+            callback({"error":"no-permission-to-access-file"});
+        }});
+        self.setupVariables();
+        self.initProcesses();
+    };
 
+    self.start = function () {
+        self.app.listen(self.port, self.ipaddress, function() {
+            console.log('%s: Node server started on %s:%d ...',
+                (new Date(Date.now() )), self.ipaddress, self.port);
+        });
+    };
+};
 
-function getMethodNotImplementedMessage (req,res) {
-    res.setHeader('Content-Type', 'application/json' );
-    res.end(JSON.stringify({"error":"not-implemented","method":req.method+"/"+req.url}));
+try {
+    var instance = new WebApplication();
+    instance.initialize();
+    instance.start();
+} catch (error) {
+    console.error("Failed to initialize app\n"+error);
 }
-// comments
-app.get(/^\/~[a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage);
-// search
-app.get(/^\/\?[a-zA-Z0-9_-]{1,140}\/?$/, getMethodNotImplementedMessage);
-// errors
-app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
 
-app.use(express.static(__dirname ));
 
-app.listen(config.port);
+
+/*
+
+
+ function getMethodNotImplementedMessage (req,res) {
+ res.setHeader('Content-Type', 'application/json' );
+ res.end(JSON.stringify({"error":"not-implemented","method":req.method+"/"+req.url}));
+ }
+ // comments
+ app.get(/^\/~[a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage);
+ // search
+ app.get(/^\/\?[a-zA-Z0-9_-]{1,140}\/?$/, getMethodNotImplementedMessage);
+ // errors
+ app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
+
+
+    */

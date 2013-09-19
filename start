@@ -12,7 +12,7 @@ readyjs ./www/js/views -o theodorus.views.min.js
 mv theodorus.views.min.js ./www/js
 
 # Invoke the Forever module (to START our Node.js server).
-./www/node_modules/forever/bin/forever \
+forever \
 start \
 -al forever.log \
 -ao logs/out.log \
