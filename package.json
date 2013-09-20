@@ -1,35 +1,16 @@
 {
     "name": "theodorus",
-    "version": "0.0.1",
     "description": "Theodorus is a anarchistic voting system",
-    "keywords": [
-        "OpenShift",
-        "Node.js",
-        "application",
-        "openshift"
-    ],
-    "author": {
-    "name": "OpenShift",
-    "email": "ramr@example.org",
-    "url":  "http://www.openshift.com/"
-    },
-    "homepage": "http://www.openshift.com/",
-    "repository": {
-    "type": "git",
-    "url": "https://gitub.com/openshift/origin-server"
-    },
-
-    "engines": {
-    "node": ">= 0.6.0",
-    "npm": ">= 1.0.0"
-    },
-
-    "dependencies": {
-        "express": "3.3.4"
-    },
-    "devDependencies": {},
-    "bundleDependencies": [],
-
+    "version": "0.0.1",
     "private": true,
-    "main": "server.rhc.js"
+    "engines": {
+        "node": ">= 0.6.0",
+        "npm": ">= 1.0.0"
+    },
+    "dependencies": {
+        "express": "3.3.4",
+        "node_xslt": "0.1.9",
+        "mysql": "mysql@2.0.0-alpha8"
+    },
+    "main": "server.js"
 }
