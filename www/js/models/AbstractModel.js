@@ -32,10 +32,15 @@ var AbstractModel = Backbone.Model.extend({
             return value.xml();
         }
         if (this.schema[attribute]=="date" && (typeof prettyDate !== "undefined")) {
-            var formattedDate = (new Date(value)).format();
-            var dateCode =prettyDate(value);
-            var numValue = Number(dateCode.replace(/\D/g,""));
-            return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
+            try {
+                var formattedDate = (new Date(value)).format();
+                var dateCode =prettyDate(value);
+                var numValue = Number(dateCode.replace(/\D/g,""));
+                return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
+            } catch(error) {
+                return "";
+            }
+
         }
         return "<"+attribute+">"+value+"</"+attribute+">";
     }
