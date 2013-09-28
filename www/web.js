@@ -139,7 +139,7 @@ var WebApplication = function () {
                 });
             } :
             function (req,res) {
-                var session = This.getSession(req,res);
+                var session = self.getSession(req,res);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
                 session.useInput(function() {
                     self.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
