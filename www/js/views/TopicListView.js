@@ -1,10 +1,11 @@
 Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
     el: "#topics",
+    jScroller: $(window),
+    jWrapper:$(document),
     initialize : function () {},
 
     render : function(callback) {
         var This = this;
-        console.log(this.controller.collection.xml());
         this.transform(this.controller.collection.xml(),function (output) {
             This.setup();
             if (callback) {
@@ -15,9 +16,9 @@ Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
     },
 
     setup: function (callback) {
-        $(".topic .title").click(this.titlePressed.bind(this));
-        $(".button-action").click(this.actionPressed.bind(this));
-
+        $(".topic .title").off('click').click(this.titlePressed.bind(this));
+        $(".button-action").off('click').click(this.actionPressed.bind(this));
+        this.jScroller.scroll(this.listScrolled.bind(this));
         return Theodorus.View.prototype.setup.call(this,callback);
     },
 
@@ -39,5 +40,13 @@ Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
             }
         });
         return false;
+    },
+
+    listScrolled: function () {
+        if (this.jScroller.scrollTop()<-100) {
+            this.controller.reload();
+        } else if (((this.jScroller.scrollTop()+this.jScroller.height())/this.jWrapper.height()) > 0.86) {
+            this.controller.nextPage();
+        }
     }
 });

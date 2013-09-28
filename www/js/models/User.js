@@ -46,13 +46,13 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
         var obj = this.toJSON(),
             xml = this.xmlAttribute("email")+
                   this.xmlAttribute("display_name")+
-                  this.xmlAttribute("slug");
-                  this.xmlAttribute("SN");
-                  this.xmlAttribute("bio");
-                  this.xmlAttribute("picture");
-                  this.xmlAttribute("birthday");
-                  this.xmlAttribute("language");
-                  this.xmlAttribute("score");
+                  this.xmlAttribute("slug")+
+                  this.xmlAttribute("SN")+
+                  this.xmlAttribute("bio")+
+                  this.xmlAttribute("picture")+
+                  this.xmlAttribute("birthday")+
+                  this.xmlAttribute("language")+
+                  this.xmlAttribute("score")+
                   this.xmlAttribute("badges");
         return "<user"+(obj.user_id ? ' id="'+obj.user_id+'"' : '')+">" + xml + "</user>";
     },

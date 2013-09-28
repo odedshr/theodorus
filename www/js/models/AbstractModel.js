@@ -32,10 +32,15 @@ var AbstractModel = Backbone.Model.extend({
             return value.xml();
         }
         if (this.schema[attribute]=="date" && (typeof prettyDate !== "undefined")) {
-            var formattedDate = (new Date(value)).format();
-            var dateCode =prettyDate(value);
-            var numValue = Number(dateCode.replace(/\D/g,""));
-            return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
+            try {
+                var formattedDate = (new Date(value)).format();
+                var dateCode =prettyDate(value);
+                var numValue = Number(dateCode.replace(/\D/g,""));
+                return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
+            } catch(error) {
+                return "";
+            }
+
         }
         return "<"+attribute+">"+value+"</"+attribute+">";
     }
@@ -44,6 +49,20 @@ var AbstractModel = Backbone.Model.extend({
 
 var AbstractCollection = Backbone.Collection.extend ({
     name: "collection",
+    getPage: function () {
+        var matches = this.url.match(/:\d+/);
+        return (matches ? matches[0].replace(/\D/g,"")*1 : 0);
+    },
+
+    setPage: function(pageNum) {
+        var matches = this.url.match(/:\d+/);
+        if (matches) {
+            this.url = this.url.replace(/:\d+/,":"+pageNum);
+        } else {
+            this.url = (this.url+"/:"+pageNum).replace(/\/\/:/,"/:");
+        }
+    },
+
     xml: function () {
         var xml = "";
         this.forEach(function(model) {

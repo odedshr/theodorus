@@ -128,21 +128,20 @@ var WebApplication = function () {
     };
 
     self.addHandler = function (handlerDef) {
-        var This = this;
         var functionWrapper = (handlerDef.method=="GET" || handlerDef.method=="DELETE") ?
             function (req,res) {
-                var session = This.getSession(req,res);
+                var session = self.getSession(req,res);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
-                This.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
-                    res.end(session.isJSON ? JSON.stringify(output) : This.xslt(output));
+                self.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
+                    res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
                 });
             } :
             function (req,res) {
                 var session = This.getSession(req,res);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
                 session.useInput(function() {
-                    This.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
-                        res.end(session.isJSON ? JSON.stringify(output) : This.xslt(output));
+                    self.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
+                        res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
                     });
                 });
             };

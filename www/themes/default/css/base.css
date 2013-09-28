@@ -608,6 +608,7 @@ header #account #menu:hover #menu_content {
   display: table-cell;
   height: 100%;
   padding: 0.5rem;
+  position: fixed;
   vertical-align: top;
   width: 12rem;
 }
@@ -800,4 +801,7 @@ header #account #menu:hover #menu_content {
 .tag a:hover {
   color: blue;
   text-decoration: underline;
+}
+#topic {
+  padding-top: 5rem;
 }

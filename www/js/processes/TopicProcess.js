@@ -11,7 +11,7 @@ var TopicProcess = (function () {
                 } else {
                     callback({"error":"error-getting-topics"});
                 }
-            });
+            }, session.url.replace(/\D/g,"")* 1);
         },
 
         addTopic: function (session,callback) {
@@ -67,7 +67,25 @@ var TopicProcess = (function () {
             }
         },
         getTopic: function (session,callback) {
-            callback(session.get404());
+            if (session.isJSON) {
+                var topicKey = this.getTopicIndexByUrl(session.url);
+                if (topicKey.error) {
+                    callback(topicKey);
+                    return;
+                }
+                io.db.getTopic(topicKey, function (topic){
+                    if (topic) {
+                        io.db.getTopicRead(topic.id, function(topicRead){
+                           topic.set("content",topicRead.content);
+                           callback(topic.toJSON());
+                        });
+                    } else {
+                        callback(session.get404());
+                    }
+                });
+            } else {
+                callback("<app>"+io.getScriptListXML()+"<topicView /></app>");
+            }
         },
 
         getTopicIndexByUrl: function (url) {
@@ -80,7 +98,9 @@ var TopicProcess = (function () {
             }
             return {"error":"url-parse-failed"}
         },
-        getTopicForEdit: function (session,callback) { callback({"error":"method-not-implemented"});},
+        getTopicForEdit: function (session,callback) {
+            callback("<app>"+io.getScriptListXML()+"<topicEdit /></app>");
+        },
         setTopic: function (session,callback) { callback({"error":"method-not-implemented"});},
 
 
@@ -139,7 +159,7 @@ if (typeof exports !== "undefined") {
     exports.init = function (ioFunctions) {
         io = ioFunctions;
         return [
-            {"method":"GET",  "url":/^\/topics\/?$/,                                            "handler":TopicProcess.getTopics.bind(TopicProcess)},
+            {"method":"GET",  "url":/^\/topics(\/:\d+)?\/?$/,                                            "handler":TopicProcess.getTopics.bind(TopicProcess)},
             {"method":"POST", "url":/^\/topics\/?$/,                                            "handler":TopicProcess.addTopic.bind(TopicProcess)},
             {"method":"GET",  "url":/^\/\*[a-zA-Z0-9_-]{3,140}\/exists\/?$/,                    "handler":TopicProcess.isExists.bind(TopicProcess)},
             {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,              "handler":TopicProcess.getTopic.bind(TopicProcess)},
