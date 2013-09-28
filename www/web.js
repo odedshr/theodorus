@@ -34,10 +34,12 @@ var WebApplication = function () {
                 return true;
             } else {
                 var cookies = {};
-                this.req.headers && this.req.headers.cookie.split(';').forEach(function(cookie) {
-                    var parts = cookie.match(/(.*?)=(.*)$/);
-                    cookies[ parts[1].trim() ] = (parts[2] || '').trim();
-                });
+                if (this.req.headers && this.req.headers.cookie) {
+                    this.req.headers.cookie.split(';').forEach(function(cookie) {
+                        var parts = cookie.match(/(.*?)=(.*)$/);
+                        cookies[ parts[1].trim() ] = (parts[2] || '').trim();
+                    });
+                }
                 return cookies[config.cookie_token];
             }
         };
