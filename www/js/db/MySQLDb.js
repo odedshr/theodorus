@@ -5,15 +5,16 @@
 var mysql      = require('mysql'),
     pool = null,
     prefix     = "",
-    _          = require('underscore');
-
-exports.init = function (config) {
-    pool  = mysql.createPool({
+    _          = require('underscore'),
+    authentication = {
         host     : process.env.THEODORUS_MYSQL_HOST,
         port     : process.env.THEODORUS_MYSQL_PORT,
         user     : process.env.THEODORUS_MYSQL_USER,
         password : process.env.THEODORUS_MYSQL_PASSWORD
-    });
+    };
+
+exports.init = function (config) {
+    pool = mysql.createPool(authentication);
     prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
 };
 
@@ -153,7 +154,7 @@ exports.getItems = function (sampleModel,queryOptions,callback) {
 exports.query = function (query,callback) {
     pool.getConnection(function(err, connection) {
         if (err) {
-            console.error("query/getConnection error:" + err);
+            console.error("query/getConnection error:" + err +"\n"+JSON.stringify(authentication));
             callback (false);
         } else {
             try {
