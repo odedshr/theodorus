@@ -33,32 +33,6 @@
                 <div id="account">
                     <xsl:apply-templates select="user" />
                 </div>
-                <form id="form_search" action="/search" get="post">
-                    <input type="text" />
-                    <button class="tag"><span>כלכלה-ואוצר</span></button>
-                    <button class="tag"><span>איכות-הסביבה</span></button>
-                    <button class="tag"><span>משאבי-טבע</span></button>
-                    <button class="tag"><span>חינוך-והשכלה</span></button>
-                    <button class="tag"><span>רווחה</span></button>
-                    <button class="tag"><span>תשתיות</span></button>
-                    <button class="tag"><span>תרבות-וספורט</span></button>
-                    <button class="tag"><span>זכויות-אדם</span></button>
-                    <button class="tag"><span>מורשת</span></button>
-                    <button class="tag"><span>פלילים</span></button>
-                    <button class="tag"><span>חוק-ומשפט</span></button>
-                    <button class="tag"><span>ממשל</span></button>
-                    <button class="tag"><span>בטחון-פנים</span></button>
-                    <button class="tag"><span>בריאות</span></button>
-                    <button class="tag"><span>רווחה</span></button>
-                    <button class="tag"><span>מדיניות-חוץ</span></button>
-                    <button class="tag"><span>ביטחון</span></button>
-                    <button class="tag"><span>מדע-וטכנולוגיה</span></button>
-                    <button class="tag"><span>עלייה</span></button>
-                    <button class="tag"><span>תחבורה</span></button>
-                    <button class="tag"><span>תעשייה-ומסחר</span></button>
-                    <button class="tag"><span>תקשורת</span></button>
-                    <button class="tag"><span>תיירות</span></button>
-                </form>
             </header>
             <div id="feed_wrapper">
                 <div id="feed">
@@ -114,9 +88,11 @@
             <ul>
                 <xsl:for-each select="tag">
                     <xsl:sort select="@count" data-type="number" order="descending"/>
-                    <li class="tag">
-                        <span class="tag-color" style="background-color:{@color}">&nbsp;</span>
-                        <a href="/#{current()}"><xsl:apply-templates select="current()" /></a>
+                    <li class="tag-wrapper">
+                        <div class="tag">
+                            <span class="tag-color" style="background-color:{@color}">&nbsp;</span>
+                            <a href="/#{current()}"><xsl:apply-templates select="current()" /></a>
+                        </div>
                         <xsl:if test="@count &gt; 0">
                             <span class="tag-count"><xsl:apply-templates select="@count" /></span>
                         </xsl:if>

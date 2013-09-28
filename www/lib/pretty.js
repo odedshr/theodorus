@@ -29,7 +29,7 @@ function prettyDate(time){
         day_diff == 2 && "two-days-ago" ||
 		day_diff < 7 && day_diff + "-days-ago" ||
         day_diff < 14 && "a-week-ago" ||
-        day_diff < 21 && "two-week-ago" ||
+        day_diff < 21 && "two-weeks-ago" ||
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + "-weeks-ago";
 }
 

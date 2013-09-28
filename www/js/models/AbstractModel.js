@@ -25,7 +25,7 @@ var AbstractModel = Backbone.Model.extend({
 
     xmlAttribute: function(attribute) {
         var value = this.get(attribute);
-        if (value=="undfined") {
+        if (!value || value=="undfined") {
             return "";
         }
         if (value && (typeof value == "object") && value.xml) {
