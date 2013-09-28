@@ -30,7 +30,8 @@
                 </xsl:when>
                 <xsl:when test="topic">
                     <h2><xsl:value-of select="topic/title" /></h2>
-                    <div><xsl:value-of select="topic/content" /></div>
+                    <div id="content"><xsl:value-of select="topic/content" /></div>
+                    <div id="comments"></div>
                     <!--<xsl:choose>
                         <xsl:when test="topic[status='idea']">idea</xsl:when>
                         <xsl:when test="topic[status='discussion']">discussion</xsl:when>
@@ -38,14 +39,21 @@
                         <xsl:when test="topic[status='decision']">decision</xsl:when>
                     </xsl:choose>-->
                     <ul id="socialTools">
-                        <li>
-                             <a href="https://twitter.com/share" class="twitter-share-button" data-size="large" data-dnt="true"><xsl:value-of select="$tweet" /></a>
-                            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                        <li class="twitter">
+                            <a href="https://twitter.com/share" class="twitter-share-button" data-text="{topic/title}"><xsl:value-of select="$tweet"/></a>
+                            <script>!function(d,s,id){
+                                    var js,
+                                        fjs=d.getElementsByTagName(s)[0],
+                                        p=/^http:/.test(d.location)?'http':'https';
+                                        if(!d.getElementById(id)){
+                                            js=d.createElement(s);
+                                            js.id=id;
+                                            js.src=p+'://platform.twitter.com/widgets.js';
+                                            fjs.parentNode.insertBefore(js,fjs);
+                                        }
+                                        }(document, 'script', 'twitter-wjs');</script>
                         </li>
-                        <li>
-                            <iframe src="//www.facebook.com/plugins/like.php?href={url}&amp;width=450&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false&amp;appId=1394431237451482" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;" allowTransparency="true"></iframe>
-                        </li>
-                        <li>
+                        <li class="google">
                             <div class="g-plusone"></div>
                             <script type="text/javascript">
                                 (function() {
@@ -54,6 +62,11 @@
                                     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
                                 })();
                             </script>
+                        </li>
+                        <li class="facebook">
+                            <iframe src="//www.facebook.com/plugins/like.php?href={url}&amp;width=450&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false&amp;appId=1394431237451482"
+                                    scrolling="no"
+                                    allowTransparency="true"></iframe>
                         </li>
                     </ul>
                 </xsl:when>

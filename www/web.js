@@ -186,6 +186,7 @@ var WebApplication = function () {
                 (new Date(Date.now() )), self.ipaddress, self.port);
         });
     };
+
 };
 
 try {

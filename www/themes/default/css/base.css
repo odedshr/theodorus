@@ -327,16 +327,19 @@ header #account #menu:hover #menu_content {
   width: 100%;
 }
 #topics .topic {
-  -webkit-box-shadow: 0.1rem 0.1rem 0.1rem rgba(0, 0, 0, 0.5);
-  -moz-box-shadow: 0.1rem 0.1rem 0.1rem rgba(0, 0, 0, 0.5);
-  box-shadow: 0.1rem 0.1rem 0.1rem rgba(0, 0, 0, 0.5);
+  /*.drop-shadow(0.1rem, 0.1rem, 0.1rem, 0.5);*/
+
   background-color: white;
   border: 1px solid #aaaaaa;
   box-sizing: border-box;
   column-break-inside: avoid;
   display: inline-block;
+  height: 12rem;
   line-height: 1.5rem;
   margin: 0 0.2rem 0.2rem;
+  position: relative;
+  /* this is needed so actions will be aligned to bottom */
+
   width: 98%;
 }
 #topics .topic .title {
@@ -373,21 +376,14 @@ header #account #menu:hover #menu_content {
   width: 100%;
 }
 #topics .topic .tags .tag {
-  -webkit-border-radius: 0.3rem;
-  -moz-border-radius: 0.3rem;
-  border-radius: 0.3rem;
-  border: 1px solid #999;
-  float: right;
   height: 0.9rem;
-  margin-left: 0.1rem;
-  padding-right: 0.1rem;
 }
-#topics .topic .tags .tag a {
-  font-size: 0.8rem;
-  line-height: 1.3rem;
-}
-#topics .topic .tags .tag-color {
-  margin-top: 0.2rem;
+#topics .topic .actions {
+  background-color: #d9f3ff;
+  bottom: 0;
+  padding-top: 0.2rem;
+  position: absolute;
+  width: 100%;
 }
 #topics .topic .button-action {
   -webkit-border-radius: 0.2rem;
@@ -612,15 +608,22 @@ header #account #menu:hover #menu_content {
   vertical-align: top;
   width: 12rem;
 }
+#sidebar #tags .tag-wrapper {
+  clear: both;
+  margin-top: 0.3rem;
+}
 #sidebar #tags .tag-count:before {
-  content: "(";
+  content: "x";
+  visibility: hidden;
 }
 #sidebar #tags .tag-count {
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
+  margin-right: 0.2rem;
+  line-height: 1.2rem;
 }
 #sidebar #tags .tag-count:after {
-  content: ")";
+  content: " x ";
 }
 #suggest_topic {
   height: 3rem;
@@ -780,18 +783,40 @@ header #account #menu:hover #menu_content {
   width: 10rem;
 }
 .tag {
+  -webkit-border-radius: 0.3rem;
+  -moz-border-radius: 0.3rem;
+  border-radius: 0.3rem;
+  border: 1px solid #999;
+  float: right;
   height: 1.1rem;
+  margin-left: 0.1rem;
+}
+.tag a {
+  font-size: 0.8rem;
+  line-height: 1.3rem;
 }
 .tag .tag-color {
-  -webkit-border-radius: 0.5rem;
-  -moz-border-radius: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #aaaaaa;
+  -webkit-border-top-right-radius: 0.2rem;
+  -webkit-border-bottom-right-radius: 0.2rem;
+  -webkit-border-bottom-left-radius: 0;
+  -webkit-border-top-left-radius: 0;
+  -moz-border-radius-topright: 0.2rem;
+  -moz-border-radius-bottomright: 0.2rem;
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-topleft: 0;
+  border-top-right-radius: 0.2rem;
+  border-bottom-right-radius: 0.2rem;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  -moz-background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  border: none;
   float: right;
   display: block;
-  height: 0.5rem;
-  width: 0.5rem;
-  margin: 0.1rem;
+  height: 100%;
+  width: 0.3rem;
+  margin: 0;
 }
 .tag a {
   color: #333;
@@ -804,4 +829,14 @@ header #account #menu:hover #menu_content {
 }
 #topic {
   padding-top: 5rem;
+}
+#socialTools li {
+  float: right;
+  width: 6rem;
+}
+#socialTools .facebook iframe {
+  border: none;
+  height: 21px;
+  overflow: hidden;
+  width: 6rem;
 }
