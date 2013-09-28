@@ -157,6 +157,8 @@
         <p>חזור ל<a href="/">דף הראשי</a></p>
     </xsl:param>
 
+    <xsl:param name="failed_to_load_topic" select="'טעינת פריט נכשלה'"/>
+    <xsl:param name="tweet" select="'ציוץ'"/>
 
     <xsl:template match="/">
         <xsl:apply-templates />

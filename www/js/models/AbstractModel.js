@@ -49,6 +49,20 @@ var AbstractModel = Backbone.Model.extend({
 
 var AbstractCollection = Backbone.Collection.extend ({
     name: "collection",
+    getPage: function () {
+        var matches = this.url.match(/:\d+/);
+        return (matches ? matches[0].replace(/\D/g,"")*1 : 0);
+    },
+
+    setPage: function(pageNum) {
+        var matches = this.url.match(/:\d+/);
+        if (matches) {
+            this.url = this.url.replace(/:\d+/,":"+pageNum);
+        } else {
+            this.url = (this.url+"/:"+pageNum).replace(/\/\/:/,"/:");
+        }
+    },
+
     xml: function () {
         var xml = "";
         this.forEach(function(model) {

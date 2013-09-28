@@ -6,6 +6,7 @@
 
  var db = require('./MySQLDb'),
     RELEVANCY_PERIOD = 14,
+    TOPICS_PER_PAGE = 30,
     User = require("../models/User").model(),
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
@@ -46,7 +47,9 @@ exports.getUserByName = function(display_name,callback) { exports.load(User, {"d
 exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
 exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
-exports.getTopics = function (callback) {
+exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, topicId, callback); };
+exports.getTopics = function (callback,page) {
+    var limit = page ? ("LIMIT "+((page-1)*TOPICS_PER_PAGE)+", "+TOPICS_PER_PAGE ): "";
     var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
                 "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-count(distinct(t.modified))) +"+
                 "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
@@ -57,8 +60,8 @@ exports.getTopics = function (callback) {
                 "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
                 "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON t.initiator=ut.user_id AND t.topic_id = ut.topic_id"+
                 "\n\t"+"GROUP BY topic_id"+
-                "\n\t"+"ORDER BY score DESC, t.modified DESC;";
-    console.log(query);
+                "\n\t"+"ORDER BY score DESC, t.modified DESC" +
+                "\n\t"+limit + ";";
     db.query(query,
         function (results) {
             var topics = [];
