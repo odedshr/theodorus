@@ -6,7 +6,6 @@
 *.exe
 *.o
 *.so
-*.min.js
 .bin
 
 # Packages #
