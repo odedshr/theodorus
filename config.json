@@ -1,11 +1,14 @@
 {
     "port":8080,
-    "theme":"default",
+    "theme":"basic",
     "table_prefix":"",
     "db_type":"mysql",
     "cookie_token":"tdrs::token",
     "minimum_password_length":3,
     "minimum_display_name_length":4,
+    "minimum_topic_title_length":5,
+    "maximum_topic_title_length":140,
+    "maximum_slug_length":140,
     "processes": [
         "processes/TestUnitProcess",
         "processes/AccountProcess",
@@ -14,6 +17,11 @@
         "processes/TagProcess"
     ],
     "clientScripts": [
+        "/js/theodorus.models.min.js",
+        "/js/theodorus.controllers.min.js",
+        "/js/theodorus.views.min.js"
+    ],
+    "clientScriptsDebug": [
         "/js/controllers/AbstractController.js",
         "/js/controllers/TopicListController.js",
         "/js/controllers/AddTopicController.js",
@@ -78,10 +86,6 @@
         "/js/models/Topic.js",
         "/js/models/Credentials.js",
         "/js/models/User.js",
-        "/js/models/Tag.js"],
-    "clientScriptsDebug": [
-        "/js/theodorus.models.min.js",
-        "/js/theodorus.controllers.min.js",
-        "/js/theodorus.views.min.js"
+        "/js/models/Tag.js"
     ]
 }
