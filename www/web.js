@@ -76,8 +76,40 @@ var WebApplication = function () {
 
         this.get404 = function () {
             res.status(404);
-            return this.isJSON ? { "error": 'item-not-found' } : "<app >"+self.getScriptListXML()+"<fileNotFound /></app>";
-        }
+            return this.getErrorHandler('item-not-found');
+        };
+
+        this.getErrorHandler = function (errorMessage,key,data) {
+            this.log (errorMessage+"\n"+data,"error");
+            var output;
+
+            if (self.isJSON) {
+                output = {error: errorMessage};
+            } else {
+                output = {
+                    "app":{
+                        "scripts": {"script":self.getScriptList()},
+                        "page": {
+                            "@type":"message",
+                            "message":{
+                                "@type": "error",
+                                "@message": errorMessage
+                            },
+                            "user": this.user,
+                            "referer":this.req.headers['referer']
+                        }
+                    }
+                };
+                output.app[key] = data;
+            }
+            return output;
+        };
+
+        this.log = function log (content, type) {
+            var target = (type=="error") ? console.error : console.log,
+                date = new Date();
+            target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + content);
+        };
     }
 
     /*  ================================================================  */
@@ -98,12 +130,13 @@ var WebApplication = function () {
     };
 
     self.getScriptList = function () {
-        return (process.env.THEODORUS_MODE=="dev") ? config.clientScripts : config.clientScriptsDebug;
+        var list =(process.env.THEODORUS_MODE=="dev") ? config.clientScriptsDebug : config.clientScripts;
+        return (typeof list != "undefined") ? list : [];
     };
 
     self.getScriptListXML = function () {
-        var list = self.getScriptList();
-        var xml = "";
+        var list = self.getScriptList(),
+            xml = "";
         list.forEach(function(script) {
             xml+= "<script src='"+script+"' />";
         });
@@ -116,44 +149,122 @@ var WebApplication = function () {
         });
     };
 
-    self.xslt = function (xmlString) {
-        if (typeof xmlString === "object") {
-            return "<pre>"+JSON.stringify(xmlString)+"</pre>";
-        }
-        var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl");
-        var xmlDocument = xslt.readXmlString("<xml>"+xmlString+"</xml>");
+    self.xslt = function (content) {
+        var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
+            xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.json2xml (content) : content)+"</xml>");
         return xslt.transform( xsltDocument,xmlDocument, [])
     };
+
+    self.json2xmlEngine = function json2xmlEngine (jsObj, tagName, ind) {
+        var filteredType = ["undefined","function"],
+            xml = "",
+            children = "",
+            child,
+            attrName;
+
+        if (jsObj && jsObj.toJSON && (typeof jsObj.toJSON == "function")) {
+            jsObj = jsObj.toJSON();
+        }
+        if (jsObj instanceof Array) {
+            for (var i=0, length = jsObj.length; i<length; i++) {
+                xml += ind + self.json2xmlEngine(jsObj[i], tagName, ind+"\t") + "\n";
+            }
+        } else if (typeof(jsObj) == "object") {
+            xml += "\n"+ ind + "<" + tagName;
+            for (attrName in jsObj) {
+                if (attrName.charAt(0) == "@") {
+                    xml += " " + attrName.substr(1) + "=\"" + jsObj[attrName].toString() + "\"";
+                } else {
+                    child = jsObj[attrName];
+                    if ((filteredType.indexOf(typeof child)==-1)) { // && jsObj.hasOwnProperty(attrName)
+                        if (attrName == "#text") {
+                            children += child;
+                        } else if (attrName == "#cdata") {
+                            children += "<![CDATA[" + child + "]]>";
+                        } else {
+                            children += self.json2xmlEngine(child, attrName, ind+"\t");
+                        }
+                    }
+                }
+            }
+            xml += (children.length) ? (">" + children + "</" + tagName + ">") : "/>";
+        }
+        else {
+            xml += "\n" + ind + ("<" + tagName + ">" + jsObj.toString() +  "</" + tagName + ">");
+        }
+        return xml;
+    };
+    self.json2xml = function json2xml (jsObj, tab) {
+        /*	This work is licensed under Creative Commons GNU LGPL License.
+
+         License: http://creativecommons.org/licenses/LGPL/2.1/
+         Version: 0.9
+         Author:  Stefan Goessner/2006
+         Web:     http://goessner.net/
+         */
+        var xml="";
+        for (var child in jsObj) {
+            xml += self.json2xmlEngine(jsObj[child], child, "");
+        }
+        return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
+    };
+
+    /////////////////////////////////////////////////////////////////////
 
     self.getSession = function (req, res) {
         return new Session(req,res);
     };
 
+    self.handlers = {
+        "get":[],
+        "post":[],
+        "delete":[],
+        "put":[]
+    };
+    self.getHandler = function(method,url) {
+        var i, handler, handlers = self.handlers[method];
+        for (i in handlers) {
+            handler = handlers[i];
+            if ((typeof handler.pattern == "string") ? (url == handler.pattern):  handler.pattern.test(url)) {
+                return handler.method;
+            }
+        }
+        console.error ("getHandler failed to match url " + url);
+        return function(){}; // if no method found, return a zombie function
+    };
+
     self.addHandler = function (handlerDef) {
-        var functionWrapper = (handlerDef.method=="GET" || handlerDef.method=="DELETE") ?
+        /* self.NoInputHandler and self.WithInputHandler are practically the same except for the input question, which I
+         * prefer will happen only on init and not every time the function runs ...
+         * Also, notice that the functionWrapper uses handlerDef.handler, so I cannot extract it from within the
+         * addHandler function ...
+         * */
+         //TODO: remove addHandler's functionWrapper code duplication
+         var url = handlerDef.url,
+            method = handlerDef.method.toLowerCase(),
+            functionWrapper = (method=="get" || method=="delete") ?
             function (req,res) {
                 var session = self.getSession(req,res);
+                session.log (method+":"+url);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
-                self.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
+                self.plugins(url, session, handlerDef.handler,function(output) {
                     res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
                 });
             } :
             function (req,res) {
                 var session = self.getSession(req,res);
+                session.log (method+":"+url);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
                 session.useInput(function() {
-                    self.plugins(handlerDef.url, session, handlerDef.handler,function(output) {
+                    self.plugins(url, session, handlerDef.handler,function(output) {
                         res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
                     });
                 });
             };
 
-        switch(handlerDef.method) {
-            case "GET": self.app.get(handlerDef.url, functionWrapper); break;
-            case "POST": self.app.post(handlerDef.url, functionWrapper); break;
-            case "DELETE": self.app.delete(handlerDef.url, functionWrapper); break;
-            case "PUT": self.app.put(handlerDef.url, functionWrapper); break;
-        }
+        self.handlers[method].push ({   "pattern":url,
+                                        "method":handlerDef.handler}); // store func for internal invocation // handlerDef.url
+        self.app[method](url, functionWrapper); // external invocation
     };
 
     self.initProcesses =  function () {
@@ -169,10 +280,6 @@ var WebApplication = function () {
         // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
         app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
         });
-        self.addHandler({"method":"GET", "url":"/", "handler":function(session,callback) {
-            callback("<app>"+self.getScriptListXML()+"<mainfeed /></app>");
-        }});
-
         self.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
             callback({"error":"no-permission-to-access-file"});
         }});

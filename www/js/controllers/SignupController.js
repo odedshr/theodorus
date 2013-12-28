@@ -27,7 +27,7 @@ Theodorus.namespace("user").SignupController =  Theodorus.Controller.extend({
             data.password = md5(password); //TODO: RSA on top of the md5
             data.password_repeat = md5(passwordRepeat);
             data.md5 = true;
-            $.post(action,data,function (output) {
+            this.io.post(action,data,function (output) {
                 if (!output.error) {
                     This.view.cancel();
                     This.callback(output);

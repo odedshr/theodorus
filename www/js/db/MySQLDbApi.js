@@ -3,7 +3,7 @@
  * 1. The API should translate app-specific commands to db-specific commands
  * 2. This means no object until this point should care what is the DB and the DB should not what is the app
  * */
-
+//TODO: move TOPICS_PER_PAGE and RELEVANCY_PERIOD to config.json
  var db = require('./MySQLDb'),
     RELEVANCY_PERIOD = 14,
     TOPICS_PER_PAGE = 30,
@@ -70,10 +70,10 @@ exports.getTopics = function (callback,page) {
                     topics.push (new Topic ({
                         "topic_id":topicData.topic_id,
                         "slug":topicData.slug,
-                        "created":topicData.created,
-                        "modified":topicData.modified,
+                        "created":db.getDetailedDate(topicData.created),
+                        "modified":db.getDetailedDate(topicData.modified),
                         "title":topicData.title,
-                        "tags":topicData.tags ? JSON.parse(topicData.tags) : null,
+                        "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                         "endorse":topicData.endorse,
                         "follow":topicData.follow,
                         "report":topicData.report,

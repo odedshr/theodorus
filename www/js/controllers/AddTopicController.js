@@ -7,7 +7,7 @@ Theodorus.namespace("feed").AddTopicController =  Theodorus.Controller.extend({
     submit: function (action,data, callback) {
         //TODO: validate data prior sending, not need to check slug availability
         var This = this;
-        $.post(action,data,function (result) {
+        this.io.post(action,data,function (result) {
             callback(result);
             if (!result.error) {
                 This.view.close();
@@ -20,7 +20,7 @@ Theodorus.namespace("feed").AddTopicController =  Theodorus.Controller.extend({
         if (slug.length===0) {
             callback({"result":"slug-is-too-short"});
         } else if (Topic.isSlugValid(slug)) {
-            $.get("/*"+slug+"/exists",function(output) {
+            this.io.get("/*"+slug+"/exists",function(output) {
                 callback(output);
             });
         } else {

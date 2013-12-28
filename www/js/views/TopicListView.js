@@ -4,7 +4,7 @@ Theodorus.namespace("feed").TopicListView = Theodorus.View.extend({
     jScroller: window,
     jWrapper:$(document),
     initialize : function () {
-        this.window.resize(this.widthChanged.bind(this));
+        // this.window.resize(this.widthChanged.bind(this));
     },
 
     render : function(callback) {

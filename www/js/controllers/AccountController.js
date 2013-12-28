@@ -25,7 +25,7 @@ Theodorus.namespace("user").AccountController =  Theodorus.Controller.extend({
     signout: function () {
         //TODO: unsaved data?
         var This = this;
-        return $.ajax({
+        return this.io.ajax({
             url: '/me',
             type: 'DELETE',
             success: This.onAuthenticationCompleted

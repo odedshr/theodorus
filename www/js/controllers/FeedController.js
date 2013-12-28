@@ -20,7 +20,7 @@ Theodorus.namespace("feed").FeedController =  Theodorus.Controller.extend({
      },
 
     setup: function () {
-        var This = this;
+        /*var This = this;
         this.view.setup(function () {
             This.account.setup();
             This.topics.setup();
@@ -28,7 +28,7 @@ Theodorus.namespace("feed").FeedController =  Theodorus.Controller.extend({
             This.tags.load(function () {
                 This.topics.load();
             });
-        });
+        });*/
     },
 
     openAddTopicWindow: function () {
@@ -46,4 +46,3 @@ Theodorus.namespace("feed").FeedController =  Theodorus.Controller.extend({
         //this.refreshTags();
     }
 });
-

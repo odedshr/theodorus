@@ -11,3 +11,20 @@ to educate people to participate in the political debate and encourage them to e
 
 * This is my first opensource proejct at github, so I'm still learning the trade. Please bare with me.
 ** I will appreciate any feedback regarding the project itself and its maintenance.
+
+Settings to configure
+=====================
+* process.env.THEODORUS_MODE : "dev", "test", "prod"
+* RSA information:
+  - process.env.THEODORUS_RSA_ENCRYPT
+  - process.env.THEODORUS_RSA_DECRYPT
+  - process.env.THEODORUS_RSA_MODULUS
+* OPENSHIFT infromation (this is set automatically by open-shift)
+  - process.env.OPENSHIFT_NODEJS_IP
+  - process.env.OPENSHIFT_NODEJS_PORT
+* DB information
+  - process.env.THEODORUS_MYSQL_HOST
+  - process.env.THEODORUS_MYSQL_PORT
+  - process.env.THEODORUS_MYSQL_USER
+  - process.env.THEODORUS_MYSQL_PASSWORD
+  - process.env.THEODORUS_MYSQL_SCHEMA

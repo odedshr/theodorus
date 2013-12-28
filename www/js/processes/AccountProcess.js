@@ -4,6 +4,8 @@ var io = null,
 
 var AccountProcess = (function () {
     return {
+        emailPattern : /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+
         init : function (ioFunctions) {
             io = ioFunctions;
             var methods = []; //I'm using push because of an annoying compiler warning
@@ -38,33 +40,63 @@ var AccountProcess = (function () {
         },
 
         getSignInPage: function  (session,callback) {
-            callback ("<app>"+io.getScriptListXML()+"<signin /></app>");
+            var input = session.input ? session.input : {};
+
+            callback({
+                "app":{
+                    "scripts": {"script":io.getScriptList()},
+                    "page":{
+                        "@type": "signin",
+                        "name": input.name,
+                        "email": input.email
+                    }
+                }
+            });
         },
         getSignUpPage: function  (session,callback) {
-            var input = session.input;
-            callback("<app>"+io.getScriptListXML()+"<signup>" +
-                "<email>"+input.email+"</email>" +
-                "<password>"+(input.md5 ? "" : input.password)+"</password>" +
-                "<password_repeat>"+(input.md5 ? "" : input.password_repeat)+"</password_repeat>" +
-                "</signup></app>");
+            var input = session.input ? session.input : {};
+
+            callback({
+                "app":{
+                    "scripts": {"script":io.getScriptList()},
+                    "page":{
+                        "@type": "signup",
+                        "name": input.name,
+                        "email": input.email
+                    }
+                }
+            });
         },
 
         authenticate: function (session,callback) {
             var input = session ? session.input : false,
-                failed = function () {
-                    callback({"error":"bad-credentials"});
+                throwError = function () {
+                    var errorMessage = "bad-credentials";
+                    callback(session.isJSON ?
+                    {error: {"error":errorMessage}} : {
+                        "app":{
+                            "scripts": {"script":io.getScriptList()},
+                            "message": { "@type":"error",
+                                "@message":errorMessage
+                            },
+                            "page":{
+                                "@type": "signin",
+                                "email": input.email
+                            }
+                        }
+                    });
                 };
             if (!input || (typeof input === "undefined")) {
-                failed();
+                throwError();
             } else {
                 var email = input.email;
                 var password = input.password;
                 if (!email || email.length==0 || !password) {
-                    failed();
+                    throwError();
                 } else {
                     if ("true"!=(input.md5+"")) {
                         if (password.length==0) {
-                            failed();
+                            throwError();
                         } else {
                             password= io.crypto.createHash('md5').update(password).digest('hex');
                         }
@@ -72,16 +104,21 @@ var AccountProcess = (function () {
 
                     io.db.getCredentials(email,function (credentials) {
                         if (!credentials) { // email not listed
-                            failed();
+                            throwError();
                         } else  {
                             if (credentials.get("password") != password) {
-                                failed();
+                                throwError();
                             } else {
                                 //TODO: write last login date
                                 var userId = credentials.get("user_id");
                                 session.cookie(userId, input["remember"]);
                                 io.db.getAccount(userId,function (user) {
-                                    callback((user ? user : new User()).toJSON());
+                                    if (session.isJSON) {
+                                        callback((user ? user : new User()).toJSON());
+                                    } else {
+                                        session.res.writeHead(301,{location: '/'});
+                                        callback({});
+                                    }
                                 });
                             }
                         }
@@ -91,44 +128,61 @@ var AccountProcess = (function () {
         },
 
         createCredentials: function (session,callback) {
-            var input = session.input;
+            var input = session.input,
+                email = input.email,
+                name = input.name,
+                password = input.password,
+                passwordRepeat = input.password_repeat,
+                error = false,
+                throwError = function (errorMessage) {
+                    callback(session.isJSON ?
+                        {error: errorMessage} : {
+                        "app":{
+                            "scripts": {"script":io.getScriptList()},
+                            "message": { "@type":"error",
+                                         "@message":errorMessage
+                            },
+                            "signup":{
+                                "name": input.name,
+                                "email": input.email
+                            }
+                        }
+                    });
+                };
 
-            var email = input.email;
-            var name = input.name;
-            var password = input.password;
-            var passwordRepeat = input.password_repeat;
             if ("true"!=input.md5) {
                 if (password.length<=io.config.minimum_password_length) {
-                    callback({"error":"password-too-short"});
+                    throwError ("password-too-short");
+                    return;
                 } else {
                     password= io.crypto.createHash('md5').update(password).digest('hex');
                     passwordRepeat= io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
                 }
             }
-            var emailPattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            if (!emailPattern.test(email)) {
-                callback({"error":"email-is-invalid"});
+            if (!this.emailPattern.test(email)) {
+                throwError ("email-is-invalid");
             } else if (password != passwordRepeat) {
-                callback({"error":"passwords-dont-match"});
+                throwError ("passwords-dont-match");
             } else if (name.length<=io.config.minimum_display_name_length) {
-                callback({"error":"name-too-short"});
+                throwError ("name-too-short");
             } else if (input["terms_of_use"]!="true") {
-                callback({"error":"terms-of-use-not-approved"});
-            } else {
+                throwError ("terms-of-use-not-approved");
+            } else  {
                 io.db.getUserByName(name,function (result) {
                     if (result) {
-                        callback({"error":"name-in-use"});
+                        throwError("name-in-use");
                     } else  {
                         io.db.getCredentials(email,function (result) {
                             if (result) {
-                                callback({"error":"email-in-use"});
+                                throwError("email-in-use");
                             } else  {
                                 var user = new User ({"email":email,"display_name":name, "permissions":{"suggest":true}});
                                 io.db.save(user,
                                     function (user) {
                                         if (!user) {
                                             console.error("io.db.save(User)=>user-not-saved");
-                                            callback({"error":"operation-failed"});
+                                            throwError("operation-failed");
+                                            return;
                                         }
                                         try {
                                             var userId =  user.get("user_id");
@@ -136,14 +190,20 @@ var AccountProcess = (function () {
                                             io.db.save(credentials, function () {
                                                 try {
                                                     session.cookie(userId, false);
-                                                    callback({"result":user.toJSON()});
+                                                    if (session.isJSON) {
+                                                        callback({"result":user.toJSON()});
+                                                    } else {
+                                                        session.res.writeHead(301,{location: '/'});
+                                                        callback({});
+                                                    }
                                                 } catch (err) {
                                                     console.error("io.db.save(Credentials).callback=>"+ err);
+                                                    throwError("operation-failed");
                                                 }
                                             });
                                         } catch (err) {
                                             console.error("io.db.save(User).callback=>"+ err);
-                                            callback({"error":"operation-failed"});
+                                            throwError("operation-failed");
                                         }
 
                                     }
@@ -158,7 +218,8 @@ var AccountProcess = (function () {
 
         getSignOutPage: function  (session,callback) {
             session.cookie("", false);
-            callback("<app>"+Theodorus.getScriptListXML()+"<signout /></app>");
+            session.res.writeHead(301,{location: '/'});
+            callback({});
         },
 
         signOut: function  (session,callback) {

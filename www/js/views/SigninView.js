@@ -7,7 +7,11 @@ Theodorus.namespace("user").SigninView = Theodorus.View.extend({
 
     render : function(callback) {
         var This = this;
+        console.log("render signinview 1");
         this.transform("<signin />", function (output) {
+            console.log("render signinview 2");
+            This.controller.io.notify("info","authenticating");
+            console.log("render signinview 3");
             This.setup();
             if (callback) {
                 callback(This,output);
@@ -24,10 +28,15 @@ Theodorus.namespace("user").SigninView = Theodorus.View.extend({
     },
 
     onsubmit : function (event) {
-        var This = this;
-        this.controller.io.notify("info","authenticating");
-        this.controller.submit(event.target.action,getFormFields(event.target), function (result) {
-            This.controller.io.notify("error",result.error);
+        var io = this.controller.io;
+        io.notify("info","authenticating");
+        this.controller.submit(event.target.action, getFormFields(event.target), function (result) {
+            io.notify("error",result.error);
+            if (!result.error) {
+                io.openPage(io.docURL);
+            } else {
+                alert (result.error);
+            }
         });
         return false;
     },

@@ -4,6 +4,100 @@ var io = null,
 
 var TopicProcess = (function () {
     return {
+        init: function (ioFunctions) {
+            io = ioFunctions;
+            return [
+                {"method":"GET",  "url":"/",                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/topics(\/:\d+)?\/?$/,                                   "handler":TopicProcess.getTopics.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/topics\/add\/?$/,                                   "handler":TopicProcess.getAddTopicPage.bind(TopicProcess)},
+                {"method":"POST", "url":/^\/topics\/?$/,                                            "handler":TopicProcess.addTopic.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/\*[a-zA-Z0-9_-]{3,140}\/exists\/?$/,                    "handler":TopicProcess.isExists.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,              "handler":TopicProcess.getTopic.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicForEdit.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopic.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,    "handler":TopicProcess.follow.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,   "handler":TopicProcess.endorse.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,    "handler":TopicProcess.report.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,    "handler":TopicProcess.getComments.bind(TopicProcess)},
+                {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(\d+\/)?comment\/?$/,    "handler":TopicProcess.addComment.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)}
+            ]
+        },
+
+        getMainPage: function getMainPage(session,callback) {
+            var tasks = [   {"method":"get","url":"/topics","outputName":"topics"},
+                            {"method":"get","url":"/me","outputName":"me"},
+                            {"method":"get","url":"/tags","outputName":"tags"}
+                        ],
+                taskCount = tasks.length,
+                taskOutput = {},
+                taskCompleted = function taskCompleted() {
+                    if (!(--taskCount)) {
+                        callback({
+                            "app":{
+                                "scripts": {"script":io.getScriptList()},
+                                "page": {
+                                    "@type":"feed",
+                                    "topics": { "topic": taskOutput.topics },
+                                    "tags": { "tag": taskOutput.tags },
+                                    "user":taskOutput.me
+                                }
+                            }
+                        });
+                    }
+                };
+            tasks.forEach(function (task) {
+                (io.getHandler(task.method,task.url))(session, function (output) {
+                    taskOutput[task.outputName] = output;
+                    taskCompleted();
+                } );
+            });
+        },
+
+        getAddTopicPage: function getMainPage(session,callback) {
+            var tasks = [   {"method":"get","url":"/me","outputName":"me"},
+                            {"method":"get","url":"/tags","outputName":"tags"}
+                        ],
+                taskCount = tasks.length,
+                taskOutput = {},
+                taskCompleted = function taskCompleted() {
+                    if (!(--taskCount)) {
+                        if (taskOutput.me.can("suggest")) {
+                            console.log("can suggest");
+                            callback({
+                                "app":{
+                                    "scripts": {"script":io.getScriptList()},
+                                    "page": {
+                                        "@type":"addTopic",
+                                        "tags": { "tag": taskOutput.tags },
+                                        "user":taskOutput.me
+                                    }
+                                }
+                            });
+                        } else {
+                            console.log("cannot suggest");
+                            callback({
+                                "app":{
+                                    "scripts": {"script":io.getScriptList()},
+                                    "page": {
+                                        "@type":"addTopic",
+                                        "tags": { "tag": taskOutput.tags },
+                                        "user":taskOutput.me
+                                    }
+                                }
+                            });
+                        }
+
+                    }
+                };
+            tasks.forEach(function (task) {
+                (io.getHandler(task.method,task.url))(session, function (output) {
+                    taskOutput[task.outputName] = output;
+                    taskCompleted();
+                } );
+            });
+        },
+
         getTopics: function (session,callback) {
             io.db.getTopics (function (items) {
                 if (items) {
@@ -11,43 +105,57 @@ var TopicProcess = (function () {
                 } else {
                     callback({"error":"error-getting-topics"});
                 }
-            }, session.url.replace(/\D/g,"")* 1);
+            }, session.url.replace(/\D/g,"") * 1);
         },
 
         addTopic: function (session,callback) {
-            session.useUserId(function(userId) {
-                //TODO: do you have permissions?
-                var input = session.input;
-                //TODO: validate input + saftify!!!
-                var createDate = (new Date()).toISOString();
-                var topic = new Topic({
-                    "created": createDate,
-                    "modified":createDate,
-                    "initiator":userId,
-                    "title":input.title,
-                    "slug":input.slug,
-                    "tags":input.tags.split(" ")});
-                if (input.slug.length===0) {
-                    callback({"error":"slug-is-too-short"});
-                } else if (!Topic.isSlugValid(input.slug)) {
-                    callback({"error":"slug-is-invalid"});
-                } else {
-                    io.db.load(Topic,{"slug":input.slug}, function (result) {
-                        if (result) {
-                            callback({"error":"slug-not-available"});
-                        } else {
-                            io.db.save(topic,function (result,error){
-                                if (result) {
-                                    callback(result.toJSON());
+           var input = session.input;
+            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-")).substr(0, io.config.maximum_slug_length);
+           if (input.title.length< io.config.minimum_topic_title_length) {
+              callback(session.getErrorHandler("title-too-short","title",input.title));
+            } else if (input.title.length> io.config.maximum_topic_title_length) {
+               callback(session.getErrorHandler("title-too-long","title",input.title));
+            }else if (!Topic.isSlugValid(input.slug)) {
+               callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
+            } else {
+                io.db.load(Topic,{"slug":input.slug}, function (result) {
+                    if (result) {
+                        callback(session.getErrorHandler("slug-not-available"));
+                    } else {
+                        session.useUserId(function(userId) {
+                            io.db.getAccount(userId,function (user) {
+                                session.user = user;
+                                if (user && user.can("suggest")) {
+                                    //TODO: validate input + saftify!!!
+                                    var createDate = (new Date()).toISOString(),
+                                        topic = new Topic({
+                                            "created": createDate,
+                                            "modified":createDate,
+                                            "initiator":userId,
+                                            "title":input.title,
+                                            "slug":input.slug,
+                                            "tags":input.tags ? input.tags.split(" ") : []
+                                        });
+                                    io.db.save(topic,function (result,error){
+                                        if (result) {
+                                            if (session.isJSON) {
+                                                callback(result.toJSON());
+                                            } else {
+                                                session.res.writeHead(301,{location: session.req.headers['referer']});
+                                                callback({});
+                                            }
+                                        } else {
+                                            callback(session.getErrorHandler(error,"input",input));
+                                        }
+                                    });
                                 } else {
-                                    console.error("error saving topic" + JSON.stringify(error));
-                                    callback({"error":error});
+                                    callback(session.getErrorHandler("no-permission"));
                                 }
                             });
-                        }
-                    });
-                }
-            });
+                        });
+                     }
+                });
+            }
         },
 
         isExists: function  (session,callback) {
@@ -67,25 +175,54 @@ var TopicProcess = (function () {
             }
         },
         getTopic: function (session,callback) {
-            if (session.isJSON) {
-                var topicKey = this.getTopicIndexByUrl(session.url);
-                if (topicKey.error) {
-                    callback(topicKey);
-                    return;
-                }
-                io.db.getTopic(topicKey, function (topic){
-                    if (topic) {
-                        io.db.getTopicRead(topic.id, function(topicRead){
-                           topic.set("content",topicRead.content);
-                           callback(topic.toJSON());
+            var topicKey = this.getTopicIndexByUrl(session.url),
+                tasks = [   {"method":"get","url":"/me","outputName":"me"},
+                    {"method":"get","url":"/tags","outputName":"tags"}
+                ],
+                taskCount = tasks.length,
+                taskOutput = {},
+                taskCompleted = function taskCompleted() {
+                    if (!(--taskCount)) {
+                        io.db.getTopic(topicKey, function (topic){
+                            if (topic) {
+                                io.db.getTopicRead(topic.id, function(topicRead){
+                                    topic.set("content",topicRead.content);
+                                    if (session.isJSON) {
+                                        callback(topic.toJSON());
+                                    } else {
+                                        callback ({
+                                            "app":{
+                                                "scripts": {"script":io.getScriptList()},
+                                                "page": {
+                                                    "@type":"topicView",
+                                                    "topic": topic.toJSON(),
+                                                    "tags": { "tag": taskOutput.tags },
+                                                    "user":taskOutput.me,
+                                                    "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host
+                                                }
+                                            }
+                                        })
+                                    }
+                                });
+                            } else {
+                                callback(session.get404());
+                            }
                         });
-                    } else {
-                        callback(session.get404());
                     }
+                };
+            if (topicKey.error) {
+                callback(session.getErrorHandler(topicKey.error));
+            } else if (tasks.length>0) {
+                tasks.forEach(function (task) {
+                    (io.getHandler(task.method,task.url))(session, function (output) {
+                        taskOutput[task.outputName] = output;
+                        taskCompleted();
+                    } );
                 });
             } else {
-                callback("<app>"+io.getScriptListXML()+"<topicView /></app>");
+                taskCompleted();
             }
+
         },
 
         getTopicIndexByUrl: function (url) {
@@ -147,29 +284,52 @@ var TopicProcess = (function () {
             });
         },
 
-        follow: function (session,callback) { this.setUserTopicAttribute(session,callback,"follow",session.url.indexOf("/follow")!=-1); },
-        endorse: function (session,callback)   { this.setUserTopicAttribute(session,callback,"endorse",session.url.indexOf("/endorse")!=-1); },
-        report: function (session,callback) { this.setUserTopicAttribute(session,callback,"report",session.url.indexOf("/report")!=-1); },
-        getComments: function (session,callback) { callback({"error":"method-not-implemented"});},
-        invite: function (session,callback) { callback({"error":"method-not-implemented"});} //  case "post/topic/##/invite/[person]": // {invite-message}
+        addComment: function addComment (session,callback) {
+            var source = session.req.headers["referer"];
+                input = session ? session.input : false;
+            //TODO: (addComment) !source || !input
+
+            session.useUserId(function(userId) {
+                io.db.getAccount(userId,function (user) {
+                    if (user.can("comment")) {
+                        var createDate = (new Date()).toISOString(),
+                            comment = new Comment({
+                                "created": createDate,
+                                "user_id":userId,
+                                "topic_id":input.topic_id,
+                                "parent_id":input.parent_id,
+                                "content":input.comment_content
+                            });
+
+                        io.db.save(topic,function (result,error){
+                            if (result) {
+                                callback(result.toJSON());
+                            } else {
+                                console.error("error saving topic" + JSON.stringify(error));
+                                callback({"error":error});
+                            }
+                        });
+
+                        if (session.isJSON) {
+                            callback({"error":"why are you here?"}); // comment.toJSON()
+                        } else {
+                            session.res.writeHead(301,{location: source});
+                            callback({});
+                        }
+                    } else {
+                        callback (session.isJSON ? {"error":"no-permission"} : session.getErrorHandler("no-permission"))
+                    }
+                });
+            });
+        },
+        follow: function follow     (session,callback) { this.setUserTopicAttribute(session,callback,"follow",session.url.indexOf("/follow")!=-1); },
+        endorse: function endorse   (session,callback)   { this.setUserTopicAttribute(session,callback,"endorse",session.url.indexOf("/endorse")!=-1); },
+        report: function report     (session,callback) { this.setUserTopicAttribute(session,callback,"report",session.url.indexOf("/report")!=-1); },
+        getComments: function getComments (session,callback) { callback({"error":"method-not-implemented"});},
+        invite: function invite     (session,callback) { callback({"error":"method-not-implemented"});} //  case "post/topic/##/invite/[person]": // {invite-message}
     };
 }());
 
 if (typeof exports !== "undefined") {
-    exports.init = function (ioFunctions) {
-        io = ioFunctions;
-        return [
-            {"method":"GET",  "url":/^\/topics(\/:\d+)?\/?$/,                                            "handler":TopicProcess.getTopics.bind(TopicProcess)},
-            {"method":"POST", "url":/^\/topics\/?$/,                                            "handler":TopicProcess.addTopic.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/\*[a-zA-Z0-9_-]{3,140}\/exists\/?$/,                    "handler":TopicProcess.isExists.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,              "handler":TopicProcess.getTopic.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicForEdit.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopic.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,    "handler":TopicProcess.follow.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,   "handler":TopicProcess.endorse.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,    "handler":TopicProcess.report.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,    "handler":TopicProcess.getComments.bind(TopicProcess)},
-            {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)}
-        ]
-    }
+    exports.init = TopicProcess.init.bind(TopicProcess);
 }

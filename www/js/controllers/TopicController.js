@@ -22,6 +22,6 @@ Theodorus.namespace("topic").TopicController =  Theodorus.Controller.extend({
     },
 
     load: function (callback) {
-        $.get("/"+this.io.docURL, callback).fail(callback);
+        this.io.get("/"+this.io.docURL, callback).fail(callback);
     }
 });
