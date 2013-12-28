@@ -105,12 +105,12 @@ var TopicProcess = (function () {
                 } else {
                     callback({"error":"error-getting-topics"});
                 }
-            }, session.url.replace(/\D/g,"") * 1);
+            }, parseInt(session.url.replace(/\D/g,"")));
         },
 
         addTopic: function (session,callback) {
            var input = session.input;
-            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-")).substr(0, io.config.maximum_slug_length);
+            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()]/g,"")).substr(0, io.config.maximum_slug_length);
            if (input.title.length< io.config.minimum_topic_title_length) {
               callback(session.getErrorHandler("title-too-short","title",input.title));
             } else if (input.title.length> io.config.maximum_topic_title_length) {
