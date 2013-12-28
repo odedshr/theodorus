@@ -8,7 +8,9 @@ var Theodorus = _.extend({}, {
         });
         this.io.refreshFeed = this.io.refreshFeed.bind(this);
         this.io.openPage = this.io.openPage.bind(this);
-
+        this.io.get= this.api.get;
+        this.io.ajax= this.api.ajax;
+        this.io.post= this.api.post;
         window.addEventListener('popstate', this.parseURL.bind(this), false);
     },
 
@@ -29,7 +31,7 @@ var Theodorus = _.extend({}, {
                 if (this.io.user) {
                     this.app.render();
                 } else {
-                    $.get("/me", this.onAccountLoaded);
+                    this.io.get("/me", this.onAccountLoaded);
                 }
                 break;
         }
@@ -52,10 +54,9 @@ var Theodorus = _.extend({}, {
         }
     },
 
-    /*
-        ClientController is the API from any controller back to the here, thus creating io-center.
-     */
-    io: {
+    api:$, // api is the tool-set used to communicate to the server. it includes get, post, put and delete
+    io: // io is provided to all controls as a central-point
+    {
       docURL:null,
 
       refreshFeed: function () {
@@ -108,4 +109,4 @@ var Theodorus = _.extend({}, {
 });
 
 _.bindAll(Theodorus, "init","namespace", "onAccountLoaded","parseURL");
-$(window).load(Theodorus.init) ;
+//window.onload = Theodorus.init ;

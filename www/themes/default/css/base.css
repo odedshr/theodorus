@@ -260,10 +260,11 @@ header #account #menu:hover #menu_content {
   background-color: lightcyan;
   border: 1px solid #aaaaaa;
   border-top: none;
-  position: absolute;
-  z-index: 101;
   padding: 0.5rem;
+  position: absolute;
   right: 50%;
+  top: 0;
+  z-index: 101;
 }
 #form_search {
   display: none;

@@ -11,9 +11,10 @@ function prettyDate(time){
 		diff = (((new Date()).getTime() - date.getTime()) / 1000),
 		day_diff = Math.floor(diff / 86400);
 			
-	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 )
-		return time;
-			
+	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) {
+        return time;
+    }
+
 	return day_diff == 0 && (
 			diff < 60 && "just-now" ||
 			diff < 120 && "a-minute-ago" ||
@@ -33,8 +34,16 @@ function prettyDate(time){
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + "-weeks-ago";
 }
 
+/*
+    @return string based on the pattern dd/mm/yyyy, hh:mm
+ */
+function normalizeDate(dateString) {
+    var d = new Date(dateString);
+    return (d.getDate() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ d.getHours()+":"+ d.getMinutes());
+}
+
 // If jQuery is included in the page, adds a jQuery plugin to handle it as well
-if ( typeof jQuery != "undefined" )
+if ( typeof jQuery != "undefined" ) {
 	jQuery.fn.prettyDate = function(){
 		return this.each(function(){
 			var date = prettyDate(this.title);
@@ -42,3 +51,7 @@ if ( typeof jQuery != "undefined" )
 				jQuery(this).text( date );
 		});
 	};
+} else if (typeof exports !== "undefined") {
+    exports.prettyDate = prettyDate.bind(prettyDate);
+    exports.normalizeDate = normalizeDate.bind(normalizeDate);
+}

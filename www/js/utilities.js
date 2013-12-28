@@ -1,6 +1,6 @@
-function isDefined (obj) {
+/*function isDefined (obj) {
     return (typeof obj != "undefined")
-}
+}*/
 
 ////////////////////////////////////////////////////
 
@@ -19,7 +19,7 @@ function transform ( targetQuery, xml, successFunction) {
 ////////////////////////////////////////////////////
 function getFormFields (formElement) {
     var formFields = formElement.elements;
-    var data = {}
+    var data = {};
     for (var x in formFields) {
         var element = formFields[x];
         if (element.name) {
@@ -84,7 +84,7 @@ ExternalWindow = _.extend({}, {
     windowCallback : function (res) {
         if (typeof res.error === "undefined") {
             if (window.opener) {
-                window.opener.ExternalWindow.callback ( res);
+                window.opener.ExternalWindow.callback (res);
                 window.close();
             } else {
                 location.href = location.href.substr(0, location.href.indexOf("?"));

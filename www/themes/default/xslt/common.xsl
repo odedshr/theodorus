@@ -32,6 +32,9 @@
                 <title><xsl:value-of select="$window_title" /></title>
 
                 <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
+                <style>
+                    html { direction: rtl; }
+                </style>
 
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
@@ -47,18 +50,20 @@
             </head>
 
             <body>
-                <div id="messages" />
-                <div id="report-bugs" />
                 <div id="main">
                     <xsl:apply-templates />
                 </div>
                 <div id="popup_placeholder" />
+                <div id="messages">
+                    <xsl:apply-templates select="message"/>
+                </div>
+                <div id="report-bugs" />
             </body>
         </html>
     </xsl:template>
 
     <xsl:template match="script">
-        <script language="javascript" type="text/javascript" src="{@src}"></script>
+        <script language="javascript" type="text/javascript" src="{.}"></script>
     </xsl:template>
 
     <xsl:template match="message[@type='error']">

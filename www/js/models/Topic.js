@@ -7,7 +7,7 @@ var Topic = AbstractModel.extend({
     autoId: true,
     defaults: {
         "seen":0,
-        "tags":[],
+        "tags":{"tag":[]},
         "endorse":0,
         "follow":0,
         "report":0,
@@ -85,7 +85,7 @@ var Topic = AbstractModel.extend({
 });
 
 Topic.isSlugValid = function (slug) {
-    return (/^[a-z0-9\-\._]{5,140}$/).test(slug);
+    return (/^[a-zA-Z0-9\-\.%_]{5,140}$/).test(slug);
 };
 
 Topic.Read = AbstractModel.extend({
