@@ -165,7 +165,7 @@ var AccountProcess = (function () {
                 throwError ("passwords-dont-match");
             } else if (name.length<=io.config.minimum_display_name_length) {
                 throwError ("name-too-short");
-            } else if (input["terms_of_use"]!="true") {
+            } else if (input["terms_of_use"]!="true" && input["terms_of_use"]!="on") {
                 throwError ("terms-of-use-not-approved");
             } else  {
                 io.db.getUserByName(name,function (result) {
@@ -217,6 +217,7 @@ var AccountProcess = (function () {
         },
 
         getSignOutPage: function  (session,callback) {
+            console.log("sign out");
             session.cookie("", false);
             session.res.writeHead(301,{location: '/'});
             callback({});
