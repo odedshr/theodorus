@@ -70,7 +70,7 @@
             <h2><xsl:value-of select="$welcome" /></h2>
             <div>
                 <label><xsl:value-of select="$lbl_name" /></label>
-                <input type="text" id="name" name="name" required="required" pattern="{{4,}}" placeholder="{$lbl_name_example}"/>
+                <input type="text" id="name" name="name" required="required" pattern=".{{4,}}" placeholder="{$lbl_name_example}"/>
             </div>
             <div>
                 <label><xsl:value-of select="$lbl_email" /></label>
@@ -78,7 +78,7 @@
             </div>
             <div>
                 <label><xsl:value-of select="$lbl_password" /></label>
-                <input type="password" id="password" name="password" required="required" pattern="{{3,}}"/>
+                <input type="password" id="password" name="password" required="required" pattern=".{{3,}}"/>
                 <input type="hidden" id="md5" name="md5" value="false"/>
             </div>
             <div>

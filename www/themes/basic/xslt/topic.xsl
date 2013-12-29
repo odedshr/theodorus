@@ -19,7 +19,7 @@
         <form id="form_add_topic" action="/topics" method="POST">
             <div>
                 <label><xsl:value-of select="$lbl_topic_title" /></label>
-                <textarea name="title" id="topic_title" maxlength="140" required="required" pattern="{{5,}}" placeholder="{$example_topic_title}" />
+                <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
                 <div><span id="topic_title_chars_left"/><span><xsl:value-of select="$characters_left" /></span></div>
             </div>
             <div>
@@ -57,7 +57,7 @@
                 <xsl:when test="topic">
                     <h2><xsl:value-of select="topic/title" /></h2>
                     <div id="content"><xsl:value-of select="topic/content" /></div>
-                    <div id="comments"></div>
+                    <div id="comments" />
                     <!--<xsl:choose>
                         <xsl:when test="topic[status='idea']">idea</xsl:when>
                         <xsl:when test="topic[status='discussion']">discussion</xsl:when>
@@ -80,7 +80,7 @@
                                         }(document, 'script', 'twitter-wjs');</script>
                         </li>
                         <li class="google">
-                            <div class="g-plusone"></div>
+                            <div class="g-plusone" />
                             <script type="text/javascript">
                                 (function() {
                                     var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
@@ -92,7 +92,7 @@
                         <li class="facebook">
                             <iframe src="//www.facebook.com/plugins/like.php?href={url}&amp;width=450&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false&amp;appId=1394431237451482"
                                     scrolling="no"
-                                    allowTransparency="true"></iframe>
+                                    allowTransparency="true" />
                         </li>
                     </ul>
                 </xsl:when>
