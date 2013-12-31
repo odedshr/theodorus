@@ -31,7 +31,7 @@
         <xsl:if test="//permissions/suggest = 'true'">
             <form id="form_add_topic" action="/topics" method="POST" class="form_add_topic">
                 <div>
-                    <textarea name="title" id="topic_title" maxlength="140" required="required" pattern="{{5,}}" placeholder="{$example_topic_title}" />
+                    <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
                     <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
                 </div>
             </form>
