@@ -26,9 +26,9 @@ var TopicProcess = (function () {
 
         getMainPage: function getMainPage(session,callback) {
             var tasks = [   {"method":"get","url":"/topics","outputName":"topics"},
-                            {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
+                    {"method":"get","url":"/me","outputName":"me"},
+                    {"method":"get","url":"/tags","outputName":"tags"}
+                ],
                 taskCount = tasks.length,
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
@@ -56,8 +56,8 @@ var TopicProcess = (function () {
 
         getAddTopicPage: function getMainPage(session,callback) {
             var tasks = [   {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
+                    {"method":"get","url":"/tags","outputName":"tags"}
+                ],
                 taskCount = tasks.length,
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
@@ -109,14 +109,14 @@ var TopicProcess = (function () {
         },
 
         addTopic: function (session,callback) {
-           var input = session.input;
-            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()]/g,"")).substr(0, io.config.maximum_slug_length);
-           if (input.title.length< io.config.minimum_topic_title_length) {
-              callback(session.getErrorHandler("title-too-short","title",input.title));
+            var input = session.input;
+            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()!@#$%^&\*\+=\[\]\{\}`~\';"|\\\/\.]/g,"")).substr(0, io.config.maximum_slug_length);
+            if (input.title.length< io.config.minimum_topic_title_length) {
+                callback(session.getErrorHandler("title-too-short","title",input.title));
             } else if (input.title.length> io.config.maximum_topic_title_length) {
-               callback(session.getErrorHandler("title-too-long","title",input.title));
+                callback(session.getErrorHandler("title-too-long","title",input.title));
             }else if (!Topic.isSlugValid(input.slug)) {
-               callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
+                callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
             } else {
                 io.db.load(Topic,{"slug":input.slug}, function (result) {
                     if (result) {
@@ -153,7 +153,7 @@ var TopicProcess = (function () {
                                 }
                             });
                         });
-                     }
+                    }
                 });
             }
         },
@@ -286,7 +286,7 @@ var TopicProcess = (function () {
 
         addComment: function addComment (session,callback) {
             var source = session.req.headers["referer"];
-                input = session ? session.input : false;
+            input = session ? session.input : false;
             //TODO: (addComment) !source || !input
 
             session.useUserId(function(userId) {
