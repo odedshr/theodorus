@@ -110,7 +110,7 @@ var TopicProcess = (function () {
 
         addTopic: function (session,callback) {
            var input = session.input;
-            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()]/g,"")).substr(0, io.config.maximum_slug_length);
+            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()!@#$%^&\*\+=\[\]\{\}`~\';"|\\\/\.]/g,"")).substr(0, io.config.maximum_slug_length);
            if (input.title.length< io.config.minimum_topic_title_length) {
               callback(session.getErrorHandler("title-too-short","title",input.title));
             } else if (input.title.length> io.config.maximum_topic_title_length) {
