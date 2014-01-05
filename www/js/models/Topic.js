@@ -1,7 +1,7 @@
-var VALID_REPORT_STATUS = ["na","questioned", "ok", "irrelevant","offensive","spam","violent"],
-    VALID_STATUS  = ["idea", "discussion", "proposition", "decision"],
+var VALID_REPORT_STATUS = ["na","questioned", "ok", "irrelevant","offensive","spam","violent","selfcensor"],
+    VALID_STATUS  = ["idea", "discussion", "proposition", "decision","removed"],
     AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model();
-    AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./AbstractModel").collection();
+AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./AbstractModel").collection();
 
 var Topic = AbstractModel.extend({
     autoId: true,
@@ -49,12 +49,12 @@ var Topic = AbstractModel.extend({
         "score":"number",
         "extra":"object"
     },
-/* extra objects:
- delimiter $$
- user_endorse
- user_follow
- user_report
- */
+    /* extra objects:
+     delimiter $$
+     user_endorse
+     user_follow
+     user_report
+     */
     xml: function () {
         var This = this,
             statAttribute = function (attribute) {
@@ -80,7 +80,7 @@ var Topic = AbstractModel.extend({
             "\n\t"+statAttribute("follow")+
             "\n\t"+statAttribute("endorse")+
             "\n\t"+statAttribute("report")+
-        '</topic>';
+            '</topic>';
     }
 });
 

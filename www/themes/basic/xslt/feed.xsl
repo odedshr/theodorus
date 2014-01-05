@@ -93,7 +93,7 @@
     </xsl:template>
 
     <!-- title as a link:
-    <a class="title" href="/*{topic_id}">
+    <a class="title" href="/topics/{topic_id}">
                 <xsl:if test="slug">
                     <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
                 </xsl:if>
@@ -104,7 +104,7 @@
         <li class="topic">
             <a class="title"><h2><xsl:value-of select="title" /></h2> </a>
             <a class="initiator"><xsl:value-of select="initiator/display_name" /></a>
-
+            <span class="hidden"> · </span>
             <xsl:choose>
                 <xsl:when test="created/pattern">
                     <xsl:variable name="vSelector" select="created/pattern"/>
@@ -122,7 +122,13 @@
                     <time class="created" datetime="{created/timestamp}" title="{created/formatted}"><xsl:value-of select="created/formatted" /></time>
                 </xsl:otherwise>
             </xsl:choose>
-
+            <span class="hidden"> · </span>
+            <xsl:choose>
+                <xsl:when test="initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
+                    <a class="link" href="/topics/{topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                </xsl:when>
+                <xsl:otherwise><!-- TODO: add report button --></xsl:otherwise>
+            </xsl:choose>
         </li>
     </xsl:template>
 </xsl:stylesheet>
