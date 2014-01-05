@@ -59,6 +59,7 @@ exports.getTopics = function (callback,page) {
                 "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
                 "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
                 "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON t.initiator=ut.user_id AND t.topic_id = ut.topic_id"+
+                "\n\t"+"WHERE NOT( t.status = 'removed' )"+
                 "\n\t"+"GROUP BY topic_id"+
                 "\n\t"+"ORDER BY score DESC, t.modified DESC" +
                 "\n\t"+limit + ";";
