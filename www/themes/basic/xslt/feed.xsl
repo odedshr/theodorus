@@ -123,12 +123,36 @@
                 </xsl:otherwise>
             </xsl:choose>
             <span class="hidden"> · </span>
-            <xsl:choose>
-                <xsl:when test="initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
-                    <a class="link" href="/topics/{topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
-                </xsl:when>
-                <xsl:otherwise><!-- TODO: add report button --></xsl:otherwise>
-            </xsl:choose>
+            <div class="actions">
+                <xsl:choose>
+                    <xsl:when test="initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
+                        <a class="statistics-item stat-endorse">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                        <a class="button-action" href="/topics/{topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                    </xsl:when>
+                    <xsl:when test="initiator/user_id != //user/user_id">
+                        <a class="button-action button-endorse" href="/topics/{topic_id}/endorse">
+                            <xsl:if test="user_endorse = '1'">
+                                <xsl:attribute name="href">/topics/<xsl:value-of select="topic_id"/>/unendorse</xsl:attribute>
+                                <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                            </xsl:if>
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                        </a>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <a class="statistics-item stat-endorse">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
         </li>
     </xsl:template>
 </xsl:stylesheet>
