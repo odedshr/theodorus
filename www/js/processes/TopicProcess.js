@@ -101,13 +101,17 @@ var TopicProcess = (function () {
         },
 
         getTopics: function (session,callback) {
-            io.db.getTopics (function (items) {
-                if (items) {
-                    callback(items);
-                } else {
-                    callback({"error":"error-getting-topics"});
-                }
-            }, parseInt(session.url.replace(/\D/g,"")));
+            session.useUserId(function(userId) {
+                io.db.getTopics ({
+                    "user" : userId
+                },function (items) {
+                    if (items) {
+                        callback(items);
+                    } else {
+                        callback(session.getErrorHandler("error-getting-topics"));
+                    }
+                }, parseInt(session.url.replace(/\D/g,"")));
+            });
         },
 
         addTopic: function (session,callback) {
@@ -248,9 +252,11 @@ var TopicProcess = (function () {
         setUserTopicAttribute :function (session,callback,attribute,value) {
             var topicKey = this.getTopicIndexByUrl(session.url);
             if (topicKey.error) {
-                callback(topicKey);
+                callback(session.getErrorHandler(topicKey));
+                callback();
                 return;
             }
+            console.log ("setUserTopicAttribute " + JSON.stringify(topicKey));
             session.useUserId(function(userId) {
                 //TODO: check user permissions
                 io.db.getTopic(topicKey, function (topic){
@@ -269,10 +275,15 @@ var TopicProcess = (function () {
                                     //TODO: update user.score
                                     io.db.save(topic, function(topicSaveResult){
                                         if (!topicSaveResult.error) {
-                                            callback ({
-                                                "key":attribute,
-                                                "value":(value ? value : 0)
-                                            });
+                                            if (session.isJSON) {
+                                                callback ({
+                                                    "key":attribute,
+                                                    "value":(value ? value : 0)
+                                                });
+                                            } else {
+                                                session.res.writeHead(301,{location: session.req.headers['referer']});
+                                                callback({});
+                                            }
                                         } else {
                                             callback (topicSaveResult);
                                         }
@@ -282,7 +293,7 @@ var TopicProcess = (function () {
                             }
                         });
                     } else {
-                        callback ({"error":"topic-not-found"});
+                        callback(session.getErrorHandler("topic-not-found"));
                     }
                 })
             });

@@ -163,16 +163,14 @@
     <xsl:param name="lbl_topic_feedback" select="'משוב'"/>
     <xsl:param name="link_suggest_topic" select="'נושא חדש'"/>
     <xsl:param name="btn_remove" select="'הסרה'"/>
-    <xsl:param name="btn_endorse" select="'תומכים'"/>
-    <xsl:param name="btn_send_endorse" select="'תמיכה'"/>
-    <xsl:param name="btn_follow" select="'עוקבים'"/>
-    <xsl:param name="btn_send_follow" select="'מעקב'"/>
-    <xsl:param name="btn_report" select="'דיווחים'"/>
-    <xsl:param name="btn_send_report" select="'זה לא ראוי!'"/>
-    <xsl:param name="lbl_comments" select="'תגובות'"/>
-    <xsl:param name="lbl_send_comment" select="'הוספת תגובה'"/>
-    <xsl:param name="btn_comment" select="'תגובות'"/>
-    <xsl:param name="btn_send_comemnt" select="'הוספת תגובה'"/>
+    <xsl:param name="stat_endorse" select="'תומכים'"/>
+    <xsl:param name="btn_endorse" select="'תמיכה'"/>
+    <xsl:param name="stat_follow" select="'עוקבים'"/>
+    <xsl:param name="btn_follow" select="'מעקב'"/>
+    <xsl:param name="stat_report" select="'דיווחים'"/>
+    <xsl:param name="btn_report" select="'זה לא ראוי!'"/>
+    <xsl:param name="stat_comments" select="'תגובות'"/>
+    <xsl:param name="btn_comments" select="'הוספת תגובה'"/>
 
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
     <xsl:param name="lbl_no_topics_found_suggest_one" select="'אולי תציעו אחד כעת?'"/>
