@@ -47,6 +47,7 @@
         <result type="slug-too-short">כתובת קצרה מדי</result>
         <result type="slug-is-invalid">כתובת לא תקנית</result>
         <result type="slug-not-available">כתובת לא זמינה</result>
+        <error type="no-permission">לא ניתן להסיר פריט</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -161,16 +162,15 @@
 
     <xsl:param name="lbl_topic_feedback" select="'משוב'"/>
     <xsl:param name="link_suggest_topic" select="'נושא חדש'"/>
-    <xsl:param name="btn_endorse" select="'תומכים'"/>
-    <xsl:param name="btn_send_endorse" select="'תמוך'"/>
-    <xsl:param name="btn_follow" select="'עוקבים'"/>
-    <xsl:param name="btn_send_follow" select="'עקוב'"/>
-    <xsl:param name="btn_report" select="'דיווחים'"/>
-    <xsl:param name="btn_send_report" select="'דווח'"/>
-    <xsl:param name="lbl_comments" select="'תגובות'"/>
-    <xsl:param name="lbl_send_comment" select="'הגב'"/>
-    <xsl:param name="btn_comment" select="'תגובות'"/>
-    <xsl:param name="btn_send_comemnt" select="'הגב'"/>
+    <xsl:param name="btn_remove" select="'הסרה'"/>
+    <xsl:param name="stat_endorse" select="'תומכים'"/>
+    <xsl:param name="btn_endorse" select="'תמיכה'"/>
+    <xsl:param name="stat_follow" select="'עוקבים'"/>
+    <xsl:param name="btn_follow" select="'מעקב'"/>
+    <xsl:param name="stat_report" select="'דיווחים'"/>
+    <xsl:param name="btn_report" select="'זה לא ראוי!'"/>
+    <xsl:param name="stat_comments" select="'תגובות'"/>
+    <xsl:param name="btn_comments" select="'הוספת תגובה'"/>
 
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
     <xsl:param name="lbl_no_topics_found_suggest_one" select="'אולי תציעו אחד כעת?'"/>
