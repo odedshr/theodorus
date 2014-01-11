@@ -37,6 +37,7 @@
         <error type="method-not-implemented">המתודה טרם יושמה</error>
         <error type="bad-credentials">פרטי ההתחברות שגויים</error>
         <error type="no-permission">אין לך הרשאות לפעולה זו</error>
+        <error type="no-permission">לא ניתן להסיר פריט</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 

@@ -48,8 +48,9 @@ exports.getAccount = function(userId,callback) { exports.load(User.Account, user
 exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
 exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, topicId, callback); };
-exports.getTopics = function (callback,page) {
-    var limit = page ? ("LIMIT "+((page-1)*TOPICS_PER_PAGE)+", "+TOPICS_PER_PAGE ): "";
+exports.getTopics = function (parameters, callback,page) {
+    var limit = page ? ("LIMIT "+((page-1)*TOPICS_PER_PAGE)+", "+TOPICS_PER_PAGE ): "",
+        userId = parameters.user;
     var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
                 "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-count(distinct(t.modified))) +"+
                 "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
@@ -58,7 +59,8 @@ exports.getTopics = function (callback,page) {
                 "\n\t"+"ut.follow AS user_follow, ut.endorse AS user_endorse, ut.report AS user_report"+
                 "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
                 "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
-                "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON t.initiator=ut.user_id AND t.topic_id = ut.topic_id"+
+                "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON ut.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND t.topic_id = ut.topic_id"+
+                "\n\t"+"WHERE NOT( t.status = 'removed' )"+
                 "\n\t"+"GROUP BY topic_id"+
                 "\n\t"+"ORDER BY score DESC, t.modified DESC" +
                 "\n\t"+limit + ";";
