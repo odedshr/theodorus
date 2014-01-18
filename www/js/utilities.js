@@ -4,23 +4,12 @@
 
 ////////////////////////////////////////////////////
 
-function transform ( targetQuery, xml, successFunction) {
-    console.error("utilities.js function is deprecated (user utils.xslt.transform instead)");
-    (targetQuery ? $(targetQuery) : $).transform ({
-        async: false,
-        xslCache: true,
-        xmlstr:"<xml>"+xml+"</xml>",
-        xsl: "/ui/xslt/default.xsl",
-        success: successFunction,
-        error: function (output) {
-            console.error ("error transforming "+ output);
-        }
-    });
-}
-
 utils = {
     date: {
-        pretty : function pretty (time) {
+        /*
+         * @param {string} dateString - ISO date formatted string
+         */
+        pretty : function pretty (dateString) {
             /*
              * JavaScript Pretty Date
              * Copyright (c) 2011 John Resig (ejohn.org)
@@ -29,12 +18,12 @@ utils = {
 
             // Takes an ISO time and returns a string representing how
             // long ago the date represents.
-            var date = new Date((time || "")),//.replace(/-/g,"/").replace(/[TZ]/g," ") => this appeared in the original code, it reset timezones...
+            var date = new Date((dateString || "")),//.replace(/-/g,"/").replace(/[TZ]/g," ") => this appeared in the original code, it reset timezones...
                 diff = (((new Date()).getTime() - date.getTime()) / 1000),
                 day_diff = Math.floor(diff / 86400);
 
             if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) {
-                return time;
+                return dateString;
             }
 
             return day_diff == 0 && (
@@ -55,10 +44,16 @@ utils = {
                 day_diff < 21 && "two-weeks-ago" ||
                 day_diff < 31 && Math.ceil( day_diff / 7 ) + "-weeks-ago";
         },
+        /*
+         * @param {string} dateString - ISO date formatted string
+         */
         normal : function normal (dateString) {
             var d = new Date(dateString);
             return (("0" + (d.getDate() + 1)).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ ("0" + (d.getHours() + 1)).slice(-2)+":"+ ("0" + (d.getMinutes() + 1)).slice(-2));
         },
+        /*
+         * @param {string} dateString - ISO date formatted string
+         */
         render : function render (dateString) {
             var dateCode = false,
                 output = {};
@@ -149,37 +144,71 @@ utils = {
     }
 }
 
+if (typeof exports !== "undefined") {
+    exports.json2xml = utils.xslt.json2xml;
+    exports.getDetailedDate = utils.date.render;
+} else {
+    utils = _.extend(utils, {
+        getFormFields : function getFormFields (formElement) {
+            var formFields = formElement.elements;
+            var data = {};
+            for (var x in formFields) {
+                var element = formFields[x];
+                if (element.name) {
+                    data[element.name] = (element.type=="checkbox") ? (element.checked) : element.value;
+                }
+            }
+            return data;
+        },
 
+        ////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////
-function getFormFields (formElement) {
-    var formFields = formElement.elements;
-    var data = {};
-    for (var x in formFields) {
-        var element = formFields[x];
-        if (element.name) {
-            data[element.name] = (element.type=="checkbox") ? (element.checked) : element.value;
+        delay:  (function(){
+            var timer = 0;
+            return function(callback, ms){
+                clearTimeout (timer);
+                timer = setTimeout(callback, ms);
+            };
+        })(),
+
+        ExternalWindow : {
+            open : function (url, callback) {
+                this.callback = callback;
+                this.externalWindow = window.open(url);
+                return this.externalWindow;
+            },
+
+            callback : function (data) {
+                if (this.externalWindow) {
+                    this.externalWindow.close();
+                    this.externalWindow = null;
+                } else {
+                    console.error("no this.externalWindow?! how you go here?")
+                }
+                this.callback(data)
+            },
+
+            windowCallback : function (res) {
+                if (typeof res.error === "undefined") {
+                    if (window.opener) {
+                        window.opener.ExternalWindow.callback (res);
+                        window.close();
+                    } else {
+                        location.href = location.href.substr(0, location.href.indexOf("?"));
+                    }
+                } else {
+                    transform($("#messages"),"<message type='error' message='"+res.error+"' />");
+                }
+            }
         }
-    }
-    return data;
-}
+    });
 
-////////////////////////////////////////////////////
-window.onerror = function (message, url, linenumber) {
-    alert("JavaScript error: " + message + " on line " + linenumber + " for " + url);
-};
+    ////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////
-
-// delay is used for keyup delay
-var delay = (function(){
-    var timer = 0;
-    return function(callback, ms){
-        clearTimeout (timer);
-        timer = setTimeout(callback, ms);
+    window.onerror = function (message, url, linenumber) {
+        alert("JavaScript error: " + message + " on line " + linenumber + " for " + url);
     };
-})();
+}
 
 ////////////////////////////////////////////////////
 
@@ -196,39 +225,6 @@ ScriptLoader.prototype.onScriptLoaded = function () {
         this.callback();
     }
 }*/
-
-////////////////////////////////////////////////////
-
-ExternalWindow = _.extend({}, {
-    open : function (url, callback) {
-        this.callback = callback;
-        this.externalWindow = window.open(url);
-        return this.externalWindow;
-    },
-
-    callback : function (data) {
-        if (this.externalWindow) {
-            this.externalWindow.close();
-            this.externalWindow = null;
-        } else {
-            console.error("no this.externalWindow?! how you go here?")
-        }
-        this.callback(data)
-    },
-
-    windowCallback : function (res) {
-        if (typeof res.error === "undefined") {
-            if (window.opener) {
-                window.opener.ExternalWindow.callback (res);
-                window.close();
-            } else {
-                location.href = location.href.substr(0, location.href.indexOf("?"));
-            }
-        } else {
-            transform($("#messages"),"<message type='error' message='"+res.error+"' />");
-        }
-    }
-});
 
 ////////////////////////////////////////////////////
 

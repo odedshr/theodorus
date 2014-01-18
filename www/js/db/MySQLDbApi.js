@@ -11,6 +11,7 @@
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
     Tag = require("../models/Tag").model(),
+    utils = require("../utilities"),
     prefix = "";
 
 exports.init = function (config) {
@@ -72,8 +73,8 @@ exports.getTopics = function (parameters, callback,page) {
                     topics.push (new Topic ({
                         "topic_id":topicData.topic_id,
                         "slug":topicData.slug,
-                        "created":db.getDetailedDate(topicData.created),
-                        "modified":db.getDetailedDate(topicData.modified),
+                        "created":utils.getDetailedDate(topicData.created),
+                        "modified":utils.getDetailedDate(topicData.modified),
                         "title":topicData.title,
                         "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                         "endorse":topicData.endorse,

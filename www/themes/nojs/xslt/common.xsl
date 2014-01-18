@@ -35,20 +35,6 @@
                 <style>
                     html { direction: rtl; }
                 </style>
-
-                <!--
-                <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/pretty.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
-                <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
-                <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
-                <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
-                <script language="javascript" type="text/javascript" src="/js/utilities.js"></script>
-                <xsl:apply-templates select="script" />
-                -->
             </head>
 
             <body>

@@ -16,8 +16,9 @@ var AbstractModel = Backbone.Model.extend({
                 }
             }
         }
-    },
+    }/*,
 
+     XML output is deprecated: use json2xml instead
     xml: function() {
         var tag = this.constructor.name;
         return "<"+tag+" />";
@@ -43,7 +44,7 @@ var AbstractModel = Backbone.Model.extend({
 
         }
         return "<"+attribute+">"+value+"</"+attribute+">";
-    }
+    }*/
 });
 
 

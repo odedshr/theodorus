@@ -309,7 +309,7 @@ try {
     instance.initialize();
     instance.start();
 } catch (error) {
-    self.log("Failed to initialize app\n"+error,"error");
+    console.error((new Date()) + " | Failed to initialize app\n"+error);
 }
 
 
