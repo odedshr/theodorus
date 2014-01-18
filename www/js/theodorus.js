@@ -14,8 +14,23 @@ var Theodorus = _.extend({}, {
         window.addEventListener('popstate', this.parseURL.bind(this), false);
     },
 
+    fixTimeReferences : function fixTimeReferences () {
+        // original time tags are set according to server timezone.
+        // since they contain the information required, I'll re-process them to set them to browser's timezone
+        var timeRefsList = document.getElementsByTagName("time"),
+            timeRefs = []; // Will hold the array of Node's
+        for(var i = 0, ll = timeRefsList.length; i != ll; timeRefs.push(timeRefsList[i++]));
+
+        timeRefs.forEach(function(ref) {
+            utils.xslt.transform(ref,{"datetime":utils.date.render(ref.getAttribute("datetime"))},function(output){console.log(output)});
+        });
+        //var refs = document.getElementsByTagName("time");
+        //alert (refs[0].getAttribute("datetime")+","+refs[0].innerHTML);
+    },
+
     parseURL : function () {
-        var docURL = document.URL.replace(/^http[s]?:\/\/[a-zA-Z0-9._-]*(:(\d)*)?\//,"");
+       this.fixTimeReferences();
+        /*var docURL = document.URL.replace(/^http[s]?:\/\/[a-zA-Z0-9._-]*(:(\d)*)?\//,"");
         this.io.docURL = docURL;
         switch (docURL.split("/")[0]) {
             case "test": break;
@@ -34,7 +49,7 @@ var Theodorus = _.extend({}, {
                     this.io.get("/me", this.onAccountLoaded);
                 }
                 break;
-        }
+        }*/
     },
 
     onAccountLoaded : function (accountData) {
@@ -109,4 +124,4 @@ var Theodorus = _.extend({}, {
 });
 
 _.bindAll(Theodorus, "init","namespace", "onAccountLoaded","parseURL");
-//window.onload = Theodorus.init ;
+window.onload = Theodorus.init ;

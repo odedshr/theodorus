@@ -80,7 +80,7 @@ var WebApplication = function () {
         };
 
         this.getErrorHandler = function (errorMessage,key,data) {
-            this.log (errorMessage+"\n"+data,"error");
+            self.log (errorMessage+"\n"+data,"error");
             var output;
 
             if (self.isJSON) {
@@ -106,15 +106,24 @@ var WebApplication = function () {
         };
 
         this.log = function log (content, type) {
-            var target = (type=="error") ? console.error : console.log,
-                date = new Date();
-            target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + content);
-        };
+            self.log(content, type);
+        }
     }
 
     /*  ================================================================  */
     /*  Helper functions.                                                 */
     /*  ================================================================  */
+
+    self.log = function log (content, type) {
+        var date = new Date(),
+            target;
+        switch (type) {
+            case "error" : target = console.error; break;
+            case "warn" : target = console.warn; break;
+            default : target = console.log; break;
+        }
+        target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + content);
+    };
 
     self.setupVariables = function() {
         //  Set the environment variables we need.
@@ -124,7 +133,7 @@ var WebApplication = function () {
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
             //  allows us to run/test the app locally.
-            console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
+            self.log('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1',"warn");
             self.ipaddress = "127.0.0.1";
         }
     };
@@ -245,7 +254,7 @@ var WebApplication = function () {
             functionWrapper = (method=="get" || method=="delete") ?
             function (req,res) {
                 var session = self.getSession(req,res);
-                session.log (method+":"+url);
+                //self.log (method+":"+url);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
                 self.plugins(url, session, handlerDef.handler,function(output) {
                     res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
@@ -253,7 +262,7 @@ var WebApplication = function () {
             } :
             function (req,res) {
                 var session = self.getSession(req,res);
-                session.log (method+":"+url);
+                //self.log (method+":"+url);
                 res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
                 session.useInput(function() {
                     self.plugins(url, session, handlerDef.handler,function(output) {
@@ -289,8 +298,7 @@ var WebApplication = function () {
 
     self.start = function () {
         self.app.listen(self.port, self.ipaddress, function() {
-            console.log('%s: Node server started on %s:%d ...',
-                (new Date(Date.now() )), self.ipaddress, self.port);
+            self.log("Node server started on "+self.ipaddress+":"+self.port,"info");
         });
     };
 
@@ -301,7 +309,7 @@ try {
     instance.initialize();
     instance.start();
 } catch (error) {
-    console.error("Failed to initialize app\n"+error);
+    self.log("Failed to initialize app\n"+error,"error");
 }
 
 
