@@ -7,6 +7,7 @@
 // Takes an ISO time and returns a string representing how
 // long ago the date represents.
 function prettyDate(time){
+<<<<<<< HEAD
     var date = new Date((time || "")),//.replace(/-/g,"/").replace(/[TZ]/g," ") => this appeared in the original code, it reset timezones...
         diff = (((new Date()).getTime() - date.getTime()) / 1000),
         day_diff = Math.floor(diff / 86400);
@@ -18,6 +19,19 @@ function prettyDate(time){
     return day_diff == 0 && (
             diff < 60 && "just-now" ||
             diff < 120 && "a-minute-ago" ||
+=======
+	var date = new Date((time || "")),//.replace(/-/g,"/").replace(/[TZ]/g," ") => this appeared in the original code, it reset timezones...
+		diff = (((new Date()).getTime() - date.getTime()) / 1000),
+		day_diff = Math.floor(diff / 86400);
+			
+	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) {
+        return time;
+    }
+
+	return day_diff == 0 && (
+			diff < 60 && "just-now" ||
+			diff < 120 && "a-minute-ago" ||
+>>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
             diff < 240 && "two-minutes-ago" ||
             diff < 900 && Math.floor( diff / 60 ) + "-minutes-ago" ||
             diff < 1800 && "quarter-of-an-hour-ago" ||
@@ -42,8 +56,17 @@ function normalizeDate(dateString) {
     return (d.getDate() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ d.getHours()+":"+ d.getMinutes());
 }
 
+/*
+    @return string based on the pattern dd/mm/yyyy, hh:mm
+ */
+function normalizeDate(dateString) {
+    var d = new Date(dateString);
+    return (d.getDate() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ d.getHours()+":"+ d.getMinutes());
+}
+
 // If jQuery is included in the page, adds a jQuery plugin to handle it as well
 if ( typeof jQuery != "undefined" ) {
+<<<<<<< HEAD
     jQuery.fn.prettyDate = function(){
         return this.each(function(){
             var date = prettyDate(this.title);
@@ -51,6 +74,15 @@ if ( typeof jQuery != "undefined" ) {
                 jQuery(this).text( date );
         });
     };
+=======
+	jQuery.fn.prettyDate = function(){
+		return this.each(function(){
+			var date = prettyDate(this.title);
+			if ( date )
+				jQuery(this).text( date );
+		});
+	};
+>>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
 } else if (typeof exports !== "undefined") {
     exports.prettyDate = prettyDate.bind(prettyDate);
     exports.normalizeDate = normalizeDate.bind(normalizeDate);
