@@ -66,7 +66,7 @@
                         </ul>
                     </nav>
                 </header>
-                <div id="main">
+                <div id="main" class="page-content">
                     <xsl:apply-templates select="page"/>
                 </div>
                 <div id="popup_placeholder" />

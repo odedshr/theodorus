@@ -92,17 +92,14 @@
         </ul>
     </xsl:template>
 
-    <!-- title as a link:
-    <a class="title" href="/topics/{topic_id}">
-                <xsl:if test="slug">
-                    <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
-                </xsl:if>
-                <h2><xsl:value-of select="title" /></h2>
-            </a>
-    -->
     <xsl:template match="topic">
         <li class="topic">
-            <a class="title"><h2><xsl:value-of select="title" /></h2> </a>
+            <a class="title">
+                <!--href="/topics/{topic_id}" xsl:if test="slug">
+                    <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
+                </xsl:if-->
+                <h2><xsl:value-of select="title" /></h2>
+            </a>
             <a class="initiator"><xsl:value-of select="initiator/display_name" /></a>
             <span class="hidden"> · </span>
 

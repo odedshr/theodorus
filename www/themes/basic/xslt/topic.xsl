@@ -16,7 +16,7 @@
     <xsl:output method="html" encoding="UTF-8"/>
 
     <xsl:template match="page[@type='addTopic']">
-        <form id="form_add_topic" action="/topics" method="POST">
+        <form id="form_add_topic" action="/topics" method="POST" class="page-content">
             <div>
                 <label><xsl:value-of select="$lbl_topic_title" /></label>
                 <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />

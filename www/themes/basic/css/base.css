@@ -217,7 +217,7 @@ button:active {
 header {
   background-color: rgba(255, 255, 255, 0.75);
   border-width: 0 0 0 0.1rem;
-  border-left: solid #aaaaaa;
+  border-left: 0.1rem solid #aaaaaa;
   /*float: right;*/
 
   right: 0;
