@@ -13,7 +13,7 @@
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:exslt="http://exslt.org/common">
+                xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" encoding="UTF-8"/>
 
     <!--xsl:template match="mainfeed">
@@ -92,36 +92,21 @@
         </ul>
     </xsl:template>
 
-    <!-- title as a link:
-    <a class="title" href="/topics/{topic_id}">
-                <xsl:if test="slug">
-                    <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
-                </xsl:if>
-                <h2><xsl:value-of select="title" /></h2>
-            </a>
-    -->
     <xsl:template match="topic">
         <li class="topic">
-            <a class="title"><h2><xsl:value-of select="title" /></h2> </a>
+            <a class="title">
+                <!--href="/topics/{topic_id}" xsl:if test="slug">
+                    <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
+                </xsl:if-->
+                <h2><xsl:value-of select="title" /></h2>
+            </a>
             <a class="initiator"><xsl:value-of select="initiator/display_name" /></a>
             <span class="hidden"> · </span>
-            <xsl:choose>
-                <xsl:when test="created/pattern">
-                    <xsl:variable name="vSelector" select="created/pattern"/>
-                    <!--<xsl:variable name="prettyCreated" select="exslt:node-set($timestamps)/*[@id=$vSelector]"/> -->
-                    <xsl:variable name="prettyCreated">
-                        <xsl:call-template name="string-replace-all">
-                            <xsl:with-param name="text" select="exslt:node-set($timestamps)/*[@id=$vSelector]" />
-                            <xsl:with-param name="replace" select="'#'" />
-                            <xsl:with-param name="by" select="created/patternValue" />
-                        </xsl:call-template>
-                    </xsl:variable>
-                    <time class="created" datetime="{created/timestamp}" title="{created/formatted}"><xsl:value-of select="$prettyCreated" /></time>
-                </xsl:when>
-                <xsl:otherwise>
-                    <time class="created" datetime="{created/timestamp}" title="{created/formatted}"><xsl:value-of select="created/formatted" /></time>
-                </xsl:otherwise>
-            </xsl:choose>
+
+            <xslt:call-template name="datetime-render">
+                <xsl:with-param name="value" select="created" />
+            </xslt:call-template>
+
             <span class="hidden"> · </span>
             <div class="actions">
                 <xsl:choose>

@@ -5,8 +5,7 @@
 var mysql      = require('mysql'),
     pool = null,
     prefix     = "",
-    _          = require('underscore'),
-    pretty     = require('../../lib/pretty');
+    _          = require('underscore');
 
 exports.init = function (config) {
     pool  = mysql.createPool({
@@ -176,26 +175,3 @@ exports.query = function (query,callback) {
         }
     });
 };
-
-/*
-* @param {string} dateString - ISO date formatted string
- */
-exports.getDetailedDate = function getDetailedDate (dateString) {
-    var dateCode = false,
-        output = {};
-
-    if (dateString && (typeof dateString) != "undfined") {
-        try {
-            output.timestamp = dateString;
-            output.formatted = pretty.normalizeDate(dateString);
-            dateCode = pretty.prettyDate(dateString);
-            if (dateCode!==dateString) {
-                output.pattern = dateCode.replace(/(\d)+/g,"#");
-                output.patternValue = Number(dateCode.replace(/\D/g,""));
-            }
-        } catch(error) {
-            console.error(error);
-        }
-    }
-    return output;
-}
