@@ -28,15 +28,9 @@ var TopicProcess = (function () {
 
         getMainPage: function getMainPage(session,callback) {
             var tasks = [   {"method":"get","url":"/topics","outputName":"topics"},
-<<<<<<< HEAD
                     {"method":"get","url":"/me","outputName":"me"},
                     {"method":"get","url":"/tags","outputName":"tags"}
                 ],
-=======
-                            {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
->>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
                 taskCount = tasks.length,
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
@@ -64,13 +58,8 @@ var TopicProcess = (function () {
 
         getAddTopicPage: function getMainPage(session,callback) {
             var tasks = [   {"method":"get","url":"/me","outputName":"me"},
-<<<<<<< HEAD
                     {"method":"get","url":"/tags","outputName":"tags"}
                 ],
-=======
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
->>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
                 taskCount = tasks.length,
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
@@ -126,7 +115,6 @@ var TopicProcess = (function () {
         },
 
         addTopic: function (session,callback) {
-<<<<<<< HEAD
             var input = session.input;
             input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()!@#$%^&\*\+=\[\]\{\}`~\';"|\\\/\.]/g,"")).substr(0, io.config.maximum_slug_length);
             if (input.title.length< io.config.minimum_topic_title_length) {
@@ -135,16 +123,6 @@ var TopicProcess = (function () {
                 callback(session.getErrorHandler("title-too-long","title",input.title));
             }else if (!Topic.isSlugValid(input.slug)) {
                 callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
-=======
-           var input = session.input;
-            input.slug = encodeURIComponent (input.title.replace(/\s/g,"-").replace(/[()!@#$%^&\*\+=\[\]\{\}`~\';"|\\\/\.]/g,"")).substr(0, io.config.maximum_slug_length);
-           if (input.title.length< io.config.minimum_topic_title_length) {
-              callback(session.getErrorHandler("title-too-short","title",input.title));
-            } else if (input.title.length> io.config.maximum_topic_title_length) {
-               callback(session.getErrorHandler("title-too-long","title",input.title));
-            }else if (!Topic.isSlugValid(input.slug)) {
-               callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
->>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
             } else {
                 io.db.load(Topic,{"slug":input.slug}, function (result) {
                     if (result) {
@@ -181,11 +159,7 @@ var TopicProcess = (function () {
                                 }
                             });
                         });
-<<<<<<< HEAD
                     }
-=======
-                     }
->>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
                 });
             }
         },
@@ -326,11 +300,7 @@ var TopicProcess = (function () {
 
         addComment: function addComment (session,callback) {
             var source = session.req.headers["referer"];
-<<<<<<< HEAD
             input = session ? session.input : false;
-=======
-                input = session ? session.input : false;
->>>>>>> 21d8b98ad519fafd92bf6a7553b01d0e3318e07f
             //TODO: (addComment) !source || !input
 
             session.useUserId(function(userId) {
