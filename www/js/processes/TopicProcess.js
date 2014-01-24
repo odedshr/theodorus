@@ -256,7 +256,6 @@ var TopicProcess = (function () {
                 callback();
                 return;
             }
-            console.log ("setUserTopicAttribute " + JSON.stringify(topicKey));
             session.useUserId(function(userId) {
                 //TODO: check user permissions
                 io.db.getTopic(topicKey, function (topic){

@@ -11,6 +11,7 @@
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
     Tag = require("../models/Tag").model(),
+    utils = require("../utilities"),
     prefix = "";
 
 exports.init = function (config) {
@@ -51,8 +52,11 @@ exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, top
 exports.getTopics = function (parameters, callback,page) {
     var limit = page ? ("LIMIT "+((page-1)*TOPICS_PER_PAGE)+", "+TOPICS_PER_PAGE ): "",
         userId = parameters.user;
+    /*  Score is based on predefined score + up to RELEVANCY_PERIOD points per day (i.e. a post from today will get
+        RELEVANCY_PERIOD points) + number of follows, endorsements and reports
+    * */
     var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
-                "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-count(distinct(t.modified))) +"+
+                "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-datediff(now(),t.modified)) +"+
                 "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
                 "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, tags,"+
                 "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.report AS report, t.status AS status, report_status,"+
@@ -72,8 +76,8 @@ exports.getTopics = function (parameters, callback,page) {
                     topics.push (new Topic ({
                         "topic_id":topicData.topic_id,
                         "slug":topicData.slug,
-                        "created":db.getDetailedDate(topicData.created),
-                        "modified":db.getDetailedDate(topicData.modified),
+                        "created":utils.getDetailedDate(topicData.created),
+                        "modified":utils.getDetailedDate(topicData.modified),
                         "title":topicData.title,
                         "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                         "endorse":topicData.endorse,

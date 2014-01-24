@@ -40,7 +40,6 @@
                 <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/pretty.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
@@ -67,7 +66,7 @@
                         </ul>
                     </nav>
                 </header>
-                <div id="main">
+                <div id="main" class="page-content">
                     <xsl:apply-templates select="page"/>
                 </div>
                 <div id="popup_placeholder" />
@@ -180,6 +179,33 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$text" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="datetime">
+        <xsl:call-template name="datetime-render">
+            <xsl:with-param name="value" select="." />
+        </xsl:call-template>
+    </xsl:template>
+
+    <xsl:template name="datetime-render">
+        <xsl:param name="value" />
+        <xsl:choose>
+            <xsl:when test="$value/pattern">
+                <xsl:variable name="vSelector" select="$value/pattern"/>
+                <!--<xsl:variable name="prettyCreated" select="exslt:node-set($timestamps)/*[@id=$vSelector]"/> -->
+                <xsl:variable name="prettyCreated">
+                    <xsl:call-template name="string-replace-all">
+                        <xsl:with-param name="text" select="exslt:node-set($timestamps)/*[@id=$vSelector]" />
+                        <xsl:with-param name="replace" select="'#'" />
+                        <xsl:with-param name="by" select="$value/patternValue" />
+                    </xsl:call-template>
+                </xsl:variable>
+                <time class="created" datetime="{$value/timestamp}" title="{$value/formatted}"><xsl:value-of select="$prettyCreated" /></time>
+            </xsl:when>
+            <xsl:otherwise>
+                <time class="created" datetime="{$value/timestamp}" title="{$value/formatted}"><xsl:value-of select="$value/formatted" /></time>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
