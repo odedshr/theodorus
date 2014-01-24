@@ -128,7 +128,7 @@
 body {
   background-color: white;
   direction: rtl;
-  font-family: 'carmelit_regularregular', 'arial', 'halvetica';
+  font-family: 'arial', 'halvetica';
 }
 body input[type="email"],
 body input[type="password"] {
@@ -136,6 +136,9 @@ body input[type="password"] {
 }
 a[href] {
   color: #105cb6;
+}
+.loaded-fonts {
+  font-family: 'carmelit_regularregular', 'arial', 'halvetica';
 }
 .hidden {
   display: none;
