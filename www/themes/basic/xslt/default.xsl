@@ -59,7 +59,7 @@
     <xsl:variable name="timestamps">
         <timeLabel id="just-now">הרגע</timeLabel>
         <timeLabel id="a-minute-ago">לפני דקה</timeLabel>
-        <timeLabel id="two-mintues-ago">לפני דקותיים</timeLabel>
+        <timeLabel id="two-minutes-ago">לפני דקותיים</timeLabel>
         <timeLabel id="#-minutes-ago">לפני # דקות</timeLabel>
         <timeLabel id="quarter-of-an-hour-ago">לפני רבע שעה</timeLabel>
         <timeLabel id="half-an-hour-ago">לפני חצי שעה</timeLabel>

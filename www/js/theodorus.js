@@ -22,7 +22,7 @@ var Theodorus = _.extend({}, {
         for(var i = 0, ll = timeRefsList.length; i != ll; timeRefs.push(timeRefsList[i++]));
 
         timeRefs.forEach(function(ref) {
-            utils.xslt.transform(ref,{"datetime":utils.date.render(ref.getAttribute("datetime"))},function(output){console.log(output)});
+            utils.xslt.transform(ref,{"datetime":utils.date.render(ref.getAttribute("datetime"))},function(output){});
         });
         //var refs = document.getElementsByTagName("time");
         //alert (refs[0].getAttribute("datetime")+","+refs[0].innerHTML);

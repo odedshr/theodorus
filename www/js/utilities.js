@@ -49,7 +49,7 @@ utils = {
          */
         normal : function normal (dateString) {
             var d = new Date(dateString);
-            return (("0" + (d.getDate() + 1)).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ ("0" + (d.getHours() + 1)).slice(-2)+":"+ ("0" + (d.getMinutes() + 1)).slice(-2));
+            return (("0" + (d.getDate() + 1)).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear() +", "+ ("0" + (d.getHours())).slice(-2)+":"+ ("0" + (d.getMinutes())).slice(-2));
         },
         /*
          * @param {string} dateString - ISO date formatted string
