@@ -10,16 +10,19 @@
 @theodorusColor: #677f8f;
 @linkColor: #105cb6;
 @textColor: #333;
+@timeColor: #666;
 
 body {
   background-color: white;
   direction:rtl;
-  font-family: 'carmelit_regularregular', 'arial','halvetica';
+  font-family: 'arial','halvetica';
 
   input[type="email"], input[type="password"] { direction: ltr; }
 }
 
 a[href] { color: @linkColor; }
+
+.loaded-fonts { font-family: 'carmelit_regularregular', 'arial','halvetica'; }
 
 .hidden { display: none; }
 
@@ -55,7 +58,7 @@ button:hover { .clean-gray_hover; }
 button:active { .clean-gray_active; }
 
 header {
-  background-color: rgba(255,255,255,0.75);;
+  background-color: rgba(255,255,255,0.75);
   border-width: 0 0 0 0.1rem;
   border-left: 0.1rem solid @elementBorder;
   /*float: right;*/
@@ -271,6 +274,79 @@ h2 {
       }
     }
 
+  }
+}
+/* ================================================================================================================== */
+.topic-view {
+  float:right;
+  margin-right: 15rem;
+
+  h2 {
+    padding: 1rem;
+  }
+
+  .socialTools { height: 2rem; }
+  .socialTool {
+    float:right;
+    height: 2rem;
+    width:6rem;
+  }
+
+  .socialTool.facebook iframe {
+    width: 7rem;
+  }
+
+  .comments {
+    padding: 1rem;
+
+    .comment {
+      background-color: rgba(200, 200, 200, 0.1);
+      border: 0.1rem solid @elementBorder;
+      padding: 0.5rem;
+      .commenter, .comment-content {
+        font-size:1.2rem;
+      }
+      .commenter {
+          color: @theodorusColor;
+          display: inline;
+          margin-left: 0.1rem;
+      }
+      .commenter:after { content: ":"}
+      h3 { display: inline; }
+
+      .actions {
+        font-size:0.9rem;
+        height: 1.5rem;
+
+        time {
+          color: @timeColor;
+          float: right;
+        }
+        .button-action, .statistics-item {
+          float:right;
+          margin-right: 0.5rem;
+          .count { margin-left: 0.2rem;}
+        }
+      }
+    }
+    .comment:last-child { border-bottom: none; }
+    .comment-box {
+      background-color: rgba(150, 150, 150, 0.1);
+      border: 0.1rem solid @elementBorder;
+      height: 2rem;
+      padding: 0.5rem;
+
+      .comment-box-element {
+        float: right;
+        height:100%;
+
+      }
+      .comment-new { width: 30rem; }
+      .comment-submit {
+          margin-right:0.5rem;
+          width: 7.5rem;
+      }
+    }
   }
 }
 /* ================================================================================================================== */

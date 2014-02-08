@@ -16,7 +16,6 @@
                 xmlns:exslt="http://exslt.org/common"><!-- keep xslt here. it's used by feed.xsl-->
     <xsl:import href="common.xsl" />
     <xsl:output method="html" encoding="UTF-8"/>
-
     <xsl:param name="window_title" select="'Theodorus'"/>
     <xsl:param name="app_name" select="'תיאודורוס'"/>
     <xsl:param name="javascript_disabled_title" select="'הפעלת קוד גאוהסקריפט אינה זמינה בדפדפן האינטרנט שלך'"/>
@@ -42,12 +41,15 @@
         <error type="method-not-implemented">המתודה טרם יושמה</error>
         <error type="bad-credentials">פרטי ההתחברות שגויים</error>
         <error type="no-permission">אין לך הרשאות לפעולה זו</error>
-        <result type="title-too-short">הכותרת קצרה מדי</result>
+        <error type="no-input">פעולה זו דורשת קלט</error>
         <result type="title-too-long">הכותרת ארוכה מדי</result>
+        <result type="title-too-short">הכותרת קצרה מדי</result>
         <result type="slug-too-short">כתובת קצרה מדי</result>
         <result type="slug-is-invalid">כתובת לא תקנית</result>
         <result type="slug-not-available">כתובת לא זמינה</result>
         <error type="no-permission">לא ניתן להסיר פריט</error>
+        <result type="comment-too-long">התגובה ארוכה מדי</result>
+        <result type="comment-too-short">התגובה קצרה מדי</result>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -185,6 +187,8 @@
     </xsl:param>
 
     <xsl:param name="failed_to_load_topic" select="'טעינת פריט נכשלה'"/>
+    <xsl:param name="no_comments" select="'אף אחד לא הגיב עדיין :-('"/>
+    <xsl:param name="add_comment" select="'הוספה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
 
     <xsl:template match="/">
