@@ -37,7 +37,7 @@
                 </style>
 
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.min.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
