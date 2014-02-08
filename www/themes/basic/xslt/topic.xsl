@@ -12,7 +12,8 @@
         <!ENTITY euro   "&#8364;">
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" encoding="UTF-8"/>
 
     <xsl:template match="page[@type='addTopic']">
@@ -42,14 +43,7 @@
     </xsl:template>
 
     <xsl:template match="page[@type='topicView']">
-        <noscript>
-            <h1><xsl:value-of select="$javascript_disabled_title" /></h1>
-            <div><xsl:value-of select="$javascript_disabled_instructions" /></div>
-        </noscript>
-        <header>
-            <h1><span><xsl:value-of select="$app_name" /></span></h1>
-        </header>
-        <div id="topic">
+        <div id="topic" class="topic-view">
             <xsl:choose>
                 <xsl:when test="topicLoading">
                     <div id="loading_system"><xsl:value-of select="$system_loading" /></div>
@@ -57,20 +51,19 @@
                 <xsl:when test="topic">
                     <h2><xsl:value-of select="topic/title" /></h2>
                     <div id="content"><xsl:value-of select="topic/content" /></div>
-                    <div id="comments" />
                     <!--<xsl:choose>
                         <xsl:when test="topic[status='idea']">idea</xsl:when>
                         <xsl:when test="topic[status='discussion']">discussion</xsl:when>
                         <xsl:when test="topic[status='proposition']">proposition</xsl:when>
                         <xsl:when test="topic[status='decision']">decision</xsl:when>
                     </xsl:choose>-->
-                    <ul id="socialTools">
-                        <li class="twitter">
+                    <ul id="socialTools" class="socialTools">
+                        <li class="socialTool twitter">
                             <a href="https://twitter.com/share" class="twitter-share-button" data-text="{topic/title}"><xsl:value-of select="$tweet"/></a>
                             <script>!function(d,s,id){
                                     var js,
                                         fjs=d.getElementsByTagName(s)[0],
-                                        p=/^http:/.test(d.location)?'http':'https';
+                                        p= /^http:/.test(d.location)?'http':'https';
                                         if(!d.getElementById(id)){
                                             js=d.createElement(s);
                                             js.id=id;
@@ -79,7 +72,7 @@
                                         }
                                         }(document, 'script', 'twitter-wjs');</script>
                         </li>
-                        <li class="google">
+                        <li class="socialTool google">
                             <div class="g-plusone" />
                             <script type="text/javascript">
                                 (function() {
@@ -89,12 +82,26 @@
                                 })();
                             </script>
                         </li>
-                        <li class="facebook">
-                            <iframe src="//www.facebook.com/plugins/like.php?href={url}&amp;width=450&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false&amp;appId=1394431237451482"
+                        <li class="socialTool facebook">
+                            <iframe src="//www.facebook.com/plugins/like.php?href={//server}/topics/{topic/topic_id}&amp;width=450&amp;height=21&amp;colorscheme=light&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;send=false&amp;appId=1394431237451482"
                                     scrolling="no"
                                     allowTransparency="true" />
                         </li>
                     </ul>
+                    <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
+                        <input type="hidden" name="topic_id" value="{topic/topic_id}" />
+                        <xsl:choose>
+                            <xsl:when test="comments/comment">
+                                <xsl:apply-templates select="comments" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <div><xsl:value-of select="$no_comments" /></div>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:call-template name="comment-box">
+                            <xsl:with-param name="parent_id" select="0" />
+                        </xsl:call-template>
+                    </form>
                 </xsl:when>
                 <xsl:when test="message">
                     <div><xsl:value-of select="$file_not_found_title" /></div>
@@ -104,6 +111,67 @@
                     <div><xsl:value-of select="$failed_to_load_topic" /></div>
                 </xsl:otherwise>
             </xsl:choose>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="comments">
+        <ul><xsl:apply-templates select="comment" /></ul>
+    </xsl:template>
+
+    <xsl:template match="comment">
+        <li class="comment">
+            <a name="comment:{comment_id}" id="comment:{comment_id}" />
+            <a class="commenter"><xsl:value-of select="commenter/display_name" /></a>
+            <h3 class="comment-content"><xsl:value-of select="content" /></h3>
+            <span class="hidden"> · </span>
+
+            <div class="actions">
+                <xslt:call-template name="datetime-render">
+                    <xsl:with-param name="value" select="created" />
+                </xslt:call-template>
+
+                <span class="hidden"> · </span>
+                <xsl:choose>
+                    <xsl:when test="commenter/user_id = //user/user_id and endorse = 0 and follow = 0 and count(comments/comment) = 0">
+                        <a class="statistics-item stat-endorse">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                        <a class="button-action" href="/topics/{//topic/topic_id}/comments/{comment_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                    </xsl:when>
+                    <xsl:when test="commenter/user_id != //user/user_id">
+                        <a class="button-action button-endorse" href="/topics/{comment_id}/endorse">
+                            <xsl:if test="user_endorse = '1'">
+                                <xsl:attribute name="href">/topics/<xsl:value-of select="comment_id"/>/unendorse</xsl:attribute>
+                                <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                            </xsl:if>
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                        </a>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <a class="statistics-item stat-endorse">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+            <xsl:apply-templates select="comments" />
+            <xsl:call-template name="comment-box">
+                <xsl:with-param name="parent_id" select="comment_id" />
+            </xsl:call-template>
+        </li>
+    </xsl:template>
+
+    <xsl:template name="comment-box">
+        <xsl:param name="parent_id" />
+        <div class="comment-box">
+            <textarea name="comment_on-{$parent_id}" maxlength="140" class="comment-box-element comment-new"></textarea>
+            <button name="parent_id" value="{$parent_id}" class="comment-box-element comment-submit"><span><xsl:value-of select="$add_comment" /></span></button>
         </div>
     </xsl:template>
 </xsl:stylesheet>

@@ -44,7 +44,7 @@ var AccountProcess = (function () {
 
             callback({
                 "app":{
-                    "scripts": {"script":io.getScriptList()},
+                    "mode": io.getTheodorusMode(),
                     "page":{
                         "@type": "signin",
                         "name": input.name,
@@ -58,7 +58,7 @@ var AccountProcess = (function () {
 
             callback({
                 "app":{
-                    "scripts": {"script":io.getScriptList()},
+                    "mode": io.getTheodorusMode(),
                     "page":{
                         "@type": "signup",
                         "name": input.name,
@@ -75,7 +75,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error":errorMessage}} : {
                         "app":{
-                            "scripts": {"script":io.getScriptList()},
+                            "mode": io.getTheodorusMode(),
                             "message": { "@type":"error",
                                 "@message":errorMessage
                             },
@@ -116,7 +116,7 @@ var AccountProcess = (function () {
                                     if (session.isJSON) {
                                         callback((user ? user : new User()).toJSON());
                                     } else {
-                                        session.res.writeHead(301,{location: '/'});
+                                        session.res.writeHead(301,{location: session.req.headers['referer']});
                                         callback({});
                                     }
                                 });
@@ -138,7 +138,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                         {error: errorMessage} : {
                         "app":{
-                            "scripts": {"script":io.getScriptList()},
+                            "mode": io.getTheodorusMode(),
                             "message": { "@type":"error",
                                          "@message":errorMessage
                             },
@@ -193,7 +193,7 @@ var AccountProcess = (function () {
                                                     if (session.isJSON) {
                                                         callback({"result":user.toJSON()});
                                                     } else {
-                                                        session.res.writeHead(301,{location: '/'});
+                                                        session.res.writeHead(301,{location: session.req.headers['referer']});
                                                         callback({});
                                                     }
                                                 } catch (err) {

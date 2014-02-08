@@ -10,6 +10,7 @@
     User = require("../models/User").model(),
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
+    Comment = require("../models/Comment").model(),
     Tag = require("../models/Tag").model(),
     utils = require("../utilities"),
     prefix = "";
@@ -122,6 +123,61 @@ exports.getTopicStatistics = function (topicId, callback) {
         }
     )
 };
+
+exports.getComments = function (topicId, userId, callback) {
+    var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
+        "\n\t"+"c.comment_id AS comment_id, c.parent_id AS parent_id, created, content,"+
+        "\n\t"+"c.follow AS follow, c.endorse AS endorse, c.report AS report, report_status,"+
+        "\n\t"+"uc.follow AS user_follow, uc.endorse AS user_endorse, uc.report AS user_report"+
+        "\n\t"+"FROM "+prefix+(new Comment()).collection + " c"+
+        "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON c.user_id=u.user_id"+
+        "\n\t"+"LEFT JOIN "+prefix+User.Comment.collection + " uc ON uc.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND c.comment_id = uc.comment_id"+
+        "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
+        "\n\t"+"ORDER BY parent_id, comment_id;";
+    db.query( query,
+        function (results) {
+            var comments = [],
+                dictionary = {}; // dictionary gives quick access to tree elements
+            if (results) {
+                results.forEach(function (commentData) {
+                    var commentId = parseInt(commentData.comment_id),
+                        parentId = parseInt(commentData.parent_id),
+                        comment= new Comment ({
+                            "comment_id":commentId,
+                            "parent_id":parentId,
+                            "created":utils.getDetailedDate(commentData.created),
+                            "content":commentData.content,
+                            "endorse":parseInt(commentData.endorse),
+                            "follow":parseInt(commentData.follow),
+                            "report":parseInt(commentData.report),
+                            "user_endorse":commentData.user_endorse,
+                            "user_follow":commentData.user_follow,
+                            "user_report":commentData.user_report,
+                            "report_status":commentData.report_status,
+                            "commenter": new User({
+                                "user_id":parseInt(commentData.user_id),
+                                "display_name":commentData.display_name,
+                                "slug":commentData.user_slug,
+                                "picture":commentData.picture
+                            })
+                    });
+                    dictionary[commentId] = comment;
+                    if (parentId==0) {
+                        comments.push(comment);
+                    } else {
+                        var parent = dictionary[parentId];
+                        if (typeof parent.get("comments") == "undefined") {
+                            parent.set("comments",[]);
+                        }
+                        parent.get("comments").push({"comment":comment});
+                    }
+                });
+            }
+            callback (comments);
+        }
+    )
+};
+
 exports.save = function(dataObject, callback) {
     try {
         db.save(dataObject, callback);

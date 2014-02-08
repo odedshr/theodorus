@@ -10,6 +10,7 @@ var WebApplication = function () {
     self.qs = require("querystring");
     self.db = require ('./js/db/DbApi').get(config);
     self.rsa = require("./js/RSA");
+    self.utils = require("./js/utilities");
     self.rsa_keys =  {
         "encryption":process.env.THEODORUS_RSA_ENCRYPT,
         "decryption":process.env.THEODORUS_RSA_DECRYPT,
@@ -88,7 +89,7 @@ var WebApplication = function () {
             } else {
                 output = {
                     "app":{
-                        "scripts": {"script":self.getScriptList()},
+                        "mode": self.getTheodorusMode(),
                         "page": {
                             "@type":"message",
                             "message":{
@@ -138,7 +139,10 @@ var WebApplication = function () {
         }
     };
 
-    self.getScriptList = function () {
+    self.getTheodorusMode = function getTheodorusMode () {
+        return process.env.THEODORUS_MODE;
+    }
+/*    self.getScriptList = function () {
         var list =(process.env.THEODORUS_MODE=="dev") ? config.clientScriptsDebug : config.clientScripts;
         return (typeof list != "undefined") ? list : [];
     };
@@ -150,7 +154,7 @@ var WebApplication = function () {
             xml+= "<script src='"+script+"' />";
         });
         return xml;
-    };
+    };*/
 
     self.plugins = function (url,session,mainFunc,callback) {
         mainFunc(session,function(output) {
@@ -160,62 +164,8 @@ var WebApplication = function () {
 
     self.xslt = function (content) {
         var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
-            xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.json2xml (content) : content)+"</xml>");
+            xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.utils.json2xml (content) : content)+"</xml>");
         return xslt.transform( xsltDocument,xmlDocument, [])
-    };
-
-    self.json2xmlEngine = function json2xmlEngine (jsObj, tagName, ind) {
-        var filteredType = ["undefined","function"],
-            xml = "",
-            children = "",
-            child,
-            attrName;
-
-        if (jsObj && jsObj.toJSON && (typeof jsObj.toJSON == "function")) {
-            jsObj = jsObj.toJSON();
-        }
-        if (jsObj instanceof Array) {
-            for (var i=0, length = jsObj.length; i<length; i++) {
-                xml += ind + self.json2xmlEngine(jsObj[i], tagName, ind+"\t") + "\n";
-            }
-        } else if (typeof(jsObj) == "object") {
-            xml += "\n"+ ind + "<" + tagName;
-            for (attrName in jsObj) {
-                if (attrName.charAt(0) == "@") {
-                    xml += " " + attrName.substr(1) + "=\"" + jsObj[attrName].toString() + "\"";
-                } else {
-                    child = jsObj[attrName];
-                    if ((filteredType.indexOf(typeof child)==-1)) { // && jsObj.hasOwnProperty(attrName)
-                        if (attrName == "#text") {
-                            children += child;
-                        } else if (attrName == "#cdata") {
-                            children += "<![CDATA[" + child + "]]>";
-                        } else {
-                            children += self.json2xmlEngine(child, attrName, ind+"\t");
-                        }
-                    }
-                }
-            }
-            xml += (children.length) ? (">" + children + "</" + tagName + ">") : "/>";
-        }
-        else {
-            xml += "\n" + ind + ("<" + tagName + ">" + jsObj.toString() +  "</" + tagName + ">");
-        }
-        return xml;
-    };
-    self.json2xml = function json2xml (jsObj, tab) {
-        /*	This work is licensed under Creative Commons GNU LGPL License.
-
-         License: http://creativecommons.org/licenses/LGPL/2.1/
-         Version: 0.9
-         Author:  Stefan Goessner/2006
-         Web:     http://goessner.net/
-         */
-        var xml="";
-        for (var child in jsObj) {
-            xml += self.json2xmlEngine(jsObj[child], child, "");
-        }
-        return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
     };
 
     /////////////////////////////////////////////////////////////////////

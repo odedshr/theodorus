@@ -1,5 +1,6 @@
 var io = null,
     Topic = (typeof Topic !== "undefined") ? Topic : require("../models/Topic").model(),
+    Comment = (typeof Comment !== "undefined") ? Comment : require("../models/Comment").model(),
     _ = (typeof _ !== "undefined") ? _ : require("underscore");
 
 var TopicProcess = (function () {
@@ -17,11 +18,13 @@ var TopicProcess = (function () {
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/remove\/?$/,        "handler":TopicProcess.removeTopic.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicForEdit.bind(TopicProcess)},
                 {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopic.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,    "handler":TopicProcess.follow.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,   "handler":TopicProcess.endorse.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,    "handler":TopicProcess.report.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,    "handler":TopicProcess.getComments.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,         "handler":TopicProcess.follow.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,        "handler":TopicProcess.endorse.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,         "handler":TopicProcess.report.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,            "handler":TopicProcess.getComments.bind(TopicProcess)},
                 {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(\d+\/)?comment\/?$/,    "handler":TopicProcess.addComment.bind(TopicProcess)},
+                {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":TopicProcess.removeComment.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":TopicProcess.removeComment.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)}
             ]
         },
@@ -37,7 +40,7 @@ var TopicProcess = (function () {
                     if (!(--taskCount)) {
                         callback({
                             "app":{
-                                "scripts": {"script":io.getScriptList()},
+                                "mode": io.getTheodorusMode(),
                                 "page": {
                                     "@type":"feed",
                                     "topics": { "topic": taskOutput.topics },
@@ -68,7 +71,7 @@ var TopicProcess = (function () {
                             console.log("can suggest");
                             callback({
                                 "app":{
-                                    "scripts": {"script":io.getScriptList()},
+                                    "mode": io.getTheodorusMode(),
                                     "page": {
                                         "@type":"addTopic",
                                         "tags": { "tag": taskOutput.tags },
@@ -80,7 +83,7 @@ var TopicProcess = (function () {
                             console.log("cannot suggest");
                             callback({
                                 "app":{
-                                    "scripts": {"script":io.getScriptList()},
+                                    "mode": io.getTheodorusMode(),
                                     "page": {
                                         "@type":"addTopic",
                                         "tags": { "tag": taskOutput.tags },
@@ -121,7 +124,7 @@ var TopicProcess = (function () {
               callback(session.getErrorHandler("title-too-short","title",input.title));
             } else if (input.title.length> io.config.maximum_topic_title_length) {
                callback(session.getErrorHandler("title-too-long","title",input.title));
-            }else if (!Topic.isSlugValid(input.slug)) {
+            } else if (!Topic.isSlugValid(input.slug)) {
                callback(session.getErrorHandler("slug-is-invalid","slug",input.slug));
             } else {
                 io.db.load(Topic,{"slug":input.slug}, function (result) {
@@ -183,7 +186,7 @@ var TopicProcess = (function () {
         getTopic: function (session,callback) {
             var topicKey = this.getTopicIndexByUrl(session.url),
                 tasks = [   {"method":"get","url":"/me","outputName":"me"},
-                    {"method":"get","url":"/tags","outputName":"tags"}
+                            {"method":"get","url":"/tags","outputName":"tags"}
                 ],
                 taskCount = tasks.length,
                 taskOutput = {},
@@ -196,18 +199,22 @@ var TopicProcess = (function () {
                                     if (session.isJSON) {
                                         callback(topic.toJSON());
                                     } else {
-                                        callback ({
-                                            "app":{
-                                                "scripts": {"script":io.getScriptList()},
-                                                "page": {
-                                                    "@type":"topicView",
-                                                    "topic": topic.toJSON(),
-                                                    "tags": { "tag": taskOutput.tags },
-                                                    "user":taskOutput.me,
-                                                    "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host
+                                        io.db.getComments(topic.id,taskOutput.me.user_id, function (comments) {
+                                            callback ({
+                                                "app":{
+                                                    "mode": io.getTheodorusMode(),
+                                                    "page": {
+                                                        "@type":"topicView",
+                                                        "topic": topic.toJSON(),
+                                                        "comments": { "comment": comments},
+                                                        "tags": { "tag": taskOutput.tags },
+                                                        "user":taskOutput.me,
+                                                        "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host
+                                                    }
                                                 }
-                                            }
-                                        })
+                                            })
+
+                                        });
                                     }
                                 });
                             } else {
@@ -301,40 +308,49 @@ var TopicProcess = (function () {
         addComment: function addComment (session,callback) {
             var source = session.req.headers["referer"];
                 input = session ? session.input : false;
-            //TODO: (addComment) !source || !input
 
-            session.useUserId(function(userId) {
-                io.db.getAccount(userId,function (user) {
-                    if (user.can("comment")) {
-                        var createDate = (new Date()).toISOString(),
-                            comment = new Comment({
-                                "created": createDate,
-                                "user_id":userId,
-                                "topic_id":input.topic_id,
-                                "parent_id":input.parent_id,
-                                "content":input.comment_content
-                            });
-
-                        io.db.save(topic,function (result,error){
-                            if (result) {
-                                callback(result.toJSON());
+            if (!session.input || !session.input.parent_id) {
+                callback (session.isJSON ? {"error":"no-input"} : session.getErrorHandler("no-input"));
+            } else {
+                var createDate = (new Date()).toISOString(),
+                    parentId = input.parent_id,
+                    content = input["comment_on-"+parentId];
+                if (content.length)
+                if (content.length< io.config.minimum_comment_length) {
+                    callback(session.getErrorHandler("comment-too-short","comment",content));
+                } else if (content.length> io.config.maximum_comment_length) {
+                    callback(session.getErrorHandler("comment-too-long","comment",content));
+                } else {
+                    session.useUserId(function(userId) {
+                        io.db.getAccount(userId,function (user) {
+                            if (user.can("comment")) {
+                                var comment = new Comment({
+                                    "created": createDate,
+                                    "user_id":userId,
+                                    "topic_id":input.topic_id,
+                                    "parent_id":parentId,
+                                    "content":content
+                                });
+                                io.db.save(comment,function (result,error){
+                                    if (result) {
+                                        if (session.isJSON) {
+                                            callback(result.toJSON());
+                                        } else {
+                                            session.res.writeHead(301,{location: source});
+                                            callback({});
+                                        }
+                                    } else {
+                                        console.error("error saving comment" + JSON.stringify(error));
+                                        callback({"error":error});
+                                    }
+                                });
                             } else {
-                                console.error("error saving topic" + JSON.stringify(error));
-                                callback({"error":error});
+                                callback (session.isJSON ? {"error":"no-permission"} : session.getErrorHandler("no-permission"));
                             }
                         });
-
-                        if (session.isJSON) {
-                            callback({"error":"why are you here?"}); // comment.toJSON()
-                        } else {
-                            session.res.writeHead(301,{location: source});
-                            callback({});
-                        }
-                    } else {
-                        callback (session.isJSON ? {"error":"no-permission"} : session.getErrorHandler("no-permission"))
-                    }
-                });
-            });
+                    });
+                }
+            }
         },
         follow: function follow     (session,callback) { this.setUserTopicAttribute(session,callback,"follow",session.url.indexOf("/follow")!=-1); },
         endorse: function endorse   (session,callback)   { this.setUserTopicAttribute(session,callback,"endorse",session.url.indexOf("/endorse")!=-1); },
@@ -376,6 +392,46 @@ var TopicProcess = (function () {
                     callback(session.get404());
                 }
             });
+        },
+
+        removeComment: function removeTopic (session, callback) {
+            var urlNumbers = session.url.match(/\d+/g),
+                commentId = +urlNumbers[urlNumbers.length-1];
+            io.db.load(Comment, commentId, function (comment) {
+                // TODO: verify topic id (you need to load topic in case you're only holding the slug)
+                // TODO: load items that have parent_id= commentId as well, if count>1, cancel operation
+                if (comment) {
+                    session.useUserId(function(userId) {
+                        if (userId == comment.get("user_id")) {
+                            if (comment.get("endorse")== 0 && comment.get("follow")== 0 ) {
+                                comment.set("report_status","selfcensor");
+                                io.db.save(comment,function (result,error) {
+                                    if (result) {
+                                        if (session.isJSON) {
+                                            callback(result.toJSON());
+                                        } else {
+                                            session.res.writeHead(301,{location: session.req.headers['referer']});
+                                            callback({});
+                                        }
+                                    } else {
+                                        console.error("error saving comment" + JSON.stringify(error));
+                                        callback({"error":error});
+                                    }
+                                });
+                            } else {
+                                callback(session.getErrorHandler("cannot-remove-item"));
+                            }
+                        } else {
+                            console.log(userId + " !=" + JSON.stringify(comment.toJSON())+ ","+ comment.get("user_id"));
+                            callback(session.getErrorHandler("cannot-remove-item"));
+                        }
+                        //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});
+                    });
+                } else {
+                    callback(session.get404());
+                }
+            });
+
         }
     };
 }());

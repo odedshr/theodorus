@@ -72,7 +72,7 @@ CREATE TABLE `comments` (
   `topic_id` int(11) DEFAULT NULL,
   `parent_id` int(11) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `created` varchar(12) DEFAULT NULL,
+  `created` varchar(24) DEFAULT NULL,
   `content` varchar(140) DEFAULT NULL,
   `endorsements` tinyint(4) DEFAULT NULL,
   `likes` tinyint(4) DEFAULT NULL,

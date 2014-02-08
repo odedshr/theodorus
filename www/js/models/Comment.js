@@ -8,7 +8,6 @@ var Comment = AbstractModel.extend({
         "endorse":0,
         "follow":0,
         "report":0,
-        "comment":0,
         "report_status":VALID_REPORT_STATUS[0]
     },
 
@@ -30,13 +29,13 @@ var Comment = AbstractModel.extend({
 });
 
 ///////////////////////////////
-/*
+
 var Comments = AbstractCollection.extend({
     name: "comments",
-    url: "/topics",
+    url: "/comments",
     model: Comment
 });
-*/
+
 ///////////////////////////////
 if (typeof exports !== "undefined") {
     exports.model = function () { return Comment; };

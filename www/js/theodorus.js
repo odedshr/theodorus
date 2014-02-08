@@ -2,6 +2,8 @@
 
 var Theodorus = _.extend({}, {
     init : function () {
+        // loading fonts without js causes 1 sec delay before the text appear. I prefer to have bad font than this delay
+        $("body").addClass("loaded-fonts");
         $.ajaxSetup({ // all jquery.ajax communications should be json
             contentType: "application/json; charset=utf-8",
             dataType: "json"

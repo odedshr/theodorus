@@ -94,8 +94,8 @@
 
     <xsl:template match="topic">
         <li class="topic">
-            <a class="title">
-                <!--href="/topics/{topic_id}" xsl:if test="slug">
+            <a class="title" href="/topics/{topic_id}">
+                <!-- xsl:if test="slug">
                     <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
                 </xsl:if-->
                 <h2><xsl:value-of select="title" /></h2>

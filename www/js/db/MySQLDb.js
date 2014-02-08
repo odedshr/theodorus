@@ -165,13 +165,29 @@ exports.query = function (query,callback) {
                         callback(rows);
                     } catch (error) {
                         console.error("query callback error:" + error);
+                        throw error;
                     }
                 });
                 connection.end();
             } catch (error) {
-                console.error("query error:" + error);
+                dumpError(error);
                 callback (false);
             }
         }
     });
 };
+
+function dumpError(err) {
+    if (typeof err === 'object') {
+        if (err.message) {
+            console.error('\nMessage: ' + err.message)
+        }
+        if (err.stack) {
+            console.error('\nStacktrace:')
+            console.error('====================')
+            console.error(err.stack);
+        }
+    } else {
+        console.error('dumpError :: argument is not an object');
+    }
+}
