@@ -454,6 +454,85 @@ h2 {
   content: " ";
 }
 /* ================================================================================================================== */
+.topic-view {
+  float: right;
+  margin-right: 15rem;
+}
+.topic-view h2 {
+  padding: 1rem;
+}
+.topic-view .socialTools {
+  height: 2rem;
+}
+.topic-view .socialTool {
+  float: right;
+  height: 2rem;
+  width: 6rem;
+}
+.topic-view .socialTool.facebook iframe {
+  width: 7rem;
+}
+.topic-view .comments {
+  padding: 1rem;
+}
+.topic-view .comments .comment {
+  background-color: rgba(200, 200, 200, 0.1);
+  border: 0.1rem solid #aaaaaa;
+  padding: 0.5rem;
+}
+.topic-view .comments .comment .commenter,
+.topic-view .comments .comment .comment-content {
+  font-size: 1.2rem;
+}
+.topic-view .comments .comment .commenter {
+  color: #677f8f;
+  display: inline;
+  margin-left: 0.1rem;
+}
+.topic-view .comments .comment .commenter:after {
+  content: ":";
+}
+.topic-view .comments .comment h3 {
+  display: inline;
+}
+.topic-view .comments .comment .actions {
+  font-size: 0.9rem;
+  height: 1.5rem;
+}
+.topic-view .comments .comment .actions time {
+  color: #666666;
+  float: right;
+}
+.topic-view .comments .comment .actions .button-action,
+.topic-view .comments .comment .actions .statistics-item {
+  float: right;
+  margin-right: 0.5rem;
+}
+.topic-view .comments .comment .actions .button-action .count,
+.topic-view .comments .comment .actions .statistics-item .count {
+  margin-left: 0.2rem;
+}
+.topic-view .comments .comment:last-child {
+  border-bottom: none;
+}
+.topic-view .comments .comment-box {
+  background-color: rgba(150, 150, 150, 0.1);
+  border: 0.1rem solid #aaaaaa;
+  height: 2rem;
+  padding: 0.5rem;
+}
+.topic-view .comments .comment-box .comment-box-element {
+  float: right;
+  height: 100%;
+}
+.topic-view .comments .comment-box .comment-new {
+  width: 30rem;
+}
+.topic-view .comments .comment-box .comment-submit {
+  margin-right: 0.5rem;
+  width: 7.5rem;
+}
+/* ================================================================================================================== */
 .page_message {
   float: right;
   margin: 1rem 16rem;

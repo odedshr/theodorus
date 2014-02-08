@@ -39,7 +39,7 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
 
     setPublic: function (key,value) {
         return this.data("public",key,value);
-    },*/
+    },
 
     xml: function () {
         //TODO: add penalties, badges, scores
@@ -55,7 +55,7 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
                   this.xmlAttribute("score")+
                   this.xmlAttribute("badges");
         return "<user"+(obj.user_id ? ' id="'+obj.user_id+'"' : '')+">" + xml + "</user>";
-    },
+    },*/
 
     collection: "users",
     key:"user_id",
@@ -99,6 +99,20 @@ User.Topic = {
     schema: {
         "user_id":"number",
         "topic_id":"number",
+        "seen":"boolean",
+        "follow":"boolean",
+        "endorse":"boolean",
+        "report":"boolean",
+        "score":"number"
+    }
+};
+
+User.Comment = {
+    collection: "user_comment",
+    key:["user_id","comment_id"],
+    schema: {
+        "user_id":"number",
+        "comment_id":"number",
         "seen":"boolean",
         "follow":"boolean",
         "endorse":"boolean",

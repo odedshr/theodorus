@@ -37,7 +37,7 @@
                 </style>
 
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.min.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
@@ -45,15 +45,86 @@
                 <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/utilities.js"></script>
-                <xsl:for-each select="script">
-                    <script language="javascript" type="text/javascript" src="{.}"></script>
-                </xsl:for-each>
+                <xsl:choose>
+                    <xsl:when test="//app/mode = 'dev'">
+                        <script language="javascript" type="text/javascript" src="/js/controllers/AbstractController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/TopicListController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/AddTopicController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/FeedController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/AccountController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/SigninController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/SignupController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/TagCloudController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/TopicController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/feed/SearchController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/moderator/IssueController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/moderator/IssueListController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/moderator/ModeratorController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/tools/BugReportController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/tools/MessageController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/comment/AddCommentController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/comment/CommentController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/comment/CommentListController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/AlternativeSectionController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/SectionController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/TopicContentController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/topic/TopicTagsController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/notification/NotificationController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/notification/NotificationCountController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/notification/NotificationListController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/settings/ChangePasswordController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/settings/ChangeProfilePictureController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/settings/SettingsController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/UserController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/controllers/user/ResetPasswordController.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/AbstractView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/TopicListView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/AddTopicView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/FeedView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/SigninView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/SignupView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/AccountView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/TagCloudView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/TopicView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/feed/SearchCloudView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/moderator/IssueView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/moderator/IssueListView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/moderator/ModeratorView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/tools/BugReportView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/comment/AddCommentView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/comment/CommentView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/comment/CommentListView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/AlternativeParagraphView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/ParagraphView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/TopicContentView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/topic/TopicTagsView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/notification/NotificationView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/notification/NotificationCountView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/notification/NotificationListView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/settings/ChangePasswordView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/settings/ChangeProfilePictureView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/settings/SettingsView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/UserView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/views/user/ResetPasswordView.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/AbstractModel.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/Notification.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/Topic.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/Credentials.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/User.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/models/Tag.js"></script>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <script language="javascript" type="text/javascript" src="/js/theodorus.models.min.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/theodorus.controllers.min.js"></script>
+                        <script language="javascript" type="text/javascript" src="/js/theodorus.views.min.js"></script>
+                    </xsl:otherwise>
+                </xsl:choose>
             </head>
 
             <body>
                 <header>
-                    <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
-                    <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
+                   <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
+                   <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
                    <div id="account" class="account_menu">
                         <xsl:apply-templates select="//user" />
                     </div>
