@@ -184,7 +184,8 @@ var TopicProcess = (function () {
             }
         },
         getTopic: function (session,callback) {
-            var topicKey = this.getTopicIndexByUrl(session.url),
+            var referer = session.req.headers["referer"],
+                topicKey = this.getTopicIndexByUrl(session.url),
                 tasks = [   {"method":"get","url":"/me","outputName":"me"},
                             {"method":"get","url":"/tags","outputName":"tags"}
                 ],
@@ -194,12 +195,12 @@ var TopicProcess = (function () {
                     if (!(--taskCount)) {
                         io.db.getTopic(topicKey, function (topic){
                             if (topic) {
-                                io.db.getTopicRead(topic.id, function(topicRead){
+                                io.db.getTopicRead(topic.get("topic_id"), function(topicRead){
                                     topic.set("content",topicRead.content);
                                     if (session.isJSON) {
                                         callback(topic.toJSON());
                                     } else {
-                                        io.db.getComments(topic.id,taskOutput.me.user_id, function (comments) {
+                                        io.db.getComments(topic.get("topic_id"),taskOutput.me.user_id, function (comments) {
                                             callback ({
                                                 "app":{
                                                     "mode": io.getTheodorusMode(),
@@ -209,7 +210,8 @@ var TopicProcess = (function () {
                                                         "comments": { "comment": comments},
                                                         "tags": { "tag": taskOutput.tags },
                                                         "user":taskOutput.me,
-                                                        "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host
+                                                        "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
+                                                        "referer": referer
                                                     }
                                                 }
                                             })
@@ -309,13 +311,13 @@ var TopicProcess = (function () {
             var source = session.req.headers["referer"];
                 input = session ? session.input : false;
 
-            if (!session.input || !session.input.parent_id) {
+            if (!session.input || !(session.input.parent_id|| session.input.comment_id)) {
                 callback (session.isJSON ? {"error":"no-input"} : session.getErrorHandler("no-input"));
             } else {
                 var createDate = (new Date()).toISOString(),
-                    parentId = input.parent_id,
+                    parentId = input.parent_id ? input.parent_id : 0,
+                    commentId = input.comment_id,
                     content = input["comment_on-"+parentId];
-                if (content.length)
                 if (content.length< io.config.minimum_comment_length) {
                     callback(session.getErrorHandler("comment-too-short","comment",content));
                 } else if (content.length> io.config.maximum_comment_length) {
@@ -331,6 +333,9 @@ var TopicProcess = (function () {
                                     "parent_id":parentId,
                                     "content":content
                                 });
+                                if (commentId) {
+                                    comment.set("comment_id",commentId);
+                                }
                                 io.db.save(comment,function (result,error){
                                     if (result) {
                                         if (session.isJSON) {

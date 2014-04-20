@@ -49,6 +49,7 @@
                     <div id="loading_system"><xsl:value-of select="$system_loading" /></div>
                 </xsl:when>
                 <xsl:when test="topic">
+                    <a href="{//referer}" class="button-back"><xsl:value-of select="$back" /></a>
                     <h2><xsl:value-of select="topic/title" /></h2>
                     <div id="content"><xsl:value-of select="topic/content" /></div>
                     <!--<xsl:choose>
@@ -90,17 +91,31 @@
                     </ul>
                     <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
                         <input type="hidden" name="topic_id" value="{topic/topic_id}" />
+
+                        <!-- Your opinion-->
                         <xsl:choose>
-                            <xsl:when test="comments/comment">
-                                <xsl:apply-templates select="comments" />
+                            <xsl:when test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
+                                <xsl:apply-templates select="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]" />
                             </xsl:when>
                             <xsl:otherwise>
-                                <div><xsl:value-of select="$no_comments" /></div>
+                                <xsl:call-template name="comment-box">
+                                    <xsl:with-param name="parent_id" select="0" />
+                                </xsl:call-template>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:call-template name="comment-box">
-                            <xsl:with-param name="parent_id" select="0" />
-                        </xsl:call-template>
+
+                        <!-- Other people's opinions -->
+                        <xsl:choose>
+                            <xsl:when test="comments/comment">
+                                <div class="other-opinions">
+                                    <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$other_opinions" /></a>
+                                    <xsl:apply-templates select="comments" />
+                                </div>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </form>
                 </xsl:when>
                 <xsl:when test="message">
@@ -114,15 +129,11 @@
         </div>
     </xsl:template>
 
-    <xsl:template match="comments">
-        <ul><xsl:apply-templates select="comment" /></ul>
-    </xsl:template>
-
-    <xsl:template match="comment">
-        <li class="comment">
+    <xsl:template match="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
+        <div class="comment your-comment">
             <a name="comment:{comment_id}" id="comment:{comment_id}" />
-            <a class="commenter"><xsl:value-of select="commenter/display_name" /></a>
-            <h3 class="comment-content"><xsl:value-of select="content" /></h3>
+            <a class="commenter"><xsl:value-of select="$your_opinion" /></a>
+
             <span class="hidden"> · </span>
 
             <div class="actions">
@@ -160,16 +171,77 @@
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
+
+            <span class="hidden"> · </span>
+            <div class="comment-box">
+                <textarea name="comment_on-0" maxlength="140" class="comment-box-element comment-new"><xsl:value-of select="content" /></textarea>
+                <button name="comment_id" value="{comment_id}" class="comment-box-element comment-submit"><span><xsl:value-of select="$update_comment" /></span></button>
+            </div>
+
+            <span class="hidden"> · </span>
             <xsl:apply-templates select="comments" />
-            <xsl:call-template name="comment-box">
-                <xsl:with-param name="parent_id" select="comment_id" />
-            </xsl:call-template>
-        </li>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="comments">
+        <ul class="comment-list"><xsl:apply-templates select="comment[not(commenter/user_id = //user/user_id and parent_id = 0)]" /></ul>
+    </xsl:template>
+
+    <xsl:template match="comment">
+            <li class="comment">
+                <a name="comment:{comment_id}" id="comment:{comment_id}" />
+                <a class="commenter"><xsl:value-of select="commenter/display_name" /></a>
+                <h3 class="comment-content"><xsl:value-of select="content" /></h3>
+                <span class="hidden"> · </span>
+
+                <div class="actions">
+                    <xslt:call-template name="datetime-render">
+                        <xsl:with-param name="value" select="created" />
+                    </xslt:call-template>
+
+                    <span class="hidden"> · </span>
+                    <xsl:choose>
+                        <xsl:when test="commenter/user_id = //user/user_id and endorse = 0 and follow = 0 and count(comments/comment) = 0">
+                            <a class="statistics-item stat-endorse">
+                                <span class="count"><xsl:value-of select="endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                            </a>
+                            <a class="button-action" href="/topics/{//topic/topic_id}/comments/{comment_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                        </xsl:when>
+                        <xsl:when test="commenter/user_id != //user/user_id">
+                            <a class="button-action button-endorse" href="/topics/{comment_id}/endorse">
+                                <xsl:if test="user_endorse = '1'">
+                                    <xsl:attribute name="href">/topics/<xsl:value-of select="comment_id"/>/unendorse</xsl:attribute>
+                                    <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                                </xsl:if>
+                                <span class="count"><xsl:value-of select="endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <a class="statistics-item stat-endorse">
+                                <span class="count"><xsl:value-of select="endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                            </a>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+                <xsl:apply-templates select="comments" />
+                <xsl:call-template name="comment-box">
+                    <xsl:with-param name="parent_id" select="comment_id" />
+                </xsl:call-template>
+            </li>
     </xsl:template>
 
     <xsl:template name="comment-box">
         <xsl:param name="parent_id" />
         <div class="comment-box">
+            <xsl:if test="$parent_id = 0">
+                <a class="commenter"><xsl:value-of select="$your_opinion" /></a>
+            </xsl:if>
             <textarea name="comment_on-{$parent_id}" maxlength="140" class="comment-box-element comment-new"></textarea>
             <button name="parent_id" value="{$parent_id}" class="comment-box-element comment-submit"><span><xsl:value-of select="$add_comment" /></span></button>
         </div>
