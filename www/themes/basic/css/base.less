@@ -273,6 +273,16 @@ h2 {
     padding: 1rem;
   }
 
+  .button-back {
+    margin: 1rem 1rem 0;
+    display: block;
+    font-size: 0.8rem;
+  }
+  .button-back:before {
+    content: "➜";
+    padding-left:0.2rem;
+  }
+
   .socialTools { height: 2rem; }
   .socialTool {
     float:right;
@@ -284,6 +294,10 @@ h2 {
     width: 7rem;
   }
 
+  .commenter:after { content: ":"}
+  .comments > .comment-list, .your-comment > .comment-list { border-bottom: 0.1rem solid @elementBorder; }
+  .no-comments { margin-top:0.5rem; }
+  .other-opinions { margin-top: 1rem;}
   .comments {
     padding: 1rem;
 
@@ -299,7 +313,6 @@ h2 {
           display: inline;
           margin-left: 0.1rem;
       }
-      .commenter:after { content: ":"}
       h3 { display: inline; }
 
       .actions {
@@ -321,15 +334,18 @@ h2 {
     .comment-box {
       background-color: rgba(150, 150, 150, 0.1);
       border: 0.1rem solid @elementBorder;
-      height: 2rem;
       padding: 0.5rem;
 
-      .comment-box-element {
-        float: right;
-        height:100%;
-
+      .commenter {
+        display: block;
       }
-      .comment-new { width: 30rem; }
+      .comment-box-element {
+        height: 2rem;
+      }
+      .comment-new {
+        float: right;
+        width: 30rem;
+      }
       .comment-submit {
           margin-right:0.5rem;
           width: 7.5rem;

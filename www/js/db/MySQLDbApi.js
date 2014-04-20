@@ -125,6 +125,10 @@ exports.getTopicStatistics = function (topicId, callback) {
 };
 
 exports.getComments = function (topicId, userId, callback) {
+    if (!topicId) {
+        console.error("getComments with no topicId")
+        topicId = 0;
+    }
     var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
         "\n\t"+"c.comment_id AS comment_id, c.parent_id AS parent_id, created, content,"+
         "\n\t"+"c.follow AS follow, c.endorse AS endorse, c.report AS report, report_status,"+
@@ -133,6 +137,7 @@ exports.getComments = function (topicId, userId, callback) {
         "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON c.user_id=u.user_id"+
         "\n\t"+"LEFT JOIN "+prefix+User.Comment.collection + " uc ON uc.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND c.comment_id = uc.comment_id"+
         "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
+        "\n\t"+"AND c.topic_id = "+topicId;
         "\n\t"+"ORDER BY parent_id, comment_id;";
     db.query( query,
         function (results) {
