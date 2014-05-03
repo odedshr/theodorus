@@ -59,8 +59,10 @@
                 <label><xsl:value-of select="$lbl_remember_me" /></label>
             </div>
             <div class="form-buttons">
+                <input type="hidden" id="referer" name="referer" value="{//app/page/referer}" />
                 <button id="button-signin" type="submit"><xsl:value-of select="$btn_submit_signin" /></button>
                 <!--button id="button-cancel" type="reset"><xsl:value-of select="$btn_cancel" /></button-->
+                <a href="{//app/page/referer}" class="button-cancel"><xsl:value-of select="$btn_cancel" /></a>
             </div>
         </form>
     </xsl:template>

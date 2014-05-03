@@ -274,6 +274,12 @@ header .nav_buttons .nav_features {
 h2 {
   font-size: 1.7rem;
 }
+.button-cancel {
+  /* cancel buttons appears in sign-in/up pages */
+
+  padding-left: 4rem;
+  line-height: 2rem;
+}
 /* ================================================================================================================== */
 .messages:not(:empty) {
   -webkit-border-top-right-radius: 0;
@@ -457,6 +463,7 @@ h2 {
 .topic-view {
   float: right;
   margin-right: 15rem;
+  min-width: 41.2rem;
 }
 .topic-view h2 {
   padding: 1rem;
@@ -547,10 +554,10 @@ h2 {
 }
 .topic-view .comments .comment-box .comment-new {
   float: right;
+  margin-left: 0.5rem;
   width: 30rem;
 }
 .topic-view .comments .comment-box .comment-submit {
-  margin-right: 0.5rem;
   width: 7.5rem;
 }
 /* ================================================================================================================== */

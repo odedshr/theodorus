@@ -147,7 +147,7 @@
     <xsl:param name="nav_donations" select="'תרומות'"/>
 
     <xsl:param name="lbl_topic_title" select="'כותרת'"/>
-    <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>
+    <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופולריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>
     <xsl:param name="characters_left" select="'תוים נותרו'"/>
     <xsl:param name="lbl_topic_slug" select="'כתובת slug (באנגלית)'"/>
     <xsl:param name="example_topic_title_slug" select="'democracy-for-everyone'"/>
