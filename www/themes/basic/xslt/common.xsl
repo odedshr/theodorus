@@ -151,6 +151,10 @@
         </html>
     </xsl:template>
 
+    <xsl:template match="count">
+        <span class="count"><xsl:value-of select="." /></span>
+    </xsl:template>
+
     <xsl:template match="page[@type='message']">
         <div class="page_message">
             <h2><xsl:value-of select="$error_has_occoured" />: <xsl:apply-templates select="message" /></h2>

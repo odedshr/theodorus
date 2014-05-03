@@ -165,7 +165,7 @@ var WebApplication = function () {
     self.xslt = function (content) {
         var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
             xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.utils.json2xml (content) : content)+"</xml>");
-        return xslt.transform( xsltDocument,xmlDocument, [])
+        return xslt.transform( xsltDocument,xmlDocument, []);
     };
 
     /////////////////////////////////////////////////////////////////////
@@ -228,7 +228,11 @@ var WebApplication = function () {
 
     self.initProcesses =  function () {
         config.processes.forEach( function(libraryName) {
-            require("./js/"+libraryName).init(self).forEach(self.addHandler.bind(self));
+            try {
+                require("./js/"+libraryName).init(self).forEach(self.addHandler.bind(self));
+            } catch (error) {
+                self.log("failed to init "+libraryName + " ("+error+")","error");
+            }
         });
     };
 
@@ -259,7 +263,7 @@ try {
     instance.initialize();
     instance.start();
 } catch (error) {
-    console.error((new Date()) + " | Failed to initialize app\n"+error);
+    console.error((new Date()) + " | Failed to initialize app\n" + error);
 }
 
 

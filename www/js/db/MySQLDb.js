@@ -107,23 +107,24 @@ function sanitizeJSONObject (item) {
     return json;
 }
 
+function parseJSONbyKey (value, key) {
+    switch (key) {
+        case "array":
+        case "object":
+            return JSON.parse(value);
+        default:
+            return value;
+    }
+}
+
 function parseJSON (JSONData, schema) {
     var newData = {};
     for (var key in schema) {
         if (JSONData[key]) {
-            var newValue = (JSONData[key]); //TODO: convert back' and "
-            switch (schema[key]) {
-                case "array":
-                case "object":
-                    try {
-                        newData[key] = JSON.parse(newValue);
-                    } catch (error) {
-                        console.error("error parsing "+key+" = " + newValue + "("+error+")");
-                        newData[key] = newValue;
-                    }
-                    break;
-                default:
-                    newData[key] = newValue;
+            try {
+                newData[key] = parseJSONbyKey(JSONData[key],schema[key]);
+            } catch (error) {
+                newData[key] = (JSONData[key]); //TODO: convert back' and ";
             }
         }
     }

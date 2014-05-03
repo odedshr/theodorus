@@ -42,6 +42,38 @@
                     <xsl:choose>
                         <xsl:when test="topics/topic">
                             <xsl:apply-templates select="topics" />
+                            <div class="page-controls">
+                                <xsl:choose>
+                                    <xsl:when test="pageCount &gt; 1">
+                                        <a class="nav-page-link nav-page-prev">
+                                            <xsl:if test="pageIndex &gt; 1">
+                                                <xsl:attribute name="href">/:<xsl:value-of select="pageIndex - 1" /></xsl:attribute>
+                                            </xsl:if>
+                                            <xsl:value-of select="$previous" />
+                                        </a>
+
+                                        <xsl:value-of select="$page" />
+                                        <span class="nav-page-value"><xsl:value-of select="pageIndex" /></span>
+                                        <xsl:value-of select="$out_of" />
+                                        <span class="nav-page-value"><xsl:value-of select="pageCount" /></span>
+
+                                        <a class="nav-page-link nav-page-next">
+                                            <xsl:if test="pageIndex &lt; pageCount">
+                                                <xsl:attribute name="href">/:<xsl:value-of select="pageIndex + 1" /></xsl:attribute>
+                                            </xsl:if>
+                                            <xsl:value-of select="$next" />
+                                        </a>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                            <xsl:call-template name="string-replace-all">
+                                                <xsl:with-param name="text"
+                                                                select="$showing_x_items" />
+                                                <xsl:with-param name="replace" select="$variable" />
+                                                <xsl:with-param name="by" select="count(topics/topic)" />
+                                            </xsl:call-template>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </div>
                         </xsl:when>
                         <xsl:otherwise>
                             <div class="no-topics">
