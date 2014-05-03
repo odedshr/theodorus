@@ -48,7 +48,8 @@ var AccountProcess = (function () {
                     "page":{
                         "@type": "signin",
                         "name": input.name,
-                        "email": input.email
+                        "email": input.email,
+                        "referer": session.req.headers['referer']
                     }
                 }
             });
@@ -62,7 +63,8 @@ var AccountProcess = (function () {
                     "page":{
                         "@type": "signup",
                         "name": input.name,
-                        "email": input.email
+                        "email": input.email,
+                        "referer": session.req.headers['referer']
                     }
                 }
             });
@@ -81,7 +83,8 @@ var AccountProcess = (function () {
                             },
                             "page":{
                                 "@type": "signin",
-                                "email": input.email
+                                "email": input.email,
+                                "referer": session.req.headers['referer']
                             }
                         }
                     });
@@ -116,7 +119,7 @@ var AccountProcess = (function () {
                                     if (session.isJSON) {
                                         callback((user ? user : new User()).toJSON());
                                     } else {
-                                        session.res.writeHead(301,{location: session.req.headers['referer']});
+                                        session.res.writeHead(301,{location: input.referer });
                                         callback({});
                                     }
                                 });
@@ -193,7 +196,7 @@ var AccountProcess = (function () {
                                                     if (session.isJSON) {
                                                         callback({"result":user.toJSON()});
                                                     } else {
-                                                        session.res.writeHead(301,{location: session.req.headers['referer']});
+                                                        session.res.writeHead(301,{location: input.referer });
                                                         callback({});
                                                     }
                                                 } catch (err) {
