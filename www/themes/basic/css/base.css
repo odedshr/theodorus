@@ -274,6 +274,12 @@ header .nav_buttons .nav_features {
 h2 {
   font-size: 1.7rem;
 }
+.button-cancel {
+  /* cancel buttons appears in sign-in/up pages */
+
+  padding-left: 4rem;
+  line-height: 2rem;
+}
 /* ================================================================================================================== */
 .messages:not(:empty) {
   -webkit-border-top-right-radius: 0;
