@@ -16,6 +16,7 @@ var Comment = AbstractModel.extend({
     schema: {
         "topic_id":"number",
         "comment_id":"number",
+        "opinion_id":"number",
         "parent_id":"number",
         "user_id":"number",
         "created":"date",

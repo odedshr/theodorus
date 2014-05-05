@@ -169,7 +169,6 @@ exports.getComments = function (topicId, userId, callback) {
         "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
         "\n\t"+"AND c.topic_id = "+topicId +
         "\n\t"+"ORDER BY parent_id, comment_id;";
-    console.error(query);
     db.query( query,
         function (results) {
             var comments = [],
