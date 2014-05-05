@@ -92,28 +92,42 @@
                     <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
                         <input type="hidden" name="topic_id" value="{topic/topic_id}" />
 
-                        <!-- Your opinion-->
                         <xsl:choose>
+                            <!-- User have opinion-->
                             <xsl:when test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
                                 <xsl:apply-templates select="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]" />
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:call-template name="comment-box">
-                                    <xsl:with-param name="parent_id" select="0" />
-                                </xsl:call-template>
-                            </xsl:otherwise>
-                        </xsl:choose>
 
-                        <!-- Other people's opinions -->
-                        <xsl:choose>
-                            <xsl:when test="comments/comment">
-                                <div class="other-opinions">
-                                    <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$other_opinions" /></a>
-                                    <xsl:apply-templates select="comments" />
-                                </div>
+                                <xsl:choose>
+                                    <xsl:when test="comments/comment">
+                                        <div class="other-opinions">
+                                            <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$other_opinions" /></a>
+                                            <xsl:apply-templates select="comments" />
+                                        </div>
+                                    </xsl:when>
+                                    <xsl:otherwise test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
+                                        <div class="no-comments"><xsl:value-of select="$no_other_opinions" /></div>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
-                                <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
+                                <!-- User doesn't have an opinion-->
+                                <xsl:if test="//user/user_id">
+                                    <!-- User not signed in-->
+                                    <xsl:call-template name="comment-box">
+                                        <xsl:with-param name="parent_id" select="0" />
+                                    </xsl:call-template>
+                                </xsl:if>
+                                <xsl:choose>
+                                    <xsl:when test="comments/comment">
+                                        <div class="other-opinions">
+                                            <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$opinions" /></a>
+                                            <xsl:apply-templates select="comments" />
+                                        </div>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </xsl:otherwise>
                         </xsl:choose>
                     </form>
@@ -173,11 +187,12 @@
             </div>
 
             <span class="hidden"> · </span>
-            <div class="comment-box">
-                <textarea name="comment_on-0" maxlength="140" class="comment-box-element comment-new"><xsl:value-of select="content" /></textarea>
-                <button name="comment_id" value="{comment_id}" class="comment-box-element comment-submit"><span><xsl:value-of select="$update_comment" /></span></button>
-            </div>
-
+            <xsl:if test="//user/user_id">
+                <div class="comment-box">
+                    <textarea name="comment_on-0" maxlength="140" class="comment-box-element comment-new"><xsl:value-of select="content" /></textarea>
+                    <button name="comment_id" value="{comment_id}" class="comment-box-element comment-submit"><span><xsl:value-of select="$update_comment" /></span></button>
+                </div>
+            </xsl:if>
             <span class="hidden"> · </span>
             <xsl:apply-templates select="comments" />
         </div>

@@ -195,9 +195,11 @@
 
     <xsl:param name="failed_to_load_topic" select="'טעינת פריט נכשלה'"/>
     <xsl:param name="back" select="'חזרה'"/>
-    <xsl:param name="your_opinion" select="'העמדה שלך'"/>
-    <xsl:param name="other_opinions" select="'עמדות נוספות'"/>
-    <xsl:param name="no_opinions" select="'אין עמדות נוספות כרגע'"/>
+    <xsl:param name="opinions" select="'דעות'"/>
+    <xsl:param name="your_opinion" select="'הדעה שלך'"/>
+    <xsl:param name="other_opinions" select="'דעות נוספות'"/>
+    <xsl:param name="no_other_opinions" select="'אין דעות נוספות כרגע'"/>
+    <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
     <xsl:param name="add_comment" select="'הוספה'"/>
     <xsl:param name="update_comment" select="'עדכון'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>

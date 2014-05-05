@@ -167,8 +167,9 @@ exports.getComments = function (topicId, userId, callback) {
         "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON c.user_id=u.user_id"+
         "\n\t"+"LEFT JOIN "+prefix+User.Comment.collection + " uc ON uc.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND c.comment_id = uc.comment_id"+
         "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
-        "\n\t"+"AND c.topic_id = "+topicId;
+        "\n\t"+"AND c.topic_id = "+topicId +
         "\n\t"+"ORDER BY parent_id, comment_id;";
+    console.error(query);
     db.query( query,
         function (results) {
             var comments = [],
