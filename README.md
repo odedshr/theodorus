@@ -28,3 +28,16 @@ Settings to configure
   - process.env.THEODORUS_MYSQL_USER
   - process.env.THEODORUS_MYSQL_PASSWORD
   - process.env.THEODORUS_MYSQL_SCHEMA
+
+  Installation
+  1. sign up for openshift
+  2. create a new app
+  3. Use cartridge "node.js 0.10"
+  4. use the git source code https://github.com/odedshr/theodorus.git master
+  5. "I would like to make changes in the code" - setup your public key
+  6. Add cartridge "MySQL 5.5"
+  7. Enable Jenkins
+  8. You may want to add phpMyAdmin 4.0 if you used non-scalable process
+
+
+
