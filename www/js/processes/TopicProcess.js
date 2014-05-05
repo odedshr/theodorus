@@ -1,15 +1,21 @@
 var io = null,
     Topic = (typeof Topic !== "undefined") ? Topic : require("../models/Topic").model(),
     Comment = (typeof Comment !== "undefined") ? Comment : require("../models/Comment").model(),
-    _ = (typeof _ !== "undefined") ? _ : require("underscore");
+    _ = (typeof _ !== "undefined") ? _ : require("underscore"),
+    TOPIC_PAGE_SIZE = 0
 
 var TopicProcess = (function () {
     return {
         init: function (ioFunctions) {
             io = ioFunctions;
+            if (io.config.topic_page_size) {
+                TOPIC_PAGE_SIZE = io.config.topic_page_size;
+            }
             return [
                 {"method":"GET",  "url":"/",                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/topics(\/:\d+)?\/?$/,                                   "handler":TopicProcess.getTopics.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/:\d+\/?/,                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/topics\/count\/?$/,                                   "handler":TopicProcess.getTopicCount.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/topics(:\d+)?\/?$/,                                   "handler":TopicProcess.getTopics.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/topics\/add\/?$/,                                   "handler":TopicProcess.getAddTopicPage.bind(TopicProcess)},
                 {"method":"POST", "url":/^\/topics\/?$/,                                            "handler":TopicProcess.addTopic.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/\*[a-zA-Z0-9_-]{3,140}\/exists\/?$/,                    "handler":TopicProcess.isExists.bind(TopicProcess)},
@@ -29,8 +35,16 @@ var TopicProcess = (function () {
             ]
         },
 
+        getTopicCount: function getTopicCount (session,callback) {
+            io.db.getTopicCount(function(count){
+                callback({"count":count});
+            });
+        },
+
         getMainPage: function getMainPage(session,callback) {
-            var tasks = [   {"method":"get","url":"/topics","outputName":"topics"},
+            var page = Math.max(1,parseInt(session.url.replace(/\D/g,"")*1)),
+                tasks = [   {"method":"get","url":"/topics"+session.url.substr(1),"outputName":"topics"},
+                            {"method":"get","url":"/topics/count","outputName":"topicCount"},
                             {"method":"get","url":"/me","outputName":"me"},
                             {"method":"get","url":"/tags","outputName":"tags"}
                         ],
@@ -44,6 +58,8 @@ var TopicProcess = (function () {
                                 "page": {
                                     "@type":"feed",
                                     "topics": { "topic": taskOutput.topics },
+                                    "pageIndex": page,
+                                    "pageCount": Math.ceil(taskOutput.topicCount.count / TOPIC_PAGE_SIZE),
                                     "tags": { "tag": taskOutput.tags },
                                     "user":taskOutput.me
                                 }
@@ -104,9 +120,13 @@ var TopicProcess = (function () {
         },
 
         getTopics: function (session,callback) {
+            var page = parseInt(session.url.replace(/\D/g,"")*1);
+
             session.useUserId(function(userId) {
                 io.db.getTopics ({
-                    "user" : userId
+                    "user" : userId,
+                    "pageSize" : TOPIC_PAGE_SIZE,
+                    "page": page
                 },function (items) {
                     if (items) {
                         callback(items);
@@ -215,7 +235,6 @@ var TopicProcess = (function () {
                                                     }
                                                 }
                                             })
-
                                         });
                                     }
                                 });

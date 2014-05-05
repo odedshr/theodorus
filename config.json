@@ -11,6 +11,7 @@
     "minimum_comment_length":5,
     "maximum_comment_length":140,
     "maximum_slug_length":140,
+    "topic_page_size":10,
     "processes": [
         "processes/TestUnitProcess",
         "processes/AccountProcess",

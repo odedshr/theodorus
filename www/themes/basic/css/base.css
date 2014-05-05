@@ -387,6 +387,22 @@ h2 {
   color: #999;
   margin: 3.5rem;
 }
+.feed_wrapper .page-controls {
+  padding: 0.5rem 1.5rem;
+  border-top: 0.1rem solid #aaaaaa;
+  margin: 0.1rem 0.5rem;
+}
+.feed_wrapper .page-controls .nav-page-link {
+  padding: 0 0.8rem;
+}
+.feed_wrapper .page-controls .nav-page-link:not([href]) {
+  color: #bbbbbb;
+  cursor: default;
+}
+.feed_wrapper .page-controls .nav-page-value {
+  color: #666666;
+  padding: 0 0.2rem;
+}
 .feed_wrapper .topic {
   background: #ffffff;
   border-bottom: 0.1rem solid #aaaaaa;

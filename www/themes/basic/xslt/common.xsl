@@ -130,9 +130,9 @@
                     </div>
                     <nav class="nav_buttons">
                         <ul>
-                            <li class="nav_blog"><a target="_blank" href="http://theodev.wordpress.com" accesskey="b"><xsl:value-of select="$nav_blog" /></a></li>
-                            <li class="nav_features"><a href="https://trello.com/b/gtJnohoz/features" accesskey="t"><xsl:value-of select="$nav_features" /></a></li>
-                            <li class="nav_sourcecode"><a href="https://github.com/odedshr/theodorus" accesskey="g"><xsl:value-of select="$nav_sourcecode" /></a></li>
+                            <li class="nav_blog"><a href="http://theodev.wordpress.com" accesskey="b" target="_blank"><xsl:value-of select="$nav_blog" /></a></li>
+                            <li class="nav_features"><a href="https://trello.com/b/gtJnohoz/features" accesskey="t" target="_blank"><xsl:value-of select="$nav_features" /></a></li>
+                            <li class="nav_sourcecode"><a href="https://github.com/odedshr/theodorus" accesskey="g" target="_blank"><xsl:value-of select="$nav_sourcecode" /></a></li>
                             <!-- li><a href="donations" accesskey="t"><xsl:value-of select="$nav_donations" /></a></li -->
                         </ul>
                     </nav>
@@ -149,6 +149,10 @@
                 <div id="report-bugs" />
             </body>
         </html>
+    </xsl:template>
+
+    <xsl:template match="count">
+        <span class="count"><xsl:value-of select="." /></span>
     </xsl:template>
 
     <xsl:template match="page[@type='message']">

@@ -3,10 +3,9 @@
  * 1. The API should translate app-specific commands to db-specific commands
  * 2. This means no object until this point should care what is the DB and the DB should not what is the app
  * */
-//TODO: move TOPICS_PER_PAGE and RELEVANCY_PERIOD to config.json
+//TODO: move TOPIC_PAGE_SIZE and RELEVANCY_PERIOD to config.json
  var db = require('./MySQLDb'),
     RELEVANCY_PERIOD = 14,
-    TOPICS_PER_PAGE = 30,
     User = require("../models/User").model(),
     Credentials = require("../models/Credentials").model(),
     Topic = require("../models/Topic").model(),
@@ -15,12 +14,24 @@
     utils = require("../utilities"),
     prefix = "";
 
-exports.init = function (config) {
+
+function renderWhereString (filters) {
+    if (filters) {
+        var where = [];
+        filters.forEach(function(value) {
+            where.push(value.key + " "+ value.operator + " " + value.value);
+        });
+        return "\n\t"+ "WHERE " + where.join(" AND ");
+    }
+    return "";
+}
+
+exports.init = function init (config) {
     db.init(config);
     prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
 };
 
-exports.load = function (itemClass, itemId, callback) {
+exports.load = function load (itemClass, itemId, callback) {
     var item = new itemClass();
     db.getItem(item, itemId, function (itemData){
         if (itemData) {
@@ -32,7 +43,7 @@ exports.load = function (itemClass, itemId, callback) {
     });
 };
 
-exports.loads = function (itemClass, queryOptions, callback) {
+exports.loads = function loads (itemClass, queryOptions, callback) {
     var item = new itemClass();
     db.getItems(item, queryOptions, function (items){
         if (items) {
@@ -43,16 +54,35 @@ exports.loads = function (itemClass, queryOptions, callback) {
     });
 };
 
+exports.count = function count (itemClass, filters, callback) {
+    var whereString = renderWhereString(filters);
+    //TODO: parse filters to get WHERE filters
+    var query = "SELECT count(1) as count FROM "+prefix+(new itemClass()).collection + whereString;
+    db.query (query, function(result) {
+        if (result) {
+            callback(result[0].count);
+        } else {
+            callback(result);
+        }
+    });
+
+}
+
 exports.getCredentials = function(authKey,callback) { exports.load(Credentials, authKey, callback); };
 exports.getUser = function(userId,callback) { exports.load(User, userId, callback); };
 exports.getUserByName = function(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
 exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
 exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
+exports.getTopicCount = function(callback) {
+    exports.count(Topic,[{"key":"status","operator":"<>","value":"'removed'"}], callback);
+};
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
 exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, topicId, callback); };
-exports.getTopics = function (parameters, callback,page) {
-    var limit = page ? ("LIMIT "+((page-1)*TOPICS_PER_PAGE)+", "+TOPICS_PER_PAGE ): "",
-        userId = parameters.user;
+exports.getTopics = function (parameters, callback) {
+    var userId = parameters.user,
+        pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
+        page =  (parameters.page) ? parameters.page : 1,
+        limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "";
     /*  Score is based on predefined score + up to RELEVANCY_PERIOD points per day (i.e. a post from today will get
         RELEVANCY_PERIOD points) + number of follows, endorsements and reports
     * */
@@ -137,8 +167,9 @@ exports.getComments = function (topicId, userId, callback) {
         "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON c.user_id=u.user_id"+
         "\n\t"+"LEFT JOIN "+prefix+User.Comment.collection + " uc ON uc.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND c.comment_id = uc.comment_id"+
         "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
-        "\n\t"+"AND c.topic_id = "+topicId;
+        "\n\t"+"AND c.topic_id = "+topicId +
         "\n\t"+"ORDER BY parent_id, comment_id;";
+    console.error(query);
     db.query( query,
         function (results) {
             var comments = [],

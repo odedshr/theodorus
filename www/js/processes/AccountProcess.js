@@ -84,7 +84,7 @@ var AccountProcess = (function () {
                             "page":{
                                 "@type": "signin",
                                 "email": input.email,
-                                "referer": session.req.headers['referer']
+                                "referer": input.referer ? input.referer : session.req.headers['referer']
                             }
                         }
                     });

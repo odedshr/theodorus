@@ -16,6 +16,8 @@
                 xmlns:exslt="http://exslt.org/common"><!-- keep xslt here. it's used by feed.xsl-->
     <xsl:import href="common.xsl" />
     <xsl:output method="html" encoding="UTF-8"/>
+
+    <xsl:param name="variable" select="'#'"/>
     <xsl:param name="window_title" select="'Theodorus'"/>
     <xsl:param name="app_name" select="'תיאודורוס'"/>
     <xsl:param name="javascript_disabled_title" select="'הפעלת קוד גאוהסקריפט אינה זמינה בדפדפן האינטרנט שלך'"/>
@@ -24,6 +26,10 @@
     <xsl:param name="system_loading" select="'טוען קבצים, אנא המתן...'"/>
     <xsl:param name="previous_page" select="'לעמוד הקודם'"/>
 
+    <xsl:param name="page" select="'עמוד'"/>
+    <xsl:param name="out_of" select="'מתוך'"/>
+    <xsl:param name="previous" select="'הקודם'"/>
+    <xsl:param name="next" select="'הבא'"/>
 
     <xsl:param name="error_has_occoured" select="'אירעה שגיאה'"/>
     <xsl:param name="error_unknown" select="'שגיאה לא ידועה'"/>
@@ -174,6 +180,7 @@
     <xsl:param name="stat_comments" select="'תגובות'"/>
     <xsl:param name="btn_comments" select="'הוספת תגובה'"/>
 
+    <xsl:param name="showing_x_items" select="'מציג # פריטים'" />
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
     <xsl:param name="lbl_no_topics_found_suggest_one" select="'אולי תציעו אחד כעת?'"/>
     <xsl:param name="file_not_found_title" select="'הפריט שחיפשת לא קיים'"/>
@@ -188,9 +195,11 @@
 
     <xsl:param name="failed_to_load_topic" select="'טעינת פריט נכשלה'"/>
     <xsl:param name="back" select="'חזרה'"/>
-    <xsl:param name="your_opinion" select="'העמדה שלך'"/>
-    <xsl:param name="other_opinions" select="'עמדות נוספות'"/>
-    <xsl:param name="no_opinions" select="'אין עמדות נוספות כרגע'"/>
+    <xsl:param name="opinions" select="'דעות'"/>
+    <xsl:param name="your_opinion" select="'הדעה שלך'"/>
+    <xsl:param name="other_opinions" select="'דעות נוספות'"/>
+    <xsl:param name="no_other_opinions" select="'אין דעות נוספות כרגע'"/>
+    <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
     <xsl:param name="add_comment" select="'הוספה'"/>
     <xsl:param name="update_comment" select="'עדכון'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
