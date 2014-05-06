@@ -143,6 +143,18 @@ exports.setUserTopic = function (userId, topicId,updateKey,newValue, callback) {
         callback);
 };
 
+exports.updateTopicCommentCount = function (topicId, callback) {
+    db.query(
+        "UPDATE "+prefix+User.Topic.collection +
+            "\n\t"+ "SET comment = (SELECT COUNT(DISTINCT user_id) from comments where topic_id='"+topicId+"' AND parent_id=0),"+
+            "\n\t\t"+"opinion = (select count(distinct user_id) from comments where topic_id='"+topicId+"' AND NOT(parent_id=0))"+
+            "\n\t"+"WHERE topic_id='"+topicId+"'",
+        function (results) {
+            callback(results[0]);
+        }
+    )
+},
+
 exports.getTopicStatistics = function (topicId, callback) {
     db.query(
         "SELECT SUM(endorse) AS endorse, SUM(follow) AS follow, SUM(report) AS report"+

@@ -353,6 +353,7 @@ var TopicProcess = (function () {
                 callback (session.isJSON ? {"error":"no-input"} : session.getErrorHandler("no-input"));
             } else {
                 var createDate = (new Date()).toISOString(),
+                    topicId = input.topic_id,
                     parentId = input.parent_id ? input.parent_id : 0,
                     commentId = input.comment_id,
                     content = input["comment_on-"+parentId];
@@ -370,7 +371,7 @@ var TopicProcess = (function () {
                                 var comment = new Comment({
                                     "created": createDate,
                                     "user_id":userId,
-                                    "topic_id":input.topic_id,
+                                    "topic_id":topicId,
                                     "parent_id":parentId,
                                     "content":content
                                 });
@@ -379,6 +380,8 @@ var TopicProcess = (function () {
                                 }
                                 io.db.save(comment,function (result,error){
                                     if (result) {
+                                        io.db.updateTopicCommentCount(topicId,function(){});
+
                                         if (session.isJSON) {
                                             callback(result.toJSON());
                                         } else {
