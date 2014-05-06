@@ -29,6 +29,7 @@ var TopicProcess = (function () {
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,         "handler":TopicProcess.report.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,            "handler":TopicProcess.getComments.bind(TopicProcess)},
                 {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(\d+\/)?comment\/?$/,    "handler":TopicProcess.addComment.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":TopicProcess.getComment.bind(TopicProcess)},
                 {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":TopicProcess.removeComment.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":TopicProcess.removeComment.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)}
@@ -326,9 +327,27 @@ var TopicProcess = (function () {
             });
         },
 
+        getComment: function getComment (session,callback) {
+            var commentId = parseInt(session.url.match(/(\d+)/g)[1]);
+            if (typeof commentId == "undefined") {
+                callback(session.getErrorHandler("comment-not-found"));
+            }
+            if (session.isJSON) {
+                io.db.load(Comment, commentId, function commentLoaded(comment) {
+                    console.error(JSON.stringify(comment));
+                });
+            } else {
+                TopicProcess.getTopic(session, function topicLoaded(pageInfo) {
+                   pageInfo.app.page.commentId = commentId;
+                   pageInfo.app.page.referer = session.req.headers["referer"];
+                   callback(pageInfo);
+                });
+            }
+        },
+
         addComment: function addComment (session,callback) {
-            var source = session.req.headers["referer"];
-                input = session ? session.input : false;
+            var input = session ? session.input : false,
+                source = input.referer ? input.referer : session.req.headers["referer"];
 
             if (!session.input || !(session.input.parent_id|| session.input.comment_id)) {
                 callback (session.isJSON ? {"error":"no-input"} : session.getErrorHandler("no-input"));
@@ -343,6 +362,9 @@ var TopicProcess = (function () {
                     callback(session.getErrorHandler("comment-too-long","comment",content));
                 } else {
                     session.useUserId(function(userId) {
+                        if (!userId) {
+                            callback (session.getErrorHandler("user-not-found"));
+                        }
                         io.db.getAccount(userId,function (user) {
                             if (user.can("comment")) {
                                 var comment = new Comment({
@@ -364,12 +386,11 @@ var TopicProcess = (function () {
                                             callback({});
                                         }
                                     } else {
-                                        console.error("error saving comment" + JSON.stringify(error));
-                                        callback({"error":error});
+                                        callback (session.getErrorHandler(error));
                                     }
                                 });
                             } else {
-                                callback (session.isJSON ? {"error":"no-permission"} : session.getErrorHandler("no-permission"));
+                                callback (session.getErrorHandler("no-permission"));
                             }
                         });
                     });

@@ -56,6 +56,8 @@
         <error type="no-permission">לא ניתן להסיר פריט</error>
         <result type="comment-too-long">התגובה ארוכה מדי</result>
         <result type="comment-too-short">התגובה קצרה מדי</result>
+        <error type="topic-not-found">הודעה לא נמצאה</error>
+        <error type="comment-not-found">תגובה לא נמצאה</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -201,6 +203,7 @@
     <xsl:param name="no_other_opinions" select="'אין דעות נוספות כרגע'"/>
     <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
     <xsl:param name="add_comment" select="'הוספה'"/>
+    <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
     <xsl:param name="update_comment" select="'עדכון'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
 

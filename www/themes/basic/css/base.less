@@ -340,7 +340,7 @@ h2 {
 
       .actions {
         font-size:0.9rem;
-        height: 1.5rem;
+        min-height: 1.5rem;
 
         time {
           color: @timeColor;
@@ -353,10 +353,15 @@ h2 {
         }
       }
     }
-    .comment:last-child { border-bottom: none; }
+    .comment-list {
+        clear: both;
+        padding-top: 0.5rem;
+    }
+    /*.comment:last-child { border-bottom: none; }*/
     .comment-box {
       background-color: rgba(150, 150, 150, 0.1);
       border: 0.1rem solid @elementBorder;
+      clear: both;
       padding: 0.5rem;
 
       .commenter {

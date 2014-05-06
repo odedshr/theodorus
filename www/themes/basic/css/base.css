@@ -519,6 +519,8 @@ h2 {
 }
 .topic-view .comments {
   padding: 1rem;
+  /*.comment:last-child { border-bottom: none; }*/
+
 }
 .topic-view .comments .comment {
   background-color: rgba(200, 200, 200, 0.1);
@@ -539,7 +541,7 @@ h2 {
 }
 .topic-view .comments .comment .actions {
   font-size: 0.9rem;
-  height: 1.5rem;
+  min-height: 1.5rem;
 }
 .topic-view .comments .comment .actions time {
   color: #666666;
@@ -554,12 +556,14 @@ h2 {
 .topic-view .comments .comment .actions .statistics-item .count {
   margin-left: 0.2rem;
 }
-.topic-view .comments .comment:last-child {
-  border-bottom: none;
+.topic-view .comments .comment-list {
+  clear: both;
+  padding-top: 0.5rem;
 }
 .topic-view .comments .comment-box {
   background-color: rgba(150, 150, 150, 0.1);
   border: 0.1rem solid #aaaaaa;
+  clear: both;
   padding: 0.5rem;
 }
 .topic-view .comments .comment-box .commenter {
