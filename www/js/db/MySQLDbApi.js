@@ -242,7 +242,6 @@ exports.getComments = function (topicId, userId, callback) {
                     comments.push (lastOpinion);
                 }
             }
-            console.error(query);
             callback (comments);
         }
     )
