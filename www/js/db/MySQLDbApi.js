@@ -90,7 +90,8 @@ exports.getTopics = function (parameters, callback) {
         "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-datediff(now(),t.modified)) +"+
         "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
         "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, tags,"+
-        "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.report AS report, t.status AS status, report_status,"+
+        "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.comment AS comment, t.opinion AS opinion,"+
+        "\n\t"+"t.report AS report, t.status AS status, report_status,"+
         "\n\t"+"ut.follow AS user_follow, ut.endorse AS user_endorse, ut.report AS user_report"+
         "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
         "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
@@ -113,6 +114,8 @@ exports.getTopics = function (parameters, callback) {
                         "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                         "endorse":topicData.endorse,
                         "follow":topicData.follow,
+                        "opinion":topicData.opinion,
+                        "comment":topicData.comment,
                         "report":topicData.report,
                         "user_seen":topicData.user_seen,
                         "user_endorse":topicData.user_endorse,

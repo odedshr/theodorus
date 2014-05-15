@@ -475,6 +475,15 @@ h2 {
 .feed_wrapper .topic .actions .statistics-item .item-label:before {
   content: " ";
 }
+.feed_wrapper .topic .actions .stat-opinion {
+  cursor: help;
+}
+.feed_wrapper .topic .actions .stat-opinion.statistics-item-0 {
+  display: none;
+}
+.feed_wrapper .topic .actions .stat-endorse.statistics-item-0 {
+  display: none;
+}
 /* ================================================================================================================== */
 .topic-view {
   float: right;

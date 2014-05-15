@@ -179,8 +179,10 @@
     <xsl:param name="btn_follow" select="'מעקב'"/>
     <xsl:param name="stat_report" select="'דיווחים'"/>
     <xsl:param name="btn_report" select="'זה לא ראוי!'"/>
-    <xsl:param name="stat_comments" select="'תגובות'"/>
-    <xsl:param name="btn_comments" select="'הוספת תגובה'"/>
+    <xsl:param name="stat_comment" select="'תגובות'"/>
+    <xsl:param name="btn_comment" select="'הוספת תגובה'"/>
+    <xsl:param name="stat_opinion" select="'דעות'"/>
+    <xsl:param name="btn_opinion" select="'הוספת דעה'"/>
 
     <xsl:param name="showing_x_items" select="'מציג # פריטים'" />
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
