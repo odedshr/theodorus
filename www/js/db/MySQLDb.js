@@ -171,6 +171,7 @@ exports.query = function (query,callback) {
                 });
                 connection.end();
             } catch (error) {
+                console.error("error occurred for this query: "+ query);
                 dumpError(error);
                 callback (false);
             }

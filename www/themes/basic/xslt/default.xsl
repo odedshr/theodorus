@@ -56,6 +56,8 @@
         <error type="no-permission">לא ניתן להסיר פריט</error>
         <result type="comment-too-long">התגובה ארוכה מדי</result>
         <result type="comment-too-short">התגובה קצרה מדי</result>
+        <error type="topic-not-found">הודעה לא נמצאה</error>
+        <error type="comment-not-found">תגובה לא נמצאה</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -177,8 +179,10 @@
     <xsl:param name="btn_follow" select="'מעקב'"/>
     <xsl:param name="stat_report" select="'דיווחים'"/>
     <xsl:param name="btn_report" select="'זה לא ראוי!'"/>
-    <xsl:param name="stat_comments" select="'תגובות'"/>
-    <xsl:param name="btn_comments" select="'הוספת תגובה'"/>
+    <xsl:param name="stat_comment" select="'תגובות'"/>
+    <xsl:param name="btn_comment" select="'הוספת תגובה'"/>
+    <xsl:param name="stat_opinion" select="'דעות'"/>
+    <xsl:param name="btn_opinion" select="'הוספת דעה'"/>
 
     <xsl:param name="showing_x_items" select="'מציג # פריטים'" />
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
@@ -202,6 +206,8 @@
     <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
     <xsl:param name="add_comment" select="'הוספה'"/>
     <xsl:param name="update_comment" select="'עדכון'"/>
+    <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
+    <xsl:param name="btn_update_comment" select="'עדכון תגובה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
 
     <xsl:template match="/">

@@ -140,10 +140,19 @@
             </xslt:call-template>
 
             <span class="hidden"> · </span>
+
             <div class="actions">
+                <a class="statistics-item stat-opinion statistics-item-{opinion}" title="{comment} {$stat_comment}">
+                    <span class="count"><xsl:value-of select="opinion" /></span>
+                    <span class="hidden"> · </span>
+                    <span class="item-label"><xsl:value-of select="$stat_opinion" /></span>
+                </a>
+
+                <span class="hidden"> · </span>
+
                 <xsl:choose>
                     <xsl:when test="initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
-                        <a class="statistics-item stat-endorse">
+                        <a class="statistics-item stat-endorse statistics-item-{endorse}">
                             <span class="count"><xsl:value-of select="endorse" /></span>
                             <span class="hidden"> · </span>
                             <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
@@ -162,7 +171,7 @@
                         </a>
                     </xsl:when>
                     <xsl:otherwise>
-                        <a class="statistics-item stat-endorse">
+                        <a class="statistics-item stat-endorse statistics-item-{endorse}">
                             <span class="count"><xsl:value-of select="endorse" /></span>
                             <span class="hidden"> · </span>
                             <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
