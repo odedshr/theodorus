@@ -355,7 +355,6 @@ var TopicProcess = (function () {
                 var createDate = (new Date()).toISOString(),
                     topicId = input.topic_id,
                     parentId = input.parent_id ? input.parent_id : 0,
-                    commentId = input.comment_id,
                     content = input["comment_on-"+parentId];
                 if (content.length< io.config.minimum_comment_length) {
                     callback(session.getErrorHandler("comment-too-short","comment",content));
@@ -375,9 +374,6 @@ var TopicProcess = (function () {
                                     "parent_id":parentId,
                                     "content":content
                                 });
-                                if (commentId) {
-                                    comment.set("comment_id",commentId);
-                                }
                                 io.db.save(comment,function (result,error){
                                     if (result) {
                                         io.db.updateTopicCommentCount(topicId,function(){});

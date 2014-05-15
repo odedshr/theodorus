@@ -203,8 +203,9 @@
     <xsl:param name="no_other_opinions" select="'אין דעות נוספות כרגע'"/>
     <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
     <xsl:param name="add_comment" select="'הוספה'"/>
-    <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
     <xsl:param name="update_comment" select="'עדכון'"/>
+    <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
+    <xsl:param name="btn_update_comment" select="'עדכון תגובה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
 
     <xsl:template match="/">

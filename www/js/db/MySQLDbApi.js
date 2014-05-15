@@ -144,11 +144,13 @@ exports.setUserTopic = function (userId, topicId,updateKey,newValue, callback) {
 };
 
 exports.updateTopicCommentCount = function (topicId, callback) {
+    var commentTable = prefix+ (new Comment()).collection,
+        query = "UPDATE "+prefix+(new Topic()).collection +
+            "\n\t"+ "SET opinion = (SELECT COUNT(DISTINCT user_id) FROM "+commentTable + " where topic_id='"+topicId+"' AND parent_id=0),"+
+            "\n\t\t"+   "comment= (select count(distinct user_id) FROM "+commentTable + " where topic_id='"+topicId+"' AND NOT(parent_id=0))"+
+            "\n\t"+"WHERE topic_id='"+topicId+"'";
     db.query(
-        "UPDATE "+prefix+User.Topic.collection +
-            "\n\t"+ "SET comment = (SELECT COUNT(DISTINCT user_id) from comments where topic_id='"+topicId+"' AND parent_id=0),"+
-            "\n\t\t"+"opinion = (select count(distinct user_id) from comments where topic_id='"+topicId+"' AND NOT(parent_id=0))"+
-            "\n\t"+"WHERE topic_id='"+topicId+"'",
+        query,
         function (results) {
             callback(results[0]);
         }
@@ -171,9 +173,6 @@ exports.getComments = function (topicId, userId, callback) {
         console.error("getComments with no topicId")
         topicId = 0;
     }
-    /* opinions with date decreasing
-     comments with date increasing
-     * */
     var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
         "\n\t"+"c.comment_id AS comment_id, c.parent_id AS parent_id, created, content,"+
         "\n\t"+"c.follow AS follow, c.endorse AS endorse, c.report AS report, report_status,"+
@@ -218,7 +217,7 @@ exports.getComments = function (topicId, userId, callback) {
                         if (!opinionWriters[userId]) {
                             opinionWriters[userId] = []
                         }
-                        opinionWriters[userId].push (commentId);
+                        opinionWriters[userId].push ({"comment":comment});
                     } else { // it's a comments, add it to the parent
                         var parent = dictionary[parentId];
                         if (typeof parent.get("comments") == "undefined") {
@@ -227,11 +226,13 @@ exports.getComments = function (topicId, userId, callback) {
                         parent.get("comments").push({"comment":comment});
                     }
                 });
-
-                // all comments are in place but the opinions are not
-                // the latest opinion per user will contain the rest of his opinions as comments
+                /* all comments are in place but the opinions are not
+                 * the latest opinion per user will contain the rest of his opinions as comments
+                 * opinions with date decreasing
+                 * comments with date increasing
+                 * */
                 for (var userId in opinionWriters) {
-                    var lastOpinion = dictionary[opinionWriters[userId].pop()],
+                    var lastOpinion = opinionWriters[userId].pop().comment,
                         newestOpinionComments = lastOpinion.get("comments");
                     if (typeof newestOpinionComments == "undefined") {
                         lastOpinion.set("comments",opinionWriters[userId].reverse());
@@ -241,6 +242,7 @@ exports.getComments = function (topicId, userId, callback) {
                     comments.push (lastOpinion);
                 }
             }
+            console.error(query);
             callback (comments);
         }
     )

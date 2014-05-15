@@ -38,6 +38,3 @@ Settings to configure
   6. Add cartridge "MySQL 5.5"
   7. Enable Jenkins
   8. You may want to add phpMyAdmin 4.0 if you used non-scalable process
-
-
-
