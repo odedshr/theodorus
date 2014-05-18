@@ -249,15 +249,31 @@ header h1 sub {
 }
 header .account_menu {
   margin: 1rem 0.5rem 1rem 0;
+  text-align: left;
+}
+header .account_menu .user_name {
+  margin-right: 0.5rem;
+}
+header .account_menu .btn_signup {
+  float: right;
 }
 header .account_menu .user_name,
 header .account_menu .btn_signup {
-  float: right;
   width: 6.5rem;
   text-align: left;
 }
+header .account_menu .button-signout {
+  margin-top: 0.45rem;
+}
+header .account_menu .button-signout,
+header .account_menu .btn_signin {
+  float: left;
+  width: 7rem;
+  text-align: right;
+  padding-right: 0.2rem;
+}
 header .nav_buttons {
-  margin-right: 7.4rem;
+  margin-right: 8rem;
 }
 header .nav_buttons li {
   margin-top: 1rem;
@@ -407,7 +423,7 @@ h2 {
   background: #ffffff;
   border-bottom: 0.1rem solid #aaaaaa;
   margin: 0.5rem 0.5rem 0 .5rem;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 .feed_wrapper .topic .title {
   color: #b3d4fc;
@@ -435,41 +451,36 @@ h2 {
   color: #105cb6;
 }
 .feed_wrapper .topic .initiator {
-  display: block;
-  float: right;
+  display: inline;
   color: #33B;
   font-size: 0.9rem;
   margin-left: 1rem;
 }
+.feed_wrapper .topic .initiator .profile-image-mini {
+  margin-left: 0.5rem;
+}
 .feed_wrapper .topic .created {
-  display: block;
-  float: right;
+  display: inline;
   margin-left: 1rem;
 }
 .feed_wrapper .topic .actions {
-  display: block;
-  float: right;
+  display: inline;
 }
 .feed_wrapper .topic .actions .button-action {
-  display: block;
-  float: right;
+  display: inline;
   margin-left: 1rem;
-}
-.feed_wrapper .topic .actions .button-action .count {
-  float: left;
 }
 .feed_wrapper .topic .actions .button-action .count:before {
   content: "(";
 }
 .feed_wrapper .topic .actions .button-action .count:after {
-  content: ")";
+  content: ") ";
 }
 .feed_wrapper .topic .actions .button-action .item-label {
   margin-left: 0.1rem;
 }
 .feed_wrapper .topic .actions .statistics-item {
-  display: block;
-  float: right;
+  display: inline;
   margin-left: 1rem;
 }
 .feed_wrapper .topic .actions .statistics-item .item-label:before {
@@ -531,7 +542,7 @@ h2 {
   /*.comment:last-child { border-bottom: none; }*/
 
 }
-.topic-view .comments .opinion:not(:first-child) {
+.topic-view .comments .opinion .opinion:not(:first-child) {
   background: none;
   border: none;
   padding: 0;
@@ -551,6 +562,9 @@ h2 {
   display: inline;
   margin-left: 0.1rem;
 }
+.topic-view .comments .comment .commenter .profile-image-mini {
+  margin-left: 0.5rem;
+}
 .topic-view .comments .comment .commenter .text-wrapper-from:before {
   content: "מ";
   margin-right: 0.5rem;
@@ -567,6 +581,7 @@ h2 {
 .topic-view .comments .comment .actions:not(:empty) {
   font-size: 0.9rem;
   min-height: 1.5rem;
+  margin-top: 0.5rem;
 }
 .topic-view .comments .comment .actions:not(:empty) time {
   float: right;
@@ -611,6 +626,39 @@ h2 {
 }
 .topic-view .comments .comment-box .comment-submit {
   width: 7.5rem;
+}
+/* ================================================================================================================== */
+.user-profile {
+  float: right;
+  margin-right: 15rem;
+  padding: 1rem;
+}
+.profile-image {
+  border: 0.1rem solid #aaaaaa;
+  height: 100px;
+  width: 100px;
+}
+.profile-image-mini {
+  border: 0.1rem solid #aaaaaa;
+  height: 24px;
+  vertical-align: middle;
+  width: 24px;
+}
+.form_upload-profile-image button {
+  display: block;
+}
+.form_upload-profile-image .btn_remove_image {
+  font-size: 0.8rem;
+  line-height: 2rem;
+}
+.form_approve-profile-image .profile-image {
+  display: block;
+  margin: 0 auto;
+}
+.form_approve-profile-image .form-buttons {
+  margin-top: 1rem;
+  text-align: center;
+  direction: ltr;
 }
 /* ================================================================================================================== */
 .page_message {

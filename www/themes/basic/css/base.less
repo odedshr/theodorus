@@ -89,14 +89,24 @@ header {
 
   .account_menu {
     margin: 1rem 0.5rem 1rem 0;
+    text-align: left;
+
+    .user_name { margin-right: 0.5rem; }
+    .btn_signup { float: right; }
     .user_name, .btn_signup {
-      float: right;
       width:6.5rem;
       text-align:left;
     }
+    .button-signout { margin-top: 0.45rem; }
+    .button-signout, .btn_signin {
+      float: left;
+      width: 7rem;
+      text-align: right;
+      padding-right: 0.2rem;
+    }
   }
   .nav_buttons {
-    margin-right:7.4rem;
+    margin-right:8rem;
     li { margin-top:1rem; }
     .suggest_topic {}
     .nav_blog { list-style-image:url('/ui/img/icon_wordpress.png'); }
@@ -222,7 +232,7 @@ h2 {
     background: @elementBackground;
     border-bottom: 0.1rem solid @elementBorder;
     margin: 0.5rem 0.5rem 0 .5rem;
-    padding: 1rem;
+    padding: 0.5rem;
 
     .title {
       color: #b3d4fc;
@@ -246,38 +256,33 @@ h2 {
 
 
     .initiator {
-      display: block;
-      float:right;
+      display: inline;
       color: #33B;
       font-size:0.9rem;
       margin-left:1rem;
+      .profile-image-mini { margin-left: 0.5rem; }
     }
 
     .created {
-      display: block;
-      float:right;
+      display: inline;
       margin-left:1rem;
     }
     .actions {
-      display: block;
-      float:right;
+      display: inline;
 
       .button-action {
-        display: block;
-        float:right;
+        display: inline;
         margin-left:1rem;
 
-        .count {
-          float:left;
-        }
+        .count {}
+
         .count:before { content: "("; }
-        .count:after { content: ")" ;}
+        .count:after { content: ") " ;}
         .item-label { margin-left: 0.1rem; }
       }
 
       .statistics-item {
-          display: block;
-          float:right;
+          display: inline;
           margin-left:1rem;
 
         .item-label:before { content: " ";}
@@ -327,7 +332,7 @@ h2 {
   .comments {
     padding: 1rem;
 
-    .opinion:not(:first-child) {
+    .opinion .opinion:not(:first-child) {
       background: none;
       border:  none;
       padding: 0;
@@ -347,6 +352,8 @@ h2 {
           display: inline;
           margin-left: 0.1rem;
 
+          .profile-image-mini { margin-left: 0.5rem; }
+
           .text-wrapper-from:before {
             content: "מ";
             margin-right:0.5rem;
@@ -359,6 +366,7 @@ h2 {
       .actions:not(:empty) {
         font-size:0.9rem;
         min-height: 1.5rem;
+        margin-top: 0.5rem;
 
         time {
           float: right;
@@ -407,6 +415,44 @@ h2 {
           width: 7.5rem;
       }
     }
+  }
+}
+/* ================================================================================================================== */
+.user-profile {
+  float:right;
+  margin-right:15rem;
+  padding: 1rem;
+}
+
+.profile-image {
+  border:0.1rem solid @elementBorder;
+  height: 100px;
+  width: 100px;
+}
+
+.profile-image-mini {
+  border:0.1rem solid @elementBorder;
+  height: 24px;
+  vertical-align: middle;
+  width: 24px;
+}
+
+.form_upload-profile-image {
+  button { display: block; }
+  .btn_remove_image {
+    font-size: 0.8rem;
+    line-height: 2rem;}
+}
+
+.form_approve-profile-image {
+  .profile-image {
+    display: block;
+    margin: 0 auto;
+  }
+  .form-buttons {
+    margin-top: 1rem;
+    text-align: center;
+    direction: ltr;
   }
 }
 /* ================================================================================================================== */

@@ -49,7 +49,7 @@
                     <div id="loading_system"><xsl:value-of select="$system_loading" /></div>
                 </xsl:when>
                 <xsl:when test="topic">
-                    <a href="{//referer}" class="button-back"><xsl:value-of select="$back" /></a>
+                    <a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>
                     <h2><xsl:value-of select="topic/title" /></h2>
                     <div id="content"><xsl:value-of select="topic/content" /></div>
                     <!--<xsl:choose>
@@ -178,6 +178,12 @@
         <xsl:param name="comment"/>
         <xsl:param name="is_root"/>
         <xsl:param name="is_mine" select="$comment/commenter/user_id = //user/user_id"/>
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="$comment/commenter/picture">/profiles/<xsl:value-of select="$comment/commenter/picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
 
         <li class="comment">
             <xsl:if  test="$comment/parent_id = 0">
@@ -185,6 +191,7 @@
             </xsl:if>
             <a name="comment:{$comment/comment_id}" id="comment:{$comment/comment_id}" />
             <a class="commenter">
+                <img src="{$profileImage}" class="profile-image-mini" />
                 <xsl:choose>
                     <xsl:when test="$is_mine = 'true' and $is_root = 'true'">
                         <xsl:value-of select="$your_opinion" />
