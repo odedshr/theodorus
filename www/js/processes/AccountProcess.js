@@ -1,6 +1,7 @@
 var io = null,
     User = (typeof User !== "undefined") ? User : require("../models/User").model(),
-    Credentials = (typeof Credentials !== "undefined") ? Credentials : require("../models/Credentials").model();
+    Credentials = (typeof Credentials !== "undefined") ? Credentials : require("../models/Credentials").model(),
+    fileSystem = (typeof fileSystem !== "undefined") ? fileSystem : require("fs");
 
 var AccountProcess = (function () {
     return {
@@ -14,10 +15,27 @@ var AccountProcess = (function () {
             methods.push({"method":"POST",  "url":"/user/exists",   "handler":AccountProcess.isNameExists.bind(AccountProcess)});
             methods.push({"method":"GET",   "url":"/signup",        "handler":AccountProcess.getSignUpPage.bind(AccountProcess)});
             methods.push({"method":"POST",  "url":"/signup",        "handler":AccountProcess.createCredentials.bind(AccountProcess)});
-            methods.push({"method":"GET",   "url":"/signout",       "handler":AccountProcess.getSignOutPage.bind(AccountProcess)});
+            methods.push({"method":"GET",   "url":"/signout",       "handler":AccountProcess.signOut.bind(AccountProcess)});
 
             methods.push({"method":"GET",   "url":"/me",            "handler":AccountProcess.getAccount.bind(AccountProcess)});
             methods.push({"method":"DELETE","url":"/me",            "handler":AccountProcess.signOut.bind(AccountProcess)});
+
+            methods.push({"method":"POST",   "url":"/profileImage",            "handler":AccountProcess.uploadProfileImage.bind(AccountProcess)});
+            methods.push({"method":"POST",   "url":"/profileImage/approve",    "handler":AccountProcess.approveProfileImage.bind(AccountProcess)});
+            methods.push({"method":"GET",   "url":"/profileImage/remove",    "handler":AccountProcess.removeProfileImage.bind(AccountProcess)});
+            methods.push({"method":"DELETE",   "url":"/profileImage",    "handler":AccountProcess.removeProfileImage.bind(AccountProcess)});
+
+            var profileImageFolder = io.config.profile_images_folders;
+            fileSystem.exists(profileImageFolder,function (exists) {
+                if (!exists) {
+                    fileSystem.mkdir(profileImageFolder,function(e) {
+                        if (e) {
+                            console.error (e);
+                        }
+                    });
+                }
+            });
+
             return methods;
         },
 
@@ -25,10 +43,141 @@ var AccountProcess = (function () {
             session.useUserId(function(userId){
                 if (userId){
                     io.db.getAccount(userId,function (user) {
-                        callback((user ? user : new User()).toJSON());
+                        callback(
+                            (session.isJSON || session.url != "/me") ?
+                            ((user ? user : new User()).toJSON()) :
+                            {
+                                "app":{
+                                    "mode": io.getTheodorusMode(),
+                                    "page": {
+                                        "@type":"settings",
+                                        "user":user,
+                                        "profile":user
+                                    }
+                                }
+                            }
+                        );
                     });
                 }  else {
                     callback((new User.Account()).toJSON());
+                }
+            });
+        },
+
+        uploadProfileImage: function uploadProfileImage (session,callback) {
+            var imageMagick = require('imagemagick');
+
+            session.useUserId(function(userId){
+                if (userId){
+                    io.db.getAccount(userId,function (user) {
+                        var targetFolder = io.config.profile_images_folders,
+                            originalFileName = session.input.files.upload.path;
+
+                        if (originalFileName) {
+                            imageMagick.identify(originalFileName, function(error, features){
+                                if (features) {
+                                    // session.input.files.upload.name = the original file name
+                                    // name should be commmon for user so he might have only one
+                                    var targetFileName = io.crypto.createHash('md5').update("user_"+userId).digest('hex')+"."+features.format.toLowerCase();
+
+                                    imageMagick.crop({
+                                        srcPath: originalFileName,
+                                        width: Math.min(features.width, features.height),
+                                        height: Math.min(features.width, features.height),
+                                        quality: 1,
+                                        gravity: "Center"
+                                    }, function(err, stdout, stderr){
+                                        imageMagick.resize({
+                                            srcData: stdout,
+                                            dstPath: targetFolder+"/temp-"+targetFileName,
+                                            width:   100
+                                        }, function(err, stdout, stderr){
+                                            if (err) {
+                                                callback(session.getErrorHandler("image-process-failed"));
+                                            } else {
+                                                callback( session.isJSON ? {"image":targetFileName} : {
+                                                    "app":{
+                                                        "mode": io.getTheodorusMode(),
+                                                        "page":{
+                                                            "@type": "approve-profile-image",
+                                                            "image": targetFileName,
+                                                            "user": user,
+                                                            "referer": session.req.headers['referer']
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    });
+                                } else {
+                                    fileSystem.unlink(originalFileName, function () {
+                                        callback(session.getErrorHandler("image-process-failed"));
+                                    });
+                                }
+                            });
+                        } else { callback(session.getErrorHandler("image-process-failed")); }
+                    });
+                }  else {
+                    callback(session.getErrorHandler("no-permission"));
+                }
+            });
+        },
+
+        approveProfileImage: function uploadProfileImage (session,callback) {
+            if (session.input.approve) {
+                session.useUserId(function(userId){
+                        var profileImagesFolder = io.config.profile_images_folders,
+                            imageName = session.input.image;
+                        if (userId){
+                            fileSystem.rename(profileImagesFolder+"/temp-"+imageName, profileImagesFolder+"/"+imageName, function() {});
+                            io.db.getAccount(userId,function (user) {
+                                if (user) {
+                                    user.set("picture", imageName);
+                                    io.db.save(user, function (user) {
+                                        if (user) {
+                                            session.res.writeHead(301,{location: session.input.referer});
+                                            callback({});
+                                        } else {
+                                            console.error("io.db.save(User)=>user-not-saved");
+                                        }
+                                    });
+                                } else {
+                                    callback(session.getErrorHandler("no-permission"));
+                                }
+                            });
+                        } else {
+                            callback(session.getErrorHandler("no-permission"));
+                        }
+                });
+            } else {
+                fileSystem.unlink(io.config.profile_images_folders+"/temp-"+session.input.image, function() {});
+                session.res.writeHead(301,{location: session.input.referer});
+                callback({});
+            }
+        },
+
+        removeProfileImage: function removeProfileImage (session,callback) {
+            var onCompletion = function () {
+                if (!session.isJSON) {
+                    session.res.writeHead(301,{location: session.req.headers['referer']});
+                }
+                callback({});
+            };
+            session.userUserAccount(function(user){
+                if (user) {
+                    var picture = user.get("picture");
+                    if (picture) {
+                        io.db.nullify(user,"picture",function(){
+                            fileSystem.unlink(io.config.profile_images_folders+"/"+user.get("picture"), function() {});
+                            onCompletion();
+                        });
+                    } else {
+                        // user don't have picture anyhow
+
+                        onCompletion();
+                    }
+                } else {
+                    callback(session.getErrorHandler("no-permission"));
                 }
             });
         },
@@ -219,16 +368,16 @@ var AccountProcess = (function () {
             }
         },
 
-        getSignOutPage: function  (session,callback) {
-            console.log("sign out");
-            session.cookie("", false);
-            session.res.writeHead(301,{location: '/'});
-            callback({});
-        },
-
         signOut: function  (session,callback) {
             session.cookie("", false);
-            callback({}); // no errors
+            callback( session.isJSON ? {} : {
+                "app":{
+                    "mode": io.getTheodorusMode(),
+                    "page": {
+                        "@type":"signout"
+                    }
+                }
+            });
         }
     };
 }());

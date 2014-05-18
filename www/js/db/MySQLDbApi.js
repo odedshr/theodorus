@@ -105,7 +105,7 @@ exports.getTopics = function (parameters, callback) {
             var topics = [];
             if (results) {
                 results.forEach(function (topicData) {
-                    topics.push (new Topic ({
+                    var topic = new Topic ({
                         "topic_id":topicData.topic_id,
                         "slug":topicData.slug,
                         "created":utils.getDetailedDate(topicData.created),
@@ -126,10 +126,13 @@ exports.getTopics = function (parameters, callback) {
                         "initiator": new User({
                             "user_id":topicData.user_id,
                             "display_name":topicData.display_name,
-                            "slug":topicData.user_slug,
-                            "picture":topicData.picture
+                            "slug":topicData.user_slug
                         })
-                    }));
+                    })
+                    if (topicData.picture) { // if not exists, it shouldn't be an empty value
+                        topic.get("initiator").set("picture",topicData.picture);
+                    }
+                    topics.push (topic);
                 });
             }
             callback (topics);
@@ -211,10 +214,12 @@ exports.getComments = function (topicId, userId, callback) {
                             "commenter": new User({
                                 "user_id": userId,
                                 "display_name":commentData.display_name,
-                                "slug":commentData.user_slug,
-                                "picture":commentData.picture
+                                "slug":commentData.user_slug
                             })
                         });
+                    if (commentData.picture) { // if not exists, it shouldn't be an empty value
+                        comment.get("commenter").set("picture",commentData.picture);
+                    }
                     dictionary[commentId] = comment;
                     if (parentId==0) {             // parentId==0 => it's an opinion
                         if (!opinionWriters[userId]) {
@@ -258,3 +263,12 @@ exports.save = function(dataObject, callback) {
         callback(false);
     }
 };
+
+exports.nullify = function nullify (dataObject, field, callback) {
+    try {
+        db.nullifyField(dataObject,dataObject.get(dataObject.key),field,callback);
+    }catch (error) {
+        console.error("error nullyfing "+field+" " + error);
+        callback(false);
+    }
+}

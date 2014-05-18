@@ -58,6 +58,7 @@
         <result type="comment-too-short">התגובה קצרה מדי</result>
         <error type="topic-not-found">הודעה לא נמצאה</error>
         <error type="comment-not-found">תגובה לא נמצאה</error>
+        <error type="image-process-failed">עיבוד תמונה נכשל</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -146,6 +147,7 @@
     <xsl:param name="btn_signup" select="'הצטרפות'"/>
     <xsl:param name="btn_submit_signin" select="'אישור'"/>
     <xsl:param name="btn_submit_signup" select="'אישור'"/>
+    <xsl:param name="btn_ok" select="'אישור'"/>
     <xsl:param name="btn_cancel" select="'ביטול'"/>
     <xsl:param name="welcome" select="'ברוכים הבאים'"/>
     <xsl:param name="welcome_back" select="'ברוכים השבים'"/>
@@ -153,6 +155,7 @@
     <xsl:param name="nav_features" select="'פיצ׳רים'"/>
     <xsl:param name="nav_sourcecode" select="'הקוד'"/>
     <xsl:param name="nav_donations" select="'תרומות'"/>
+    <xsl:param name="back_to_main_page" select="'בחזרה לעמוד הראשי'"/>
 
     <xsl:param name="lbl_topic_title" select="'כותרת'"/>
     <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופולריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>
@@ -209,6 +212,10 @@
     <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
     <xsl:param name="btn_update_comment" select="'עדכון תגובה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
+
+    <xsl:param name="btn_update_image" select="'עדכון תמונה'"/>
+    <xsl:param name="btn_remove_image" select="'הסרת תמונה'"/>
+    <xsl:param name="approve_profile_image" select="'נא לאשר את תמונת הפרופיל'"/>
 
     <xsl:template match="/">
         <xsl:apply-templates />

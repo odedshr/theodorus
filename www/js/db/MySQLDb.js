@@ -179,6 +179,13 @@ exports.query = function (query,callback) {
     });
 };
 
+exports.nullifyField = function (sampleModel,key,field, callback) {
+    var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'");
+    exports.query ("UPDATE "+prefix+sampleModel.collection + " SET "+field+" = NULL "+where, function(rows) {
+        callback({});
+    });
+};
+
 function dumpError(err) {
     if (typeof err === 'object') {
         if (err.message) {
