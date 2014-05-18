@@ -125,6 +125,13 @@
     </xsl:template>
 
     <xsl:template match="topic">
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="initiator/picture">/profiles/<xsl:value-of select="initiator/picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
         <li class="topic">
             <a class="title" href="/topics/{topic_id}">
                 <!-- xsl:if test="slug">
@@ -132,7 +139,7 @@
                 </xsl:if-->
                 <h2><xsl:value-of select="title" /></h2>
             </a>
-            <a class="initiator"><xsl:value-of select="initiator/display_name" /></a>
+            <a class="initiator"><img src="{$profileImage}" class="profile-image-mini" /><xsl:value-of select="initiator/display_name" /></a>
             <span class="hidden"> · </span>
 
             <xslt:call-template name="datetime-render">

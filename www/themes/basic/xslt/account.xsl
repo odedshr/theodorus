@@ -16,12 +16,22 @@
     <xsl:output method="html" encoding="UTF-8"/>
 
     <xsl:template match="user">
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="picture">/profiles/<xsl:value-of select="picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
         <xsl:choose>
             <xsl:when test="user_id">
-                <div id="user_name" class="user_name"><xsl:value-of select="display_name" /></div><span class="separator"> | </span><a id="btn_signout" class="button-signout" href="/signout" title="Sign out"><xsl:value-of select="$btn_signout" /></a>
+                <img src="{$profileImage}" class="profile-image-mini" />
+                <a id="user_name" class="user_name" href="/me"><xsl:value-of select="display_name" /></a>
+                <span class="separator"> | </span>
+                <a id="btn_signout" class="button-signout" href="/signout" title="Sign out"><xsl:value-of select="$btn_signout" /></a>
             </xsl:when>
             <xsl:otherwise>
-                <a id="btn_signup" class="button btn_signup" href="/signup"><xsl:value-of select="$btn_signup" /></a><span class="separator"> | </span><a id="btn_signin" class="button" href="/signin"><xsl:value-of select="$btn_signin" /></a>
+                <a id="btn_signup" class="button btn_signup" href="/signup"><xsl:value-of select="$btn_signup" /></a><span class="separator"> | </span><a id="btn_signin" class="button btn_signin" href="/signin"><xsl:value-of select="$btn_signin" /></a>
 
                 <!--a id="signin-google" class="button-signin" href="/?signin/google" target="_blank">Google</a>
                 <a id="signin-facebook" class="button-signin" href="/?signin/facebook" target="_blank">Facebook</a-->
@@ -99,10 +109,51 @@
         </form>
     </xsl:template>
 
-    <xsl:template match="signout">
-        <div>
-            <xsl:value-of select="$signout_title" />
+    <xsl:template match="page[@type='signout']">
+        <div class="page_form">
+            <h2><xsl:value-of select="$signout_title" /></h2>
+            <a href="/"><xsl:value-of select="$back_to_main_page" /></a>
         </div>
+    </xsl:template>
+
+    <xsl:template match="page[@type='settings']">
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="profile/picture">/profiles/<xsl:value-of select="profile/picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
+
+        <div class="user-profile">
+            <h2><xsl:value-of select="profile/display_name"/></h2>
+            <img src="{$profileImage}" class="profile-image" />
+
+            <xsl:if test="//user/user_id = profile/user_id">
+                <form id="form_upload-profile-image" action="/profileImage" enctype="multipart/form-data" method="post" class="form_upload-profile-image">
+                    <div class="form-buttons">
+                        <input type="file" name="upload" multiple="multiple" />
+                        <button id="button-update" type="submit"><xsl:value-of select="$btn_update_image" /></button>
+                        <xsl:if test="profile/picture">
+                            <a href="profileImage/remove" class="button btn_remove_image"><xsl:value-of select="$btn_remove_image"/></a>
+                        </xsl:if>
+                    </div>
+                </form>
+            </xsl:if>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="page[@type='approve-profile-image']">
+        <form id="form_approve_profile_image" action="/profileImage/approve" method="post" class="page_form form_approve-profile-image">
+            <h2><xsl:value-of select="$approve_profile_image" /></h2>
+            <input type="hidden" name="referer" value="{referer}" />
+            <input type="hidden" name="image" value="{image}" />
+            <img src="/profiles/temp-{image}" class="profile-image" />
+            <div class="form-buttons">
+                <button id="button-approve-profile-image" name="approve" type="submit" value="true"><xsl:value-of select="$btn_ok" /></button>
+                <button id="button-reject-profile-image" name="reject" type="submit" value="true"><xsl:value-of select="$btn_cancel" /></button>
+            </div>
+        </form>
     </xsl:template>
 
 </xsl:stylesheet>

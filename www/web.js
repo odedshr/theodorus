@@ -8,6 +8,7 @@ var WebApplication = function () {
     self.config = config;
     self.crypto = require("crypto");
     self.qs = require("querystring");
+    self.formidable = require("formidable");
     self.db = require ('./js/db/DbApi').get(config);
     self.rsa = require("./js/RSA");
     self.utils = require("./js/utilities");
@@ -46,14 +47,14 @@ var WebApplication = function () {
         };
 
         this.useInput = function (callback) {
-            var body = "";
-            var This = this;
-            this.req.on('data', function (data) { body +=data; });
-            this.req.on('end',function(){
-                var data = (0<body.length) ? self.qs.parse(body) : {};
-                //TODO: sanitize input
-                This.input = data;
-                callback(data);
+            var This  = this;
+            (new self.formidable.IncomingForm()).parse(req, function(error, fields, files) {
+                if (error) {
+                    self.log (error,"error");
+                }
+                This.input = fields ? fields : {};
+                This.input.files = files ? files : {};
+                callback(fields);
             });
         };
 
@@ -73,6 +74,18 @@ var WebApplication = function () {
                 }
             }
             callback(userId);
+        };
+
+        this.userUserAccount = function userUserAccount (callback) {
+            this.useUserId(function(userId) {
+                if (userId) {
+                    self.db.getAccount(userId, function(user) {
+                        callback(user);
+                    })
+                } else {
+                    callback(false);
+                }
+            });
         };
 
         this.get404 = function () {
@@ -239,13 +252,16 @@ var WebApplication = function () {
     self.initialize = function () {
         var app = self.app = express();
         app.use(express.cookieParser());
+        //app.use(express.bodyParser({ keepExtensions: true }));
         app.use(express.static(__dirname ));
         // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
         app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
         });
+
         self.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
             callback({"error":"no-permission-to-access-file"});
         }});
+
         self.setupVariables();
         self.initProcesses();
     };
