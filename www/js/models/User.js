@@ -121,6 +121,16 @@ User.Comment = {
     }
 };
 
+User.Tag = {
+    collection: "user_topic_tags",
+    key:["user_id","topic_id"],
+    schema: {
+        "user_id":"number",
+        "topic_id":"number",
+        "tag":"string"
+    }
+};
+
 if (typeof exports !== "undefined") {
     exports.model = function () { return User; };
 }

@@ -2,15 +2,14 @@ var io = null,
     Topic = (typeof Topic !== "undefined") ? Topic : require("../models/Topic").model(),
     Comment = (typeof Comment !== "undefined") ? Comment : require("../models/Comment").model(),
     _ = (typeof _ !== "undefined") ? _ : require("underscore"),
-    TOPIC_PAGE_SIZE = 0
+    TOPIC_PAGE_SIZE = 0;
 
 var TopicProcess = (function () {
     return {
         init: function (ioFunctions) {
             io = ioFunctions;
-            if (io.config.topic_page_size) {
-                TOPIC_PAGE_SIZE = io.config.topic_page_size;
-            }
+            TOPIC_PAGE_SIZE  = (io.config.topic_page_size) ? io.config.topic_page_size : TOPIC_PAGE_SIZE;
+
             return [
                 {"method":"GET",  "url":"/",                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/:\d+\/?/,                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
@@ -22,6 +21,7 @@ var TopicProcess = (function () {
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,              "handler":TopicProcess.getTopic.bind(TopicProcess)},
                 {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,              "handler":TopicProcess.removeTopic.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/remove\/?$/,        "handler":TopicProcess.removeTopic.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/read\/?$/,        "handler":TopicProcess.getTopicForRead.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicForEdit.bind(TopicProcess)},
                 {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopic.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,         "handler":TopicProcess.follow.bind(TopicProcess)},
@@ -32,7 +32,7 @@ var TopicProcess = (function () {
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":TopicProcess.getComment.bind(TopicProcess)},
                 {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":TopicProcess.removeComment.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":TopicProcess.removeComment.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)}
+                {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)},
             ]
         },
 
@@ -204,60 +204,67 @@ var TopicProcess = (function () {
                 callback({"result": "slug-is-invalid"});
             }
         },
+
         getTopic: function (session,callback) {
             var referer = session.req.headers["referer"],
-                topicKey = this.getTopicIndexByUrl(session.url),
-                tasks = [   {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                ],
-                taskCount = tasks.length,
-                taskOutput = {},
-                taskCompleted = function taskCompleted() {
-                    if (!(--taskCount)) {
-                        io.db.getTopic(topicKey, function (topic){
-                            if (topic) {
-                                io.db.getTopicRead(topic.get("topic_id"), function(topicRead){
-                                    topic.set("content",topicRead.content);
-                                    if (session.isJSON) {
-                                        callback(topic.toJSON());
-                                    } else {
-                                        io.db.getComments(topic.get("topic_id"),taskOutput.me.user_id, function (comments) {
-                                            callback ({
-                                                "app":{
-                                                    "mode": io.getTheodorusMode(),
-                                                    "page": {
-                                                        "@type":"topicView",
-                                                        "topic": topic.toJSON(),
-                                                        "comments": { "comment": comments},
-                                                        "tags": { "tag": taskOutput.tags },
-                                                        "user":taskOutput.me,
-                                                        "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
-                                                        "referer": referer
-                                                    }
-                                                }
-                                            })
-                                        });
-                                    }
-                                });
-                            } else {
-                                callback(session.get404());
-                            }
-                        });
-                    }
-                };
+                topicKey = this.getTopicIndexByUrl(session.url);
+
             if (topicKey.error) {
                 callback(session.getErrorHandler(topicKey.error));
-            } else if (tasks.length>0) {
-                tasks.forEach(function (task) {
-                    (io.getHandler(task.method,task.url))(session, function (output) {
-                        taskOutput[task.outputName] = output;
-                        taskCompleted();
-                    } );
-                });
             } else {
-                taskCompleted();
-            }
+                io.db.getTopic(topicKey, function (topic){
+                    if (topic) {
+                        var topicId = topic.get("topic_id"),
+                            tasks = [  {"method":"get","url":"/topics/"+topicId+"/read","outputName":"content"},
+                                       {"method":"get","url":"/topics/"+topicId+"/tags","outputName":"topicTags"},
+                                       {"method":"get","url":"/topics/"+topicId+"/comments","outputName":"comments"},
+                                       {"method":"get","url":"/topics/"+topicId+"/tags/my","outputName":"myTags"}],
+                            taskCount = tasks.length,
+                            taskOutput = {},
+                            taskCompleted = function taskCompleted() {
+                                if (!(--taskCount)) {
+                                    topic.set("content",taskOutput.content);
+                                    topic.set("tags", { "tag": taskOutput.topicTags});
+                                    callback (session.isJSON ? topic.toJSON() : {
+                                        "app":{
+                                            "mode": io.getTheodorusMode(),
+                                            "page": {
+                                                "@type":"topicView",
+                                                "topic": topic.toJSON(),
+                                                "comments": { "comment": taskOutput.comments},
+                                                "tags": { "tag": taskOutput.tags },
+                                                "userTopicTags":taskOutput.myTags,
+                                                "user":taskOutput.me,
+                                                "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
+                                                "referer": referer
+                                            }
+                                        }
+                                    })
+                                }
+                            };
 
+                        if (!session.isJSON) {
+                            tasks.push({"method":"get","url":"/me","outputName":"me"});
+                            tasks.push({"method":"get","url":"/tags","outputName":"tags"});
+                            taskCount = tasks.length;
+                        }
+
+                        if (tasks.length>0) {
+                            var sessionClone = _.clone(session);
+                            tasks.forEach(function (task) {
+                                (io.getHandler(task.method,task.url))(_.extend(sessionClone, {url: task.url}), function (output) {
+                                    taskOutput[task.outputName] = output;
+                                    taskCompleted();
+                                } );
+                            });
+                        } else {
+                            taskCompleted();
+                        }
+                    } else {
+                        callback(session.get404());
+                    }
+                });
+            }
         },
 
         getTopicIndexByUrl: function (url) {
@@ -269,6 +276,15 @@ var TopicProcess = (function () {
                 return {"topic_id":regexMatch[1]};
             }
             return {"error":"url-parse-failed"}
+        },
+
+        getTopicForRead: function getTopicForRead (session,callback) {
+            //TODO: allow accepting TopicSlug as input
+            var topicKey = this.getTopicIndexByUrl(session.url);
+
+            io.db.getTopicRead(topicKey.topic_id, function(topicRead){
+                callback(topicRead ? topicRead : "");
+            });
         },
 
         getTopicForEdit: function (session,callback) {
@@ -399,7 +415,17 @@ var TopicProcess = (function () {
         follow: function follow     (session,callback) { this.setUserTopicAttribute(session,callback,"follow",session.url.indexOf("/follow")!=-1); },
         endorse: function endorse   (session,callback)   { this.setUserTopicAttribute(session,callback,"endorse",session.url.indexOf("/endorse")!=-1); },
         report: function report     (session,callback) { this.setUserTopicAttribute(session,callback,"report",session.url.indexOf("/report")!=-1); },
-        getComments: function getComments (session,callback) { callback({"error":"method-not-implemented"});},
+
+        getComments: function getComments (session,callback) {
+            //TODO: allow accepting TopicSlug as input
+            var topicKey = this.getTopicIndexByUrl(session.url);
+            session.useUserId(function (userId) {
+                io.db.getComments(topicKey.topic_id,userId, function (comments) {
+                    callback(comments);
+                });
+            });
+        },
+
         invite: function invite     (session,callback) { callback({"error":"method-not-implemented"});}, //  case "post/topic/##/invite/[person]": // {invite-message}
 
         removeTopic: function removeTopic (session, callback) {
@@ -475,8 +501,7 @@ var TopicProcess = (function () {
                     callback(session.get404());
                 }
             });
-
-        }
+        },
     };
 }());
 

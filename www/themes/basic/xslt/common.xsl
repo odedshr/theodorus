@@ -29,7 +29,9 @@
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
                 <meta charset='utf-8' />
-                <title><xsl:value-of select="$window_title" /></title>
+                <title><xsl:value-of select="$window_title" />
+                <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
+                </title>
 
                 <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
                 <style>
@@ -136,6 +138,19 @@
                             <!-- li><a href="donations" accesskey="t"><xsl:value-of select="$nav_donations" /></a></li -->
                         </ul>
                     </nav>
+                    <xsl:if test="page/tags">
+                        <div class="tags">
+                            <a name="tags" class="tags-title"><xsl:value-of select="$lbl_tags"/></a>
+                            <ul class="tag-list">
+                                <xsl:for-each select="page/tags/tag">
+                                    <li class="tag">
+                                        <a href="/tags/{tag}" class="tag-label"><xsl:value-of select="tag" /></a>
+                                        <span class="tag-count"><xsl:value-of select="count" /></span>
+                                    </li>
+                                </xsl:for-each>
+                            </ul>
+                        </div>
+                    </xsl:if>
                 </header>
                 <div id="main" class="page-content">
                     <xsl:apply-templates select="page"/>
