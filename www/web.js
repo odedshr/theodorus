@@ -1,7 +1,8 @@
 var config = require("../config.json"),
     _ = require("underscore"),
     express = require('express'),
-    xslt = require('node_xslt');
+    xslt = require('node_xslt'),
+    fileSystem = require("fs");
 
 var WebApplication = function () {
     var self = this;
@@ -248,12 +249,26 @@ var WebApplication = function () {
     };
 
     self.initialize = function () {
-        var app = self.app = express();
+        var app = self.app = express(),
+            profilesFolder = self.config.profile_images_folders;
         app.use(express.cookieParser());
         //app.use(express.bodyParser({ keepExtensions: true }));
         app.use(express.static(__dirname ));
         // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
         app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
+        });
+        // profile-images are stored outside the project
+        app.get(/^[\/]{1,2}profileImage\/.*$/, function(req, res){
+            //TODO: move this function to accountProcess (problem that process output must be json/text)
+            var image = req.url.replace(/[\/]{1,2}profileImage\//,profilesFolder+"/");
+            fileSystem.exists(image, function (exists) {
+                if (exists) {
+                    res.writeHead(200, {'Content-Type': 'image/'+image.substring(image.lastIndexOf(".")+1) });
+                    res.end(fileSystem.readFileSync(image), 'binary');
+                } else {
+                    res.redirect("ui/img/anonymous.png");
+                }
+            });
         });
 
         self.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
