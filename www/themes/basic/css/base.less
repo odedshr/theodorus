@@ -86,7 +86,12 @@ header {
       top: 3.5rem;
     }
   }
+}
 
+.page-sidebar {
+  float: right;
+  position: fixed;
+  margin: 12rem 0.5rem 0 0 ;
 
   .account_menu {
     margin: 1rem 0.5rem 1rem 0;
@@ -101,14 +106,20 @@ header {
     .button-signout { margin-top: 0.45rem; }
     .button-signout, .btn_signin {
       float: left;
-      width: 7rem;
+      width: 6rem;
       text-align: right;
       padding-right: 0.2rem;
     }
   }
   .nav_buttons {
-    margin-right:8rem;
-    li { margin-top:1rem; }
+    direction: ltr;
+
+    .nav_buttons-list {
+      direction: rtl;
+      text-align:right;
+      width: 6rem;
+    }
+    .nav_button { margin-top:1rem; }
     .suggest_topic {}
     .nav_blog { list-style-image:url('/ui/img/icon_wordpress.png'); }
     .nav_sourcecode { list-style-image:url('/ui/img/icon_git.png'); }
@@ -136,6 +147,12 @@ header {
       .tag-count:after { content: "]"; }
     }
   }
+}
+
+.page-content {
+  clear: left;
+  float: right;
+  margin: 1rem 15rem;
 }
 
 h2 {
@@ -211,21 +228,20 @@ h3 {
 }
 /* ================================================================================================================== */
 .form_add_topic {
-  clear: left;
-  float: right;
-  margin:1rem 16rem;
-  textarea {
+  margin-right: 1rem;
+
+  .topic_add_title {
     font-size: 1rem;
     height: 4rem;
     padding: 0.2rem 0.3rem;
     width: 32rem;
   }
-  button {
-    min-width: 5rem;
-    float: left;
-    height: 4rem;
-    font-size: 1.2rem;
+  .topic_add_submit {
     color: #666;
+    font-size: 1.2rem;
+    height: 4rem;
+    min-width: 5rem;
+    vertical-align: top;
   }
 }
 /* ================================================================================================================== */
@@ -237,8 +253,6 @@ h3 {
 
 .feed_wrapper {
   clear: both;
-  float:right;
-  margin-right:15rem;
 
   .no-topics {
     font-size: 1.5rem;
@@ -346,8 +360,6 @@ h3 {
 }
 /* ================================================================================================================== */
 .topic-view {
-  float:right;
-  margin-right: 15rem;
   width: 42rem;
 
   h2 {
@@ -556,5 +568,52 @@ h3 {
   a {
     display: block;
     margin-top: 1rem;
+  }
+}
+
+/* ################################################################################################################## */
+
+@media only screen and (max-width: 481px) {
+  header {
+    width: 100%;
+    height: auto;
+    position: relative;
+    margin: 0;
+
+    .intro_text {width: 16rem };
+  }
+  .form_add_topic {
+    .topic_add_title {
+      height: 5rem;
+      padding-right:0;
+      width: 16rem;
+    }
+    .topic_add_submit  {
+      width: 16rem;
+      height: 2rem;
+      font-size: 1rem;
+      margin-top: 0.1rem;
+
+    }
+  }
+
+  .page-content {
+    clear: both;
+    float: none;
+    margin:1rem;
+  }
+
+  .page-sidebar {
+    border-top:0.1rem solid @elementBorder;
+    position: relative;
+    margin-top: 0;
+    width: 90%;
+
+    .tags .tag-list { width: auto; }
+  }
+
+  .feed .topic .actions {
+    display: block;
+    margin-top: 0.5rem;
   }
 }

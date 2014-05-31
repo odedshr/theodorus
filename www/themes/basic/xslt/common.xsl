@@ -28,10 +28,13 @@
     <xsl:template match="app"  name="app">
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
+                <title><xsl:value-of select="$window_title" /></title>
+
                 <meta charset='utf-8' />
-                <title><xsl:value-of select="$window_title" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
-                </title>
+
 
                 <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
                 <style>
@@ -43,6 +46,8 @@
                 <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/respond.min.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
@@ -127,14 +132,19 @@
                 <header>
                    <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
                    <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
-                   <div id="account" class="account_menu">
+                </header>
+                <div id="main" class="page-content">
+                    <xsl:apply-templates select="page"/>
+                </div>
+                <div id="sidebar" class="page-sidebar">
+                    <div id="account" class="account_menu">
                         <xsl:apply-templates select="//user" />
                     </div>
                     <nav class="nav_buttons">
-                        <ul>
-                            <li class="nav_blog"><a href="http://theodev.wordpress.com" accesskey="b" target="_blank"><xsl:value-of select="$nav_blog" /></a></li>
-                            <li class="nav_features"><a href="https://trello.com/b/gtJnohoz/features" accesskey="t" target="_blank"><xsl:value-of select="$nav_features" /></a></li>
-                            <li class="nav_sourcecode"><a href="https://github.com/odedshr/theodorus" accesskey="g" target="_blank"><xsl:value-of select="$nav_sourcecode" /></a></li>
+                        <ul class="nav_buttons-list">
+                            <li class="nav_button nav_blog"><a href="http://theodev.wordpress.com" accesskey="b" target="_blank"><xsl:value-of select="$nav_blog" /></a></li>
+                            <li class="nav_button nav_features"><a href="https://trello.com/b/gtJnohoz/features" accesskey="t" target="_blank"><xsl:value-of select="$nav_features" /></a></li>
+                            <li class="nav_button nav_sourcecode"><a href="https://github.com/odedshr/theodorus" accesskey="g" target="_blank"><xsl:value-of select="$nav_sourcecode" /></a></li>
                             <!-- li><a href="donations" accesskey="t"><xsl:value-of select="$nav_donations" /></a></li -->
                         </ul>
                     </nav>
@@ -151,9 +161,6 @@
                             </ul>
                         </div>
                     </xsl:if>
-                </header>
-                <div id="main" class="page-content">
-                    <xsl:apply-templates select="page"/>
                 </div>
                 <div id="popup_placeholder" />
                 <ul id="messages" class="messages">
