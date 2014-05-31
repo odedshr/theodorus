@@ -19,7 +19,7 @@ function renderWhereString (filters) {
     if (filters) {
         var where = [];
         filters.forEach(function(value) {
-            where.push(value.key + " "+ value.operator + " " + value.value);
+            where.push(value.key + " "+ value.operator + " " + (isNaN(value.value) ? "'"+value.value+"'" : value.value));
         });
         return "\n\t"+ "WHERE " + where.join(" AND ");
     }
@@ -54,10 +54,10 @@ exports.loads = function loads (itemClass, queryOptions, callback) {
     });
 };
 
-exports.count = function count (itemClass, filters, callback) {
+exports.count = function count (tableName, filters, callback) {
     var whereString = renderWhereString(filters);
     //TODO: parse filters to get WHERE filters
-    var query = "SELECT count(1) as count FROM "+prefix+(new itemClass()).collection + whereString;
+    var query = "SELECT count(1) as count FROM "+prefix+tableName + whereString;
     db.query (query, function(result) {
         if (result) {
             callback(result[0].count);
@@ -72,9 +72,8 @@ exports.getCredentials = function(authKey,callback) { exports.load(Credentials, 
 exports.getUser = function(userId,callback) { exports.load(User, userId, callback); };
 exports.getUserByName = function(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
 exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
-exports.getTags = function(callback) { exports.loads(Tag,{}, callback); };
 exports.getTopicCount = function(callback) {
-    exports.count(Topic,[{"key":"status","operator":"<>","value":"'removed'"}], callback);
+    exports.count((new Topic()).collection,[{"key":"status","operator":"<>","value":"removed"}], callback);
 };
 exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
 exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, topicId, callback); };
@@ -83,6 +82,15 @@ exports.getTopics = function (parameters, callback) {
         pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
         page =  (parameters.page) ? parameters.page : 1,
         limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "";
+
+        if (!parameters.where) {
+            parameters.where = [];
+        }
+        parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
+        if (parameters.tag) {
+            parameters.where.push ({"key":"tag.tag","operator":"=","value":parameters.tag});
+        }
+
     /*  Score is based on predefined score + up to RELEVANCY_PERIOD points per day (i.e. a post from today will get
      RELEVANCY_PERIOD points) + number of follows, endorsements and reports
      * */
@@ -96,7 +104,8 @@ exports.getTopics = function (parameters, callback) {
         "\n\t"+"FROM "+prefix+(new Topic()).collection + " t"+
         "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
         "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON ut.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND t.topic_id = ut.topic_id"+
-        "\n\t"+"WHERE NOT( t.status = 'removed' )"+
+        (parameters.tag ? "\n\t"+"LEFT JOIN "+prefix+User.Tag.collection + " tag ON t.topic_id = tag.topic_id" : "")+
+        renderWhereString(parameters.where)+
         "\n\t"+"GROUP BY topic_id"+
         "\n\t"+"ORDER BY score DESC, t.modified DESC" +
         "\n\t"+limit + ";";
@@ -272,3 +281,57 @@ exports.nullify = function nullify (dataObject, field, callback) {
         callback(false);
     }
 }
+
+exports.replaceUserTopicTags = function replaceUserTopicTags (topicId, userId,tags, callback) {
+    try {
+        var queries = []
+        queries.push ("DELETE FROM "+prefix+ User.Tag.collection +" WHERE user_id='"+userId+"' AND topic_id='"+topicId+"';");
+        tags.forEach(function(tag) {
+            if (tag.replace(/\s/g,"").length>0) {
+                queries.push ("INSERT INTO "+prefix+ User.Tag.collection +" (user_id, topic_id, tag) VALUES ('"+userId+"','"+topicId+"','"+tag+"');");
+            }
+        })
+        queries.push (exports.getTopicTagsQuery(topicId));
+        db.executeMultipleUpdates(queries, function (results) {
+            db.query ("UPDATE "+ prefix+(new Topic()).collection +" "+
+                "\n\t"+"SET tags = '"+JSON.stringify(results.pop())+"'"+
+                "\n\t"+"WHERE topic_id='"+topicId+"';", function () {
+                callback(results);
+            });
+        });
+    }catch (error) {
+        console.error("error replacing User-topic-tags "+userId+", "+topicId+", "+JSON.stringify(tags) +":\n"+ error);
+        callback(false);
+    }
+};
+
+exports.getTags = function(callback) { exports.getTopicTags(false, callback) };
+exports.getTopicTagsQuery = function getTopicTagsQuery (topicId) {
+    return "SELECT tag, COUNT(tag) as count " +
+        "\n\t"+"FROM "+prefix+ User.Tag.collection +" " +
+        (topicId ? ("\n\t"+"WHERE topic_id = '"+topicId+"'" ):"")+
+        "\n\t"+"GROUP by tag"+
+        "\n\t"+"ORDER by count DESC, tag";
+};
+exports.getTopicTags = function getTopicTags (topicId, callback) {
+    db.query( exports.getTopicTagsQuery(topicId)  , function (results) {
+        callback(results);
+    });
+};
+
+exports.getUserTopicTagStringQuery = function getUserTopicTagStringQuery (topicId, userId) {
+    return "SELECT GROUP_CONCAT(tag SEPARATOR ', ') AS tags " +
+        "\n\t"+"FROM "+prefix+ User.Tag.collection +" " +
+        "\n\t"+"WHERE topic_id = '"+topicId+"'" +
+        (userId ? ("\n\t"+"AND user_id = '"+userId+"'") : "" )+
+        "\n\t"+"ORDER by tag";
+}
+exports.getUserTopicTagString = function getTopicTags (topicId, userId, callback) {
+    db.query( exports.getUserTopicTagStringQuery (topicId, userId)  , function (results) {
+        callback(results);
+    });
+};
+
+exports.getTagTopicCount = function(tag, callback) {
+    exports.count(User.Tag.collection,[{"key":"tag","operator":"=","value":tag}], callback);
+};

@@ -156,6 +156,7 @@
     <xsl:param name="nav_sourcecode" select="'הקוד'"/>
     <xsl:param name="nav_donations" select="'תרומות'"/>
     <xsl:param name="back_to_main_page" select="'בחזרה לעמוד הראשי'"/>
+    <xsl:param name="back_to_main_list" select="'בחזרה לרשימה הראשית'"/>
 
     <xsl:param name="lbl_topic_title" select="'כותרת'"/>
     <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופולריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>
@@ -168,10 +169,6 @@
         <result type="slug-not-available">כתובת לא זמינה</result>
         <result type="slug-is-available">כתובת זמינה</result>
     </xsl:variable>
-    <xsl:param name="lbl_topic_tags" select="'תגיות'"/>
-    <xsl:param name="example_topic_tags" select="'ממשל'"/>
-    <xsl:param name="btn_suggest" select="'הוספה'"/>
-    <xsl:param name="lbl_tags" select="'תגיות'"/>
 
     <xsl:param name="lbl_topic_feedback" select="'משוב'"/>
     <xsl:param name="link_suggest_topic" select="'נושא חדש'"/>
@@ -188,6 +185,7 @@
     <xsl:param name="btn_opinion" select="'הוספת דעה'"/>
 
     <xsl:param name="showing_x_items" select="'מציג # פריטים'" />
+    <xsl:param name="showing_items_related_to_x" select="'פריטים הקשורים ל#'" />
     <xsl:param name="lbl_no_topics_found" select="'לא נמצאו פריטים!'"/>
     <xsl:param name="lbl_no_topics_found_suggest_one" select="'אולי תציעו אחד כעת?'"/>
     <xsl:param name="file_not_found_title" select="'הפריט שחיפשת לא קיים'"/>
@@ -212,6 +210,16 @@
     <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
     <xsl:param name="btn_update_comment" select="'עדכון תגובה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
+
+
+    <xsl:param name="lbl_topic_tags" select="'תגיות'"/>
+    <xsl:param name="example_topic_tags" select="'ממשל'"/>
+    <xsl:param name="btn_suggest" select="'הוספה'"/>
+    <xsl:param name="lbl_tags" select="'תגיות'"/>
+    <xsl:param name="lbl_tags_placeholder" select="'תגיות מופרדות בפסיק, אין צורך להוסיף סולמית'"/>
+    <xsl:param name="lbl_tags_instructions" select="'הוספה ותמיכה בתגיות קיימות על מנת תעזור לאחרים להגיע אל הדיון.'"/>
+    <xsl:param name="btn_update_tags" select="'עדכון תגיות'"/>
+
 
     <xsl:param name="btn_update_image" select="'עדכון תמונה'"/>
     <xsl:param name="btn_remove_image" select="'הסרת תמונה'"/>
