@@ -141,7 +141,7 @@
     <xsl:template match="topic">
         <xsl:param name="profileImage">
             <xsl:choose>
-                <xsl:when test="initiator/picture">/profiles/<xsl:value-of select="initiator/picture"/></xsl:when>
+                <xsl:when test="initiator/picture">/profileImage/<xsl:value-of select="initiator/picture"/></xsl:when>
                 <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
             </xsl:choose>
         </xsl:param>
