@@ -179,6 +179,21 @@ exports.query = function (query,callback) {
     });
 };
 
+exports.executeMultipleUpdates = function executeMultipleUpdates (queryArray, callback) {
+    var results = []
+    var internal = function (queries) {
+        exports.query (queries.pop(), function (result) {
+            results.push(result);
+            if (queries.length) {
+                internal( queries, callback);
+            } else {
+                callback(results);
+            }
+        });
+    }
+    internal(queryArray.reverse());
+}
+
 exports.nullifyField = function (sampleModel,key,field, callback) {
     var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'");
     exports.query ("UPDATE "+prefix+sampleModel.collection + " SET "+field+" = NULL "+where, function(rows) {

@@ -28,6 +28,20 @@
     </xsl:template -->
 
     <xsl:template match="page[@type='feed']">
+        <xsl:if test="tag">
+            <div class="tag-topics-header">
+                <a href="/" class="button-back"><xsl:value-of select="$back_to_main_list" /></a>
+                <h2 class="tag-topics-title">
+                    <xsl:call-template name="string-replace-all">
+                        <xsl:with-param name="text"
+                                        select="$showing_items_related_to_x" />
+                        <xsl:with-param name="replace" select="$variable" />
+                        <xsl:with-param name="by" select="tag" />
+                    </xsl:call-template>
+                </h2>
+            </div>
+        </xsl:if>
+
         <xsl:if test="//permissions/suggest = 'true'">
             <form id="form_add_topic" action="/topics" method="POST" class="form_add_topic">
                 <div>
@@ -133,12 +147,27 @@
         </xsl:param>
 
         <li class="topic">
-            <a class="title" href="/topics/{topic_id}">
+            <a class="title-link" href="/topics/{topic_id}">
                 <!-- xsl:if test="slug">
                     <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
                 </xsl:if-->
-                <h2><xsl:value-of select="title" /></h2>
+                <h3 class="title"><xsl:value-of select="title" /></h3>
             </a>
+
+            <span class="hidden"> · </span>
+
+            <div class="tags">
+                <ul class="tag-list">
+                    <xsl:for-each select="tags/tag[position() &lt;= 10]">
+                        <li class="tag">
+                            <span class="tag-label"><xsl:value-of select="tag" /></span>
+                            <span class="tag-count"><xsl:value-of select="count" /></span>
+                        </li>
+                    </xsl:for-each>
+                </ul>
+            </div>
+            <span class="hidden"> · </span>
+
             <a class="initiator"><img src="{$profileImage}" class="profile-image-mini" /><xsl:value-of select="initiator/display_name" /></a>
             <span class="hidden"> · </span>
 
@@ -186,6 +215,7 @@
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
+
         </li>
     </xsl:template>
 </xsl:stylesheet>

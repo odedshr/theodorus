@@ -217,19 +217,17 @@ var WebApplication = function () {
             functionWrapper = (method=="get" || method=="delete") ?
             function (req,res) {
                 var session = self.getSession(req,res);
-                //self.log (method+":"+url);
-                res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
+                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html')+ "; charset=utf8");
                 self.plugins(url, session, handlerDef.handler,function(output) {
-                    res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
+                    res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
                 });
             } :
             function (req,res) {
                 var session = self.getSession(req,res);
-                //self.log (method+":"+url);
-                res.setHeader('Content-Type', session.isJSON ? 'application/json' : 'text/html');
+                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
                 session.useInput(function() {
                     self.plugins(url, session, handlerDef.handler,function(output) {
-                        res.end(session.isJSON ? JSON.stringify(output) : self.xslt(output));
+                        res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
                     });
                 });
             };
