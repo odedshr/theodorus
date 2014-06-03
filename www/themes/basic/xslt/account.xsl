@@ -53,7 +53,7 @@
 
 
     <xsl:template match="page[@type='signin']">
-        <form id="form_signin" action="/signin" method="post" class="page_form form_authentication">
+        <form id="form_signin" action="/signin" method="post" class="page_form form_authentication form_signin">
             <h2><xsl:value-of select="$welcome_back" /></h2>
             <div>
                 <label><xsl:value-of select="$lbl_email" /></label>
@@ -78,7 +78,7 @@
     </xsl:template>
 
     <xsl:template match="page[@type='signup']">
-        <form id="form_signup" action="/signup" method="post" class="page_form form_authentication">
+        <form id="form_signup" action="/signup" method="post" class="page_form form_authentication form_signup">
             <h2><xsl:value-of select="$welcome" /></h2>
             <div>
                 <label><xsl:value-of select="$lbl_name" /></label>

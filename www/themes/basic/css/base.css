@@ -247,75 +247,98 @@ header h1 sub {
   position: absolute;
   top: 3.5rem;
 }
-header .account_menu {
-  margin: 1rem 0.5rem 1rem 0;
-  text-align: left;
-}
-header .account_menu .user_name {
-  margin-right: 0.5rem;
-}
-header .account_menu .btn_signup {
+.page-sidebar {
   float: right;
+  position: fixed;
+  margin: 12rem 0.5rem 0 0;
+  min-width: 14rem;
 }
-header .account_menu .user_name,
-header .account_menu .btn_signup {
-  width: 6.5rem;
+.page-sidebar .account_menu {
+  margin: 1rem 0.5rem 0.5rem 0;
   text-align: left;
 }
-header .account_menu .button-signout {
-  margin-top: 0.45rem;
+.page-sidebar .account_menu .user_name {
+  display: inline-block;
+  position: relative;
+  margin-right: 0.5rem;
+  text-align: left;
+  max-width: 4rem;
+  overflow: hidden;
+  height: 1rem;
+  vertical-align: middle;
 }
-header .account_menu .button-signout,
-header .account_menu .btn_signin {
+.page-sidebar .account_menu .btn_signup {
+  text-align: left;
+}
+.page-sidebar .account_menu .button-signout {
+  margin-top: 0.35rem;
   float: left;
-  width: 7rem;
+  width: 6rem;
+  text-align: right;
+  padding-right: 0.2rem;
+  vertical-align: middle;
+}
+.page-sidebar .account_menu .btn_signin {
+  float: left;
+  width: 6rem;
   text-align: right;
   padding-right: 0.2rem;
 }
-header .nav_buttons {
-  margin-right: 8rem;
+.page-sidebar .nav_buttons {
+  direction: ltr;
 }
-header .nav_buttons li {
+.page-sidebar .nav_buttons .nav_buttons-list {
+  direction: rtl;
+  text-align: right;
+  width: 6rem;
+}
+.page-sidebar .nav_buttons .nav_button:not(:first-child) {
   margin-top: 1rem;
 }
-header .nav_buttons .nav_blog {
+.page-sidebar .nav_buttons .nav_blog {
   list-style-image: url('/ui/img/icon_wordpress.png');
 }
-header .nav_buttons .nav_sourcecode {
+.page-sidebar .nav_buttons .nav_sourcecode {
   list-style-image: url('/ui/img/icon_git.png');
 }
-header .nav_buttons .nav_features {
+.page-sidebar .nav_buttons .nav_features {
   list-style-image: url('/ui/img/icon_trello.png');
 }
-header .tags {
+.page-sidebar .tags {
   margin-right: 1rem;
   padding: 1rem 0 0.5rem;
 }
-header .tags .tags-title {
+.page-sidebar .tags .tags-title {
   display: none;
 }
-header .tags .tag-list {
+.page-sidebar .tags .tag-list {
   margin: 0.5rem 0;
   padding: 0;
   width: 13rem;
 }
-header .tags .tag {
+.page-sidebar .tags .tag {
   display: inline;
   margin: 0 0 0.5rem 0.5rem;
   /*white-space: nowrap;*/
 
 }
-header .tags .tag .tag-label {
+.page-sidebar .tags .tag .tag-label {
   font-size: 0.9rem;
 }
-header .tags .tag .tag-count {
+.page-sidebar .tags .tag .tag-count {
   font-size: 0.7rem;
 }
-header .tags .tag .tag-count:before {
+.page-sidebar .tags .tag .tag-count:before {
   content: " [";
 }
-header .tags .tag .tag-count:after {
+.page-sidebar .tags .tag .tag-count:after {
   content: "]";
+}
+.page-content {
+  clear: left;
+  float: right;
+  margin: 1rem 15rem;
+  width: 45rem;
 }
 h2 {
   font-size: 1.7rem;
@@ -360,7 +383,6 @@ h3 {
 }
 /* ================================================================================================================== */
 .page_form {
-  margin-right: 15rem;
   padding: 1rem;
 }
 .intro_text {
@@ -394,7 +416,7 @@ h3 {
 .form_authentication .terms_of_use .terms_of_use_details {
   float: right;
   margin: 0rem 2.3rem;
-  width: 20rem;
+  max-width: 20rem;
 }
 .form_authentication .terms_of_use .terms_of_use_details ul,
 .form_authentication .terms_of_use .terms_of_use_details ol {
@@ -403,28 +425,27 @@ h3 {
 .form_authentication .form-buttons {
   clear: both;
   float: left;
+  margin-bottom: 1rem;
 }
 .form_authentication .form-buttons button {
   float: left;
 }
 /* ================================================================================================================== */
 .form_add_topic {
-  clear: left;
-  float: right;
-  margin: 1rem 16rem;
+  margin-right: 1rem;
 }
-.form_add_topic textarea {
+.form_add_topic .topic_add_title {
   font-size: 1rem;
   height: 4rem;
   padding: 0.2rem 0.3rem;
   width: 32rem;
 }
-.form_add_topic button {
-  min-width: 5rem;
-  float: left;
-  height: 4rem;
-  font-size: 1.2rem;
+.form_add_topic .topic_add_submit {
   color: #666;
+  font-size: 1.2rem;
+  height: 4rem;
+  min-width: 5rem;
+  vertical-align: top;
 }
 /* ================================================================================================================== */
 .tag-topics-header {
@@ -436,8 +457,6 @@ h3 {
 }
 .feed_wrapper {
   clear: both;
-  float: right;
-  margin-right: 15rem;
 }
 .feed_wrapper .no-topics {
   font-size: 1.5rem;
@@ -560,8 +579,6 @@ h3 {
 }
 /* ================================================================================================================== */
 .topic-view {
-  float: right;
-  margin-right: 15rem;
   width: 42rem;
 }
 .topic-view h2 {
@@ -779,4 +796,123 @@ h3 {
 .page_message a {
   display: block;
   margin-top: 1rem;
+}
+/* ################################################################################################################## */
+@media only screen and (max-width: 480px) {
+  .page-header {
+    width: 100%;
+    height: auto;
+    position: relative;
+    margin: 0;
+  }
+  .page-header .intro_text {
+    width: 16rem;
+  }
+  .page-content {
+    width: 100%;
+  }
+  .form_add_topic .topic_add_title {
+    height: 5rem;
+    padding-right: 0;
+    width: 16rem;
+  }
+  .form_add_topic .topic_add_submit {
+    width: 16rem;
+    height: 2rem;
+    font-size: 1rem;
+    margin-top: 0.1rem;
+  }
+  .page-content {
+    clear: both;
+    float: none;
+    margin: 0;
+  }
+  .page-content .feed_wrapper .page-controls {
+    text-align: center;
+  }
+  .page-sidebar {
+    border-top: 0.1rem solid #aaaaaa;
+    position: relative;
+    margin-top: 0;
+    width: 90%;
+  }
+  .page-sidebar .tags .tag-list {
+    width: auto;
+  }
+  .feed .topic .actions {
+    display: block;
+    margin-top: 0.5rem;
+  }
+  .form_signup .form-buttons {
+    margin-left: 2.5rem;
+  }
+}
+@media only screen and (min-width: 481px) and (max-width: 600px) {
+  .page-header {
+    border-left: none;
+    position: static;
+    height: auto;
+  }
+  .page-content {
+    clear: both;
+    float: none;
+    margin: 5rem 0 0 0;
+    width: 29rem;
+  }
+  .page-content .feed_wrapper .page-controls {
+    text-align: center;
+  }
+  .page-sidebar {
+    border-right: 0.1rem solid #aaaaaa;
+    left: 0;
+    margin: 1rem;
+    top: 0;
+    position: absolute;
+    min-width: 10rem;
+  }
+  .page-sidebar .account_menu {
+    margin-top: 0;
+  }
+  .form_add_topic .topic_add_title {
+    height: 4rem;
+    padding-right: 0;
+    width: 22rem;
+  }
+  .form_add_topic .topic_add_submit {
+    font-size: 1rem;
+  }
+  .topic-view {
+    width: 100%;
+  }
+  .topic-view .tags form.tags-edit input.tags-field {
+    width: 28rem;
+  }
+  .topic-view .comments .comment-box .comment-new {
+    width: 26rem;
+  }
+}
+@media only screen and (min-width: 601px) and (max-width: 700px) {
+  .page-header {
+    width: 22rem;
+  }
+  .page-content {
+    width: 37rem;
+  }
+  .form_add_topic .topic_add_title {
+    width: 30rem;
+  }
+}
+/*
+@media only screen and (min-width: 701px) and (max-width: 800px) {
+  .page-header { width: 35rem; }
+  .page-content { width: 37rem; }
+  .form_add_topic .topic_add_title {width: 40rem; }
+}*/
+@media only screen and (min-width: 701px) and (max-width: 1024px) {
+  .page-content {
+    width: 33rem;
+  }
+  .form_add_topic .topic_add_title {
+    width: 25rem;
+  }
 }
