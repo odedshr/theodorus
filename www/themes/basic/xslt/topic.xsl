@@ -194,7 +194,7 @@
         <xsl:param name="is_mine" select="$comment/commenter/user_id = //user/user_id"/>
         <xsl:param name="profileImage">
             <xsl:choose>
-                <xsl:when test="$comment/commenter/picture">/profiles/<xsl:value-of select="$comment/commenter/picture"/></xsl:when>
+                <xsl:when test="$comment/commenter/picture">/profileImage/<xsl:value-of select="$comment/commenter/picture"/></xsl:when>
                 <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
             </xsl:choose>
         </xsl:param>

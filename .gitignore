@@ -39,7 +39,3 @@ Thumbs.db
 .idea
 
 /node_modules/node_xslt/*.*
-<<<<<<< HEAD
-=======
-/www/profiles
->>>>>>> bf5e9eac385b1ff00ffc134bcb9074b0cb834890

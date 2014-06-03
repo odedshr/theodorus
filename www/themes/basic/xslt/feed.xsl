@@ -44,10 +44,8 @@
 
         <xsl:if test="//permissions/suggest = 'true'">
             <form id="form_add_topic" action="/topics" method="POST" class="form_add_topic">
-                <div>
-                    <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
-                    <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
-                </div>
+                <textarea name="title" id="topic_title" class="topic_add_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
+                <button id="button_suggest" accesskey="s" class="topic_add_submit"><xsl:value-of select="$btn_suggest" /></button>
             </form>
         </xsl:if>
         <div id="feed_wrapper" class="feed_wrapper">
@@ -141,7 +139,7 @@
     <xsl:template match="topic">
         <xsl:param name="profileImage">
             <xsl:choose>
-                <xsl:when test="initiator/picture">/profiles/<xsl:value-of select="initiator/picture"/></xsl:when>
+                <xsl:when test="initiator/picture">/profileImage/<xsl:value-of select="initiator/picture"/></xsl:when>
                 <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
             </xsl:choose>
         </xsl:param>

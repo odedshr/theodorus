@@ -20,6 +20,7 @@ var AccountProcess = (function () {
             methods.push({"method":"GET",   "url":"/me",            "handler":AccountProcess.getAccount.bind(AccountProcess)});
             methods.push({"method":"DELETE","url":"/me",            "handler":AccountProcess.signOut.bind(AccountProcess)});
 
+            methods.push({"method":"GET",   "url":"/profileImage",            "handler":AccountProcess.getProfileImage.bind(AccountProcess)});
             methods.push({"method":"POST",   "url":"/profileImage",            "handler":AccountProcess.uploadProfileImage.bind(AccountProcess)});
             methods.push({"method":"POST",   "url":"/profileImage/approve",    "handler":AccountProcess.approveProfileImage.bind(AccountProcess)});
             methods.push({"method":"GET",   "url":"/profileImage/remove",    "handler":AccountProcess.removeProfileImage.bind(AccountProcess)});
@@ -40,27 +41,36 @@ var AccountProcess = (function () {
         },
 
         getAccount: function (session,callback) {
-            session.useUserId(function(userId){
-                if (userId){
-                    io.db.getAccount(userId,function (user) {
-                        callback(
-                            (session.isJSON || session.url != "/me") ?
+            session.userUserAccount(function(user){
+                if (user){
+                    callback(
+                        (session.isJSON || session.url != "/me") ?
                             ((user ? user : new User()).toJSON()) :
-                            {
-                                "app":{
-                                    "mode": io.getTheodorusMode(),
-                                    "page": {
-                                        "@type":"settings",
-                                        "user":user,
-                                        "profile":user
-                                    }
+                        {
+                            "app":{
+                                "mode": io.getTheodorusMode(),
+                                "page": {
+                                    "@type":"settings",
+                                    "user":user,
+                                    "profile":user
                                 }
                             }
-                        );
-                    });
+                        }
+                    );
                 }  else {
                     callback((new User.Account()).toJSON());
                 }
+            });
+        },
+
+        getProfileImage: function getProfileImage (session,callback) {
+            session.userUserAccount(function(user){
+                if (user) {
+                    session.res.writeHead(301,{location: "profileImage/"+user.get("picture")});
+                } else {
+                    session.res.writeHead(301,{location: "/ui/img/anonymous.png"});
+                }
+                callback({});
             });
         },
 
@@ -73,7 +83,10 @@ var AccountProcess = (function () {
                         var targetFolder = io.config.profile_images_folders,
                             originalFileName = session.input.files.upload.path;
 
-                        if (originalFileName) {
+                        if (!originalFileName) {
+                            io.log("file upload failed: filename not found","error");
+                            callback(session.getErrorHandler("image-process-failed"));
+                        } else if (session.input.files.upload.name.match(/[^\s]+(\.(jpg|png|gif|bmp))$/i)) {
                             imageMagick.identify(originalFileName, function(error, features){
                                 if (features) {
                                     // session.input.files.upload.name = the original file name
@@ -110,12 +123,18 @@ var AccountProcess = (function () {
                                         });
                                     });
                                 } else {
+                                    io.log("file upload failed: file analysis failed: " + error,"error");
                                     fileSystem.unlink(originalFileName, function () {
                                         callback(session.getErrorHandler("image-process-failed"));
                                     });
                                 }
                             });
-                        } else { callback(session.getErrorHandler("image-process-failed")); }
+                        } else {
+                            io.log("file upload failed: filename invalid ("+JSON.stringify(session.input.files.upload)+")","error");
+                            fileSystem.unlink(originalFileName, function () {
+                                callback(session.getErrorHandler("image-process-failed"));
+                            });
+                        }
                     });
                 }  else {
                     callback(session.getErrorHandler("no-permission"));

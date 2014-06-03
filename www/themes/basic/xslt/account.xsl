@@ -18,7 +18,7 @@
     <xsl:template match="user">
         <xsl:param name="profileImage">
             <xsl:choose>
-                <xsl:when test="picture">/profiles/<xsl:value-of select="picture"/></xsl:when>
+                <xsl:when test="picture">/profileImage/<xsl:value-of select="picture"/></xsl:when>
                 <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -53,7 +53,7 @@
 
 
     <xsl:template match="page[@type='signin']">
-        <form id="form_signin" action="/signin" method="post" class="page_form form_authentication">
+        <form id="form_signin" action="/signin" method="post" class="page_form form_authentication form_signin">
             <h2><xsl:value-of select="$welcome_back" /></h2>
             <div>
                 <label><xsl:value-of select="$lbl_email" /></label>
@@ -78,7 +78,7 @@
     </xsl:template>
 
     <xsl:template match="page[@type='signup']">
-        <form id="form_signup" action="/signup" method="post" class="page_form form_authentication">
+        <form id="form_signup" action="/signup" method="post" class="page_form form_authentication form_signup">
             <h2><xsl:value-of select="$welcome" /></h2>
             <div>
                 <label><xsl:value-of select="$lbl_name" /></label>
@@ -119,7 +119,7 @@
     <xsl:template match="page[@type='settings']">
         <xsl:param name="profileImage">
             <xsl:choose>
-                <xsl:when test="profile/picture">/profiles/<xsl:value-of select="profile/picture"/></xsl:when>
+                <xsl:when test="profile/picture">/profileImage/<xsl:value-of select="profile/picture"/></xsl:when>
                 <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -132,7 +132,7 @@
             <xsl:if test="//user/user_id = profile/user_id">
                 <form id="form_upload-profile-image" action="/profileImage" enctype="multipart/form-data" method="post" class="form_upload-profile-image">
                     <div class="form-buttons">
-                        <input type="file" name="upload" multiple="multiple" />
+                        <input type="file" name="upload" multiple="multiple" required="required" pattern="xxx" />
                         <button id="button-update" type="submit"><xsl:value-of select="$btn_update_image" /></button>
                         <xsl:if test="profile/picture">
                             <a href="profileImage/remove" class="button btn_remove_image"><xsl:value-of select="$btn_remove_image"/></a>
@@ -148,7 +148,7 @@
             <h2><xsl:value-of select="$approve_profile_image" /></h2>
             <input type="hidden" name="referer" value="{referer}" />
             <input type="hidden" name="image" value="{image}" />
-            <img src="/profiles/temp-{image}" class="profile-image" />
+            <img src="/profileImage/temp-{image}" class="profile-image" />
             <div class="form-buttons">
                 <button id="button-approve-profile-image" name="approve" type="submit" value="true"><xsl:value-of select="$btn_ok" /></button>
                 <button id="button-reject-profile-image" name="reject" type="submit" value="true"><xsl:value-of select="$btn_cancel" /></button>
