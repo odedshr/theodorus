@@ -250,27 +250,34 @@ header h1 sub {
 .page-sidebar {
   float: right;
   position: fixed;
-  margin: 12rem 0.5rem 0 0 ;
+  margin: 12rem 0.5rem 0 0;
+  min-width: 14rem;
 }
 .page-sidebar .account_menu {
-  margin: 1rem 0.5rem 1rem 0;
+  margin: 1rem 0.5rem 0.5rem 0;
   text-align: left;
 }
 .page-sidebar .account_menu .user_name {
+  display: inline-block;
+  position: relative;
   margin-right: 0.5rem;
+  text-align: left;
+  max-width: 4rem;
+  overflow: hidden;
+  height: 1rem;
+  vertical-align: middle;
 }
 .page-sidebar .account_menu .btn_signup {
-  float: right;
-}
-.page-sidebar .account_menu .user_name,
-.page-sidebar .account_menu .btn_signup {
-  width: 6.5rem;
   text-align: left;
 }
 .page-sidebar .account_menu .button-signout {
-  margin-top: 0.45rem;
+  margin-top: 0.35rem;
+  float: left;
+  width: 6rem;
+  text-align: right;
+  padding-right: 0.2rem;
+  vertical-align: middle;
 }
-.page-sidebar .account_menu .button-signout,
 .page-sidebar .account_menu .btn_signin {
   float: left;
   width: 6rem;
@@ -285,7 +292,7 @@ header h1 sub {
   text-align: right;
   width: 6rem;
 }
-.page-sidebar .nav_buttons .nav_button {
+.page-sidebar .nav_buttons .nav_button:not(:first-child) {
   margin-top: 1rem;
 }
 .page-sidebar .nav_buttons .nav_blog {
@@ -331,6 +338,7 @@ header h1 sub {
   clear: left;
   float: right;
   margin: 1rem 15rem;
+  width: 45rem;
 }
 h2 {
   font-size: 1.7rem;
@@ -375,7 +383,6 @@ h3 {
 }
 /* ================================================================================================================== */
 .page_form {
-  margin-right: 15rem;
   padding: 1rem;
 }
 .intro_text {
@@ -409,7 +416,7 @@ h3 {
 .form_authentication .terms_of_use .terms_of_use_details {
   float: right;
   margin: 0rem 2.3rem;
-  width: 20rem;
+  max-width: 20rem;
 }
 .form_authentication .terms_of_use .terms_of_use_details ul,
 .form_authentication .terms_of_use .terms_of_use_details ol {
@@ -418,6 +425,7 @@ h3 {
 .form_authentication .form-buttons {
   clear: both;
   float: left;
+  margin-bottom: 1rem;
 }
 .form_authentication .form-buttons button {
   float: left;
@@ -790,15 +798,18 @@ h3 {
   margin-top: 1rem;
 }
 /* ################################################################################################################## */
-@media only screen and (max-width: 481px) {
-  header {
+@media only screen and (max-width: 480px) {
+  .page-header {
     width: 100%;
     height: auto;
     position: relative;
     margin: 0;
   }
-  header .intro_text {
+  .page-header .intro_text {
     width: 16rem;
+  }
+  .page-content {
+    width: 100%;
   }
   .form_add_topic .topic_add_title {
     height: 5rem;
@@ -814,7 +825,10 @@ h3 {
   .page-content {
     clear: both;
     float: none;
-    margin: 1rem;
+    margin: 0;
+  }
+  .page-content .feed_wrapper .page-controls {
+    text-align: center;
   }
   .page-sidebar {
     border-top: 0.1rem solid #aaaaaa;
@@ -828,5 +842,77 @@ h3 {
   .feed .topic .actions {
     display: block;
     margin-top: 0.5rem;
+  }
+  .form_signup .form-buttons {
+    margin-left: 2.5rem;
+  }
+}
+@media only screen and (min-width: 481px) and (max-width: 600px) {
+  .page-header {
+    border-left: none;
+    position: static;
+    height: auto;
+  }
+  .page-content {
+    clear: both;
+    float: none;
+    margin: 5rem 0 0 0;
+    width: 29rem;
+  }
+  .page-content .feed_wrapper .page-controls {
+    text-align: center;
+  }
+  .page-sidebar {
+    border-right: 0.1rem solid #aaaaaa;
+    left: 0;
+    margin: 1rem;
+    top: 0;
+    position: absolute;
+    min-width: 10rem;
+  }
+  .page-sidebar .account_menu {
+    margin-top: 0;
+  }
+  .form_add_topic .topic_add_title {
+    height: 4rem;
+    padding-right: 0;
+    width: 22rem;
+  }
+  .form_add_topic .topic_add_submit {
+    font-size: 1rem;
+  }
+  .topic-view {
+    width: 100%;
+  }
+  .topic-view .tags form.tags-edit input.tags-field {
+    width: 28rem;
+  }
+  .topic-view .comments .comment-box .comment-new {
+    width: 26rem;
+  }
+}
+@media only screen and (min-width: 601px) and (max-width: 700px) {
+  .page-header {
+    width: 22rem;
+  }
+  .page-content {
+    width: 37rem;
+  }
+  .form_add_topic .topic_add_title {
+    width: 30rem;
+  }
+}
+/*
+@media only screen and (min-width: 701px) and (max-width: 800px) {
+  .page-header { width: 35rem; }
+  .page-content { width: 37rem; }
+  .form_add_topic .topic_add_title {width: 40rem; }
+}*/
+@media only screen and (min-width: 701px) and (max-width: 1024px) {
+  .page-content {
+    width: 33rem;
+  }
+  .form_add_topic .topic_add_title {
+    width: 25rem;
   }
 }

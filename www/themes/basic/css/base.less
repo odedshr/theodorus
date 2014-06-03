@@ -91,20 +91,34 @@ header {
 .page-sidebar {
   float: right;
   position: fixed;
-  margin: 12rem 0.5rem 0 0 ;
+  margin: 12rem 0.5rem 0 0;
+  min-width: 14rem;
 
   .account_menu {
-    margin: 1rem 0.5rem 1rem 0;
+    margin: 1rem 0.5rem 0.5rem 0;
     text-align: left;
 
-    .user_name { margin-right: 0.5rem; }
-    .btn_signup { float: right; }
-    .user_name, .btn_signup {
-      width:6.5rem;
-      text-align:left;
+
+    .user_name {
+      display: inline-block;
+      position: relative;
+      margin-right: 0.5rem;
+      text-align: left;
+      max-width: 4rem;
+      overflow: hidden;
+      height: 1rem;
+      vertical-align: middle;
     }
-    .button-signout { margin-top: 0.45rem; }
-    .button-signout, .btn_signin {
+    .btn_signup { text-align:left; }
+    .button-signout {
+      margin-top: 0.35rem;
+      float: left;
+      width: 6rem;
+      text-align: right;
+      padding-right: 0.2rem;
+      vertical-align: middle;
+    }
+    .btn_signin {
       float: left;
       width: 6rem;
       text-align: right;
@@ -119,7 +133,7 @@ header {
       text-align:right;
       width: 6rem;
     }
-    .nav_button { margin-top:1rem; }
+    .nav_button:not(:first-child) { margin-top:1rem; }
     .suggest_topic {}
     .nav_blog { list-style-image:url('/ui/img/icon_wordpress.png'); }
     .nav_sourcecode { list-style-image:url('/ui/img/icon_git.png'); }
@@ -153,6 +167,7 @@ header {
   clear: left;
   float: right;
   margin: 1rem 15rem;
+  width: 45rem;
 }
 
 h2 {
@@ -183,8 +198,7 @@ h3 {
 }
 /* ================================================================================================================== */
 .page_form {
-  margin-right:15rem;
-  padding:1rem;
+   padding:1rem;
 }
 
 .intro_text {
@@ -214,7 +228,7 @@ h3 {
     .terms_of_use_details {
       float: right;
       margin: 0rem 2.3rem;
-      width: 20rem;
+      max-width: 20rem;
       ul, ol {
         list-style-type: square;
       }
@@ -223,6 +237,8 @@ h3 {
   .form-buttons {
     clear: both;
     float:left;
+    margin-bottom:1rem;
+
     button { float: left; }
   }
 }
@@ -573,8 +589,8 @@ h3 {
 
 /* ################################################################################################################## */
 
-@media only screen and (max-width: 481px) {
-  header {
+@media only screen and (max-width: 480px) {
+  .page-header {
     width: 100%;
     height: auto;
     position: relative;
@@ -582,6 +598,7 @@ h3 {
 
     .intro_text {width: 16rem };
   }
+  .page-content { width: 100%; }
   .form_add_topic {
     .topic_add_title {
       height: 5rem;
@@ -593,14 +610,15 @@ h3 {
       height: 2rem;
       font-size: 1rem;
       margin-top: 0.1rem;
-
     }
   }
 
   .page-content {
     clear: both;
     float: none;
-    margin:1rem;
+    margin: 0;
+
+    .feed_wrapper .page-controls {  text-align: center; }
   }
 
   .page-sidebar {
@@ -616,4 +634,70 @@ h3 {
     display: block;
     margin-top: 0.5rem;
   }
+
+  .form_signup .form-buttons {
+    margin-left: 2.5rem;
+  }
+
+}
+
+@media only screen and (min-width: 481px) and (max-width: 600px) {
+  .page-header {
+    border-left: none;
+    position: static;
+    height: auto;
+  }
+  .page-content {
+    clear: both;
+    float: none;
+    margin: 5rem 0 0 0;
+    width: 29rem;
+
+    .feed_wrapper .page-controls {  text-align: center; }
+  }
+
+  .page-sidebar {
+    border-right:0.1rem solid @elementBorder;
+    left: 0;
+    margin: 1rem;
+    top: 0;
+    position: absolute;
+    min-width: 10rem;
+
+    .account_menu { margin-top: 0;}
+  }
+
+  .form_add_topic {
+    .topic_add_title {
+      height: 4rem;
+      padding-right:0;
+      width: 22rem;
+    }
+    .topic_add_submit  {
+      font-size: 1rem;
+    }
+  }
+
+  .topic-view {
+    width: 100%;
+    .tags form.tags-edit input.tags-field { width: 28rem; }
+    .comments .comment-box .comment-new { width: 26rem; }
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 700px) {
+  .page-header { width: 22rem; }
+  .page-content { width: 37rem; }
+  .form_add_topic .topic_add_title {width: 30rem; }
+}
+/*
+@media only screen and (min-width: 701px) and (max-width: 800px) {
+  .page-header { width: 35rem; }
+  .page-content { width: 37rem; }
+  .form_add_topic .topic_add_title {width: 40rem; }
+}*/
+
+@media only screen and (min-width: 701px) and (max-width: 1024px) {
+  .page-content { width: 33rem;}
+  .form_add_topic .topic_add_title {width: 25rem; }
 }

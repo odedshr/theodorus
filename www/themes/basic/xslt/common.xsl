@@ -129,7 +129,7 @@
             </head>
 
             <body>
-                <header>
+                <header class="page-header">
                    <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
                    <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
                 </header>
