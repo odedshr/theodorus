@@ -24,6 +24,7 @@ body {
 
 a[href] { color: @linkColor; }
 
+.force-web-font-preload,
 .loaded-fonts { font-family: 'carmelit_regularregular', 'arial','halvetica'; }
 
 .hidden { display: none; }
@@ -151,14 +152,8 @@ header {
       width: 13rem;
     }
     .tag {
-      display: inline;
-      margin: 0 0 0.5rem 0.5rem;
-      /*white-space: nowrap;*/
-
       .tag-label { font-size:0.9rem;}
       .tag-count { font-size:0.7rem;}
-      .tag-count:before { content: " ["; }
-      .tag-count:after { content: "]"; }
     }
   }
 }
@@ -320,20 +315,8 @@ h3 {
     .tags:not(:empty) {
       .tags-title { display: none; }
       .tag-list { margin:0.5rem 0; padding: 0;}
-      .tag {
-        background: @darkeningBackground;
-        border: 1px solid @elementBorder;
-        cursor: default;
-        display: inline;
-        font-size:0.7rem;
-        margin: 0 0 0.5rem 0.2rem;
-        padding: 0.1rem 0.1rem 0rem 0.1rem;
-
-        .tag-label {}
-        .tag-count:before { content: " ["; }
-        .tag-count:after { content: "]"; }
-      }
     }
+    .tag { background: @darkeningBackground;}
 
     .initiator {
       display: inline;
@@ -585,6 +568,33 @@ h3 {
     display: block;
     margin-top: 1rem;
   }
+}
+
+
+/* ================================================================================================================== */
+.tags .tag-list {
+  .tag {
+    border: 1px solid @elementBorder;
+    cursor: default;
+    display: inline-block;
+    font-size:0.7rem;
+    margin: 0 0 0.4rem 0.2rem;
+    padding: 0.1rem 0.1rem 0rem 0.1rem;
+
+    .tag-label {}
+    .tag-count:before { content: " ["; }
+    .tag-count:after { content: "]"; }
+  }
+  .tag-color-0 { background-color:lightblue; }
+  .tag-color-1 { background-color:lightgoldenrodyellow; }
+  .tag-color-2 { background-color:lightgrey; }
+  .tag-color-3 { background-color:lightpink; }
+  .tag-color-4 { background-color:lightyellow; }
+  .tag-color-5 { background-color:lightskyblue; }
+  .tag-color-6 { background-color:lightgreen; }
+  .tag-color-7 { background-color:burlywood; }
+  .tag-color-8 { background-color:floralwhite; }
+  .tag-color-9 { background-color:lightcoral; }
 }
 
 /* ################################################################################################################## */
