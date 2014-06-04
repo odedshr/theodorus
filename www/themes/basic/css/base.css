@@ -666,7 +666,9 @@ h3 {
   /*.comment:last-child { border-bottom: none; }*/
 
 }
-.topic-view .comments .opinion .opinion:not(:first-child) {
+.topic-view .comments .opinion .opinion {
+  /*:not(:first-child)*/
+
   background: none;
   border: none;
   padding: 0;
@@ -847,7 +849,7 @@ h3 {
     margin-left: 2.5rem;
   }
 }
-@media only screen and (min-width: 481px) and (max-width: 600px) {
+@media only screen and (min-width: 481px) and (max-width: 700px) {
   .page-header {
     border-left: none;
     position: static;

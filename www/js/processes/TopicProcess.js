@@ -363,7 +363,7 @@ var TopicProcess = (function () {
 
         addComment: function addComment (session,callback) {
             var input = session ? session.input : false,
-                source = input.referer ? input.referer : session.req.headers["referer"];
+                source = session.req.headers["referer"]; //input.referer ? _.unescape(input.referer) : session.req.headers["referer"];
 
             if (!session.input || !(session.input.parent_id|| session.input.comment_id)) {
                 callback (session.isJSON ? {"error":"no-input"} : session.getErrorHandler("no-input"));

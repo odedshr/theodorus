@@ -154,7 +154,7 @@ var AccountProcess = (function () {
                                     user.set("picture", imageName);
                                     io.db.save(user, function (user) {
                                         if (user) {
-                                            session.res.writeHead(301,{location: session.input.referer});
+                                            session.res.writeHead(301,{location: _.unescape(session.input.referer)});
                                             callback({});
                                         } else {
                                             console.error("io.db.save(User)=>user-not-saved");
@@ -170,7 +170,7 @@ var AccountProcess = (function () {
                 });
             } else {
                 fileSystem.unlink(io.config.profile_images_folders+"/temp-"+session.input.image, function() {});
-                session.res.writeHead(301,{location: session.input.referer});
+                session.res.writeHead(301,{location: _.unescape(session.input.referer)});
                 callback({});
             }
         },
@@ -252,7 +252,7 @@ var AccountProcess = (function () {
                             "page":{
                                 "@type": "signin",
                                 "email": input.email,
-                                "referer": input.referer ? input.referer : session.req.headers['referer']
+                                "referer": input.referer ? _.unescape(session.input.referer) : session.req.headers['referer']
                             }
                         }
                     });
@@ -287,7 +287,7 @@ var AccountProcess = (function () {
                                     if (session.isJSON) {
                                         callback((user ? user : new User()).toJSON());
                                     } else {
-                                        session.res.writeHead(301,{location: input.referer });
+                                        session.res.writeHead(301,{location: _.unescape(session.input.referer) });
                                         callback({});
                                     }
                                 });
@@ -364,7 +364,7 @@ var AccountProcess = (function () {
                                                     if (session.isJSON) {
                                                         callback({"result":user.toJSON()});
                                                     } else {
-                                                        session.res.writeHead(301,{location: input.referer });
+                                                        session.res.writeHead(301,{location: _.unescape(input.referer) });
                                                         callback({});
                                                     }
                                                 } catch (err) {
