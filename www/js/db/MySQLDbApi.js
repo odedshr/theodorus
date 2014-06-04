@@ -237,10 +237,15 @@ exports.getComments = function (topicId, userId, callback) {
                         opinionWriters[userId].push ({"comment":comment});
                     } else { // it's a comments, add it to the parent
                         var parent = dictionary[parentId];
-                        if (typeof parent.get("comments") == "undefined") {
-                            parent.set("comments",[]);
+                        if (!parent) {
+                            console.error("The parent ("+parentId+") of comment "+commentId+" for topic "+topicId+" wasn't loaded. Check DB integerity.");
+                            // this comment will get lost since it is not linked to any parent.
+                        } else{
+                            if (typeof parent.get("comments") == "undefined") {
+                                parent.set("comments",[]);
+                            }
+                            parent.get("comments").push({"comment":comment});
                         }
-                        parent.get("comments").push({"comment":comment});
                     }
                 });
                 /* all comments are in place but the opinions are not
