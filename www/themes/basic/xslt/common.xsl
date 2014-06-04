@@ -43,15 +43,15 @@
 
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/respond.min.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
-                <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
+                <!--<script language="javascript" type="text/javascript" src="/lib/json.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
+                <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>-->
+                <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/utilities.js"></script>
+                <!--
                 <xsl:choose>
                     <xsl:when test="//app/mode = 'dev'">
                         <script language="javascript" type="text/javascript" src="/js/controllers/AbstractController.js"></script>
@@ -126,6 +126,7 @@
                         <script language="javascript" type="text/javascript" src="/js/theodorus.views.min.js"></script>
                     </xsl:otherwise>
                 </xsl:choose>
+                -->
             </head>
 
             <body>
@@ -169,6 +170,7 @@
                     </xsl:for-each>
                 </ul>
                 <div id="report-bugs" />
+                <span class="force-web-font-preload">Loading fonts...</span>
             </body>
         </html>
     </xsl:template>
