@@ -53,7 +53,13 @@ var WebApplication = function () {
                 if (error) {
                     self.log (error,"error");
                 }
-                This.input = fields ? fields : {};
+                if (!fields) {
+                    fields = {};
+                }
+                for (var key in fields) {
+                    fields[key] = _.escape(fields[key]);
+                }
+                This.input = fields;
                 This.input.files = files ? files : {};
                 callback(fields);
             });
