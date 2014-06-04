@@ -137,6 +137,7 @@ body input[type="password"] {
 a[href] {
   color: #105cb6;
 }
+.force-web-font-preload,
 .loaded-fonts {
   font-family: 'carmelit_regularregular', 'arial', 'halvetica';
 }
@@ -316,23 +317,11 @@ header h1 sub {
   padding: 0;
   width: 13rem;
 }
-.page-sidebar .tags .tag {
-  display: inline;
-  margin: 0 0 0.5rem 0.5rem;
-  /*white-space: nowrap;*/
-
-}
 .page-sidebar .tags .tag .tag-label {
   font-size: 0.9rem;
 }
 .page-sidebar .tags .tag .tag-count {
   font-size: 0.7rem;
-}
-.page-sidebar .tags .tag .tag-count:before {
-  content: " [";
-}
-.page-sidebar .tags .tag .tag-count:after {
-  content: "]";
 }
 .page-content {
   clear: left;
@@ -517,20 +506,8 @@ h3 {
   margin: 0.5rem 0;
   padding: 0;
 }
-.feed_wrapper .topic .tags:not(:empty) .tag {
+.feed_wrapper .topic .tag {
   background: rgba(200, 200, 200, 0.1);
-  border: 1px solid #aaaaaa;
-  cursor: default;
-  display: inline;
-  font-size: 0.7rem;
-  margin: 0 0 0.5rem 0.2rem;
-  padding: 0.1rem 0.1rem 0rem 0.1rem;
-}
-.feed_wrapper .topic .tags:not(:empty) .tag .tag-count:before {
-  content: " [";
-}
-.feed_wrapper .topic .tags:not(:empty) .tag .tag-count:after {
-  content: "]";
 }
 .feed_wrapper .topic .initiator {
   display: inline;
@@ -798,6 +775,51 @@ h3 {
 .page_message a {
   display: block;
   margin-top: 1rem;
+}
+/* ================================================================================================================== */
+.tags .tag-list .tag {
+  border: 1px solid #aaaaaa;
+  cursor: default;
+  display: inline-block;
+  font-size: 0.7rem;
+  margin: 0 0 0.4rem 0.2rem;
+  padding: 0.1rem 0.1rem 0rem 0.1rem;
+}
+.tags .tag-list .tag .tag-count:before {
+  content: " [";
+}
+.tags .tag-list .tag .tag-count:after {
+  content: "]";
+}
+.tags .tag-list .tag-color-0 {
+  background-color: lightblue;
+}
+.tags .tag-list .tag-color-1 {
+  background-color: lightgoldenrodyellow;
+}
+.tags .tag-list .tag-color-2 {
+  background-color: lightgrey;
+}
+.tags .tag-list .tag-color-3 {
+  background-color: lightpink;
+}
+.tags .tag-list .tag-color-4 {
+  background-color: lightyellow;
+}
+.tags .tag-list .tag-color-5 {
+  background-color: lightskyblue;
+}
+.tags .tag-list .tag-color-6 {
+  background-color: lightgreen;
+}
+.tags .tag-list .tag-color-7 {
+  background-color: burlywood;
+}
+.tags .tag-list .tag-color-8 {
+  background-color: floralwhite;
+}
+.tags .tag-list .tag-color-9 {
+  background-color: lightcoral;
 }
 /* ################################################################################################################## */
 @media only screen and (max-width: 480px) {

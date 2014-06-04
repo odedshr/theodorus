@@ -1,5 +1,3 @@
-[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coveralls Status][coveralls-image]][coveralls-url] [![Downloads][downloads-image]][npm-url]
-
 # Theodorus - A Stub to Democracy
 Theodorus is a decision-making system, allowing users to collabirately craft a law proposal.
 Any user may raise an `idea` for a law and if there are enough people voting for the idea,
@@ -56,3 +54,4 @@ cd /runtime/theodorus-profile-images
 - v0.7 - fixed bug of profile-images folder deleted whenever a new version is released
 - v0.8 - a basic verion of responsive css layout
 - v0.8.1 - escaping all input to safe-tify input, fixed bug in responsive layout, added warning for DB integrity errors
+- 0.9 - colored tags, much faster page loading and rendering

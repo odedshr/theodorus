@@ -261,7 +261,14 @@ var WebApplication = function () {
         //app.use(express.bodyParser({ keepExtensions: true }));
         app.use(express.static(__dirname ));
         // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
-        app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){ res.redirect(req.url.replace(/[\/]{1,2}ui\//,"/themes/"+config.theme+"/"));
+        app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){
+            var requestedFile = req.url.replace(/[\/]{1,2}ui\//,"www/themes/"+config.theme+"/").replace(/\?_=\d+$/,"");
+            if (requestedFile.lastIndexOf(".css") == (requestedFile.length-4)) {
+                res.writeHead(200, {'Content-Type': "text/css" });
+                res.end(fileSystem.readFileSync(requestedFile), 'text');
+            } else {
+                res.end(fileSystem.readFileSync(requestedFile), 'binary');
+            }
         });
         // profile-images are stored outside the project
         app.get(/^[\/]{1,2}profileImage\/.*$/, function(req, res){
