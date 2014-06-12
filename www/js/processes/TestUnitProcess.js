@@ -65,7 +65,7 @@ var TestUnitProcess = (function () {
             /*methods.push({"method":"GET",   "url":"/signin",        "handler":AccountProcess.getSignInPage.bind(AccountProcess)});
             methods.push({"method":"POST",  "url":"/signin",        "handler":AccountProcess.authenticate.bind(AccountProcess)});
             methods.push({"method":"POST",  "url":"/user/exists",   "handler":AccountProcess.isNameExists.bind(AccountProcess)});
-            methods.push({"method":"GET",   "url":"/signup",        "handler":AccountProcess.getSignUpPage.bind(AccountProcess)});
+            methods.push({"method":"GET",   "url":"/signup",        "handler":AccountProcess.getEmailConfirmationPage.bind(AccountProcess)});
             methods.push({"method":"POST",  "url":"/signup",        "handler":AccountProcess.createCredentials.bind(AccountProcess)});
             methods.push({"method":"GET",   "url":"/signout",       "handler":AccountProcess.getSignOutPage.bind(AccountProcess)});
 

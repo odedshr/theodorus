@@ -15,6 +15,7 @@
     "profile_images_folders":"../theodorus-profile-images",
     "processes": [
         "processes/TestUnitProcess",
+        "processes/MailProcess",
         "processes/AccountProcess",
         "processes/UserProcess",
         "processes/TopicProcess",

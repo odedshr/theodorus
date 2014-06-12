@@ -5,7 +5,7 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
     defaults: {
         "score": 0,
         "language": DEFAULT_LANGUAGE,
-        permissions: {}
+        permissions: {} // user with default might be anonymous who doesn't have any permissions
     },
 
     can: function (permission) {
@@ -40,22 +40,7 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
     setPublic: function (key,value) {
         return this.data("public",key,value);
     },
-
-    xml: function () {
-        //TODO: add penalties, badges, scores
-        var obj = this.toJSON(),
-            xml = this.xmlAttribute("email")+
-                  this.xmlAttribute("display_name")+
-                  this.xmlAttribute("slug")+
-                  this.xmlAttribute("SN")+
-                  this.xmlAttribute("bio")+
-                  this.xmlAttribute("picture")+
-                  this.xmlAttribute("birthday")+
-                  this.xmlAttribute("language")+
-                  this.xmlAttribute("score")+
-                  this.xmlAttribute("badges");
-        return "<user"+(obj.user_id ? ' id="'+obj.user_id+'"' : '')+">" + xml + "</user>";
-    },*/
+*/
 
     collection: "users",
     key:"user_id",
@@ -71,6 +56,8 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
     }
 });
 
+User.initialPermissions = {"suggest":true,"feedback":true,"comment":true};
+
 User.Account = User.extend({
     schema: { // This is all the information
         "user_id":"number",
@@ -81,8 +68,6 @@ User.Account = User.extend({
         "isModerator":"boolean",
         "isPolitician":"boolean",
         "picture":"string",
-        "email":"string",
-        "isEmailVerified":"boolean",
         "birthday":"string",
         "language":"string",
         "score":"number",
