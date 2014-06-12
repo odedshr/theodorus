@@ -419,6 +419,13 @@ h3 {
 .form_authentication .form-buttons button {
   float: left;
 }
+.page-confirm-email-sent .notes {
+  margin: 1rem 0;
+}
+.page-confirm-email-sent .note {
+  float: none;
+  clear: both;
+}
 /* ================================================================================================================== */
 .form_add_topic {
   margin-right: 1rem;
@@ -764,15 +771,15 @@ h3 {
   direction: ltr;
 }
 /* ================================================================================================================== */
-.page_message {
+.error-message {
   float: right;
-  margin: 1rem 16rem;
+  margin: 1rem 1rem;
 }
-.page_message h2 {
+.error-message h2 {
   color: #333;
   display: inline;
 }
-.page_message a {
+.error-message a {
   display: block;
   margin-top: 1rem;
 }

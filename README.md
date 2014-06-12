@@ -26,6 +26,14 @@ to educate people to participate in the political debate and encourage them to e
   - process.env.THEODORUS_MYSQL_USER
   - process.env.THEODORUS_MYSQL_PASSWORD
   - process.env.THEODORUS_MYSQL_SCHEMA
+* Mailer information
+  - process.env.THEODORUS_MAIL_SERVICE
+  - process.env.THEODORUS_MAIL_USER
+  - process.env.THEODORUS_MAIL_PASSWORD
+
+setenv THEODORUS_MAIL_SERVICE Gmail
+setenv THEODORUS_MAIL_USER theodorus972@gmail.com
+setenv THEODORUS_MAIL_PASSWORD q1W@e3R$
 
 ###  Installation
   1. sign up for openshift
@@ -36,7 +44,12 @@ to educate people to participate in the political debate and encourage them to e
   6. Add cartridge "MySQL 5.5"
   7. Enable Jenkins
   8. You may want to add phpMyAdmin 4.0 if you used non-scalable process
-  9. For local server, be sure to install Imagemagick (for mac os x it's "brew install imagemagick")
+  9. For local server
+  9.2 the above mentioned settings:
+  ```bash
+  sudo vi /etc/launchd.conf
+  ```
+  9.1. be sure to install Imagemagick (for mac os x it's "brew install imagemagick")
   10. make sure git won't delete the profile-images folder:
   ```bash
 rhc ssh -a #cartridge_name#
@@ -55,3 +68,4 @@ cd /runtime/theodorus-profile-images
 - v0.8 - a basic verion of responsive css layout
 - v0.8.1 - escaping all input to safe-tify input, fixed bug in responsive layout, added warning for DB integrity errors
 - 0.9 - colored tags, much faster page loading and rendering
+- 0.10 - fixed bug in signin, added email capabilities, added email confirmation

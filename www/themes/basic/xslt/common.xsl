@@ -13,12 +13,12 @@
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:exslt="http://exslt.org/common">
+                xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
     <xsl:import href="account.xsl" />
     <xsl:import href="feed.xsl" />
-    <xsl:import href="moderator.xsl" />
-    <xsl:import href="tools.xsl" />
     <xsl:import href="topic.xsl" />
+    <!--<xsl:import href="moderator.xsl" />
+    <xsl:import href="tools.xsl" />-->
     <xsl:output method="html" encoding="UTF-8"/>
 
     <xsl:template match="/">
@@ -180,9 +180,12 @@
     </xsl:template>
 
     <xsl:template match="page[@type='message']">
-        <div class="page_message">
+        <div class="error-message">
             <h2><xsl:value-of select="$error_has_occoured" />: <xsl:apply-templates select="message" /></h2>
-            <a href="{referer}"><xsl:value-of select="$previous_page" /></a>
+            <xsl:choose>
+                <xsl:when test="referer"><a href="{referer}"><xsl:value-of select="$previous_page" /></a></xsl:when>
+                <xsl:otherwise><a href="/"><xsl:value-of select="$link_to_main_page" /></a></xsl:otherwise>
+            </xsl:choose>
         </div>
     </xsl:template>
 
@@ -228,6 +231,9 @@
             </div>
         </div>
     </xsl:template>
+
+    <xsl:template match="mail-subject"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailSubjects)/*[@key=$vSelector]"/></xsl:template>
+    <xsl:template match="mail-body"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailBody)/*[@key=$vSelector]"/></xsl:template>
 
     <xsl:template match="testUnits">
        <h1>Theodorus Unit Tests</h1>

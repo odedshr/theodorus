@@ -39,16 +39,21 @@ function update (connection, item, callback) {
             filters.push("("+key + " = '"+whereSet[key]+"')");
         }
     }
-    var query = "UPDATE "+prefix+item.collection+" SET "+parameters.join(", ") + " WHERE ("+filters.join(" AND ") +");";
-    connection.query(query, function(err, result) {
-        if (err) {
-            throw err;
-        } else if (result.affectedRows==0 && !item.autoId) {
-            insert (connection, item, callback);
-        } else {
-            callback(item);
-        }
-    });
+    if (parameters.length==0) {
+        insert (connection, item, callback);
+    } else {
+        var query = "UPDATE "+prefix+item.collection+" SET "+parameters.join(", ") + " WHERE ("+filters.join(" AND ") +");";
+        connection.query(query, function(err, result) {
+            if (err) {
+                console.error("UPDATE failed: \n"+query+"\n"+err);
+                throw err;
+            } else if (result.affectedRows==0 && !item.autoId) {
+                insert (connection, item, callback);
+            } else {
+                callback(item);
+            }
+        });
+    }
 }
 
 function insert (connection, item, callback) {
@@ -68,8 +73,7 @@ function insert (connection, item, callback) {
         if (err) {
             console.error("INSERT failed: \n"+query+"\n"+err);
             throw err;
-        }
-        if (item.autoId) {
+        } else if (item.autoId) {
             item.set(item.key,result.insertId);
         }
         callback(item);
@@ -78,24 +82,24 @@ function insert (connection, item, callback) {
 
 exports.save = function (item, callback) {
     var query = null;
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            console.error("save/getConnection error:" + error +"\n"+query);
-            callback (false);
-        } else {
-            try {
-                if (!item.key || (typeof item.get(item.key) !== "undefined")) {
-                    update(connection,item,callback);
-                } else {
-                    insert (connection, item, callback);
-                }
-                connection.end();
-            } catch (error) {
-                console.error("save error:" + error +"\n"+query);
-                callback (false);
+    try {
+        pool.getConnection(function(error, connection) {
+            if (error) {
+                console.error("save/getConnection error:" + error);
+                callback (false, error);
+            } else {
+                    if (!item.key || (typeof item.get(item.key) !== "undefined")) {
+                        update(connection,item,callback);
+                    } else {
+                        insert (connection, item, callback);
+                    }
+                    connection.end();
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error("save error:" + error +"\n"+query);
+        callback (false, error);
+    }
 };
 
 function sanitizeJSONObject (item) {

@@ -56,9 +56,12 @@
         <error type="no-permission">לא ניתן להסיר פריט</error>
         <result type="comment-too-long">התגובה ארוכה מדי</result>
         <result type="comment-too-short">התגובה קצרה מדי</result>
+        <error type="item-not-found">הפריט לא נמצא</error>
         <error type="topic-not-found">הודעה לא נמצאה</error>
         <error type="comment-not-found">תגובה לא נמצאה</error>
         <error type="image-process-failed">עיבוד תמונה נכשל</error>
+        <error type="user-already-activated">המשתמש כבר פעיל. אין צורך באימות הדואל...</error>
+        <error type="email-confirmation-invalid">אימות הדואל נכשל. קוד האימות שגוי.</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
@@ -87,10 +90,21 @@
 
     <xsl:param name="title_signin" select="'תיאודורוס: התחברות'"/>
     <xsl:param name="title_signup" select="'תיאודורוס: הרשמה'"/>
+    <xsl:param name="explain_confirm_email">
+        <span>בסיום תהליך ההרשמה הקצר לתיאדורוס תוכלו לקחת חלק פעיל בקהילה ולהשתתף בתהליך הדמוקרטי.</span><br/>
+        <span>ראשית, יש לאמת את כתובת הדואל שלך:</span>
+    </xsl:param>
+    <xsl:param name="btn_confirm_email" select="'לאימות הדואל, לחצו כאן'"/>
+    <xsl:param name="explain_email_confirmation_email">קיבלת את הדואל? מצוין! כעת נותר רק להשלים להשלים את תהליך ההרשמה ולהתחיל לתרום לקהילה שלך.</xsl:param>
+
+    <xsl:param name="lbl_confirm_email_sent" select="'מכתב אישור נשלח לכתובת הדואל שלך!'"/>
+    <xsl:param name="explain_confirm_email_check_email" select="'על מנת להמשיך בתהליך ההרשמה יש ללחוץ על הקישור שמופיע במכתב האימות.'"/>
+    <xsl:param name="explain_confirm_email_check_spam" select="'המכתב לא הגיע? כדאי לבדוק בתיבת הספאם.'"/>
+
     <xsl:param name="lbl_name" select="'שם (או כינוי)'"/>
     <xsl:param name="lbl_name_example" select="'לדוגמא: ישראל ישראלי'"/>
-    <xsl:param name="lbl_email" select="'דואל'"/>
-    <xsl:param name="lbl_email_example" select="'לדוגמא: israel@gmail.com'"/>
+    <xsl:param name="lbl_email" select="'כתובת דואל מלאה'"/>
+    <xsl:param name="lbl_email_example" select="'e.g.: israel@gmail.com'"/>
     <xsl:param name="lbl_password" select="'סיסמא'"/>
     <xsl:param name="lbl_repeat_password" select="'סיסמה בשנית'"/>
     <xsl:param name="lbl_terms_of_use" select="'אני מאשר שקראתי ואני מסכים לפעול לפי כללי השימוש במערכת'"/>
@@ -101,43 +115,43 @@
             <li>
                 <h4>סיסמא לא מאובטחת</h4>
                 <ul>
-                    <li>3 תוים לפחות</li>
-                    <li>כל התוים שייכים לאותה קבוצה (ספרות, אותיות גדולות, אותיות קטנות)</li>
-                    <li>דוגמאות: “easy”,”8892″,”NOTSECURE”</li>
+                    <li class="note">3 תוים לפחות</li>
+                    <li class="note">כל התוים שייכים לאותה קבוצה (ספרות, אותיות גדולות, אותיות קטנות)</li>
+                    <li class="note">דוגמאות: “easy”,”8892″,”NOTSECURE”</li>
                 </ul>
             </li>
             <li>
                 <h4>סיסמא סבירה</h4>
                 <ul>
-                    <li>6 תוים לפחות</li>
-                    <li>שילוב של ספרות ואותיות</li>
-                    <li>לדוגמא: “common1″,”7etmein”</li>
+                    <li class="note">6 תוים לפחות</li>
+                    <li class="note">שילוב של ספרות ואותיות</li>
+                    <li class="note">לדוגמא: “common1″,”7etmein”</li>
                 </ul>
             </li>
             <li>
                 <h4>סיסמא מאובטחת</h4>
                 <ul>
-                    <li>8 תוים לפחות</li>
-                    <li>שילוב של אותיות גדולות וקטנות עם ספרות או סימנים מיוחדים</li>
-                    <li>לדוגמא: “15NotEasy”,”Bett.er-Yet”</li>
+                    <li class="note">8 תוים לפחות</li>
+                    <li class="note">שילוב של אותיות גדולות וקטנות עם ספרות או סימנים מיוחדים</li>
+                    <li class="note">לדוגמא: “15NotEasy”,”Bett.er-Yet”</li>
                 </ul>
             </li>
             <li>
                 <h4>סיסמא סופר-מאובטחת</h4>
                 <ul>
-                    <li>8 תוים לפחות</li>
-                    <li>שילוב של כל קבוצות התוים האפשריות</li>
-                    <li>לדוגמא: ”o0Q!i9W@e3”</li>
+                    <li class="note">8 תוים לפחות</li>
+                    <li class="note">שילוב של כל קבוצות התוים האפשריות</li>
+                    <li class="note">לדוגמא: ”o0Q!i9W@e3”</li>
                 </ul>
             </li>
         </ul>
     </xsl:param>
     <xsl:param name="terms_of_use">
         <ol>
-            <li>אין לעודד אלימות</li>
-            <li>אין לפרסם תוכן שיווקי שאיננו רלוונטי לדיון</li>
-            <li>אין לפגוע בזכויות יוצרים</li>
-            <li>המשתמש/ת הינו/הינה האחראי/ת הבלעדי/ת לתוכן שהוא/היא פירסם/פירסמה</li>
+            <li class="note">אין לעודד אלימות</li>
+            <li class="note">אין לפרסם תוכן שיווקי שאיננו רלוונטי לדיון</li>
+            <li class="note">אין לפגוע בזכויות יוצרים</li>
+            <li class="note">המשתמש/ת הינו/הינה האחראי/ת הבלעדי/ת לתוכן שהוא/היא פירסם/פירסמה</li>
         </ol>
     </xsl:param>
 
@@ -150,11 +164,13 @@
     <xsl:param name="btn_ok" select="'אישור'"/>
     <xsl:param name="btn_cancel" select="'ביטול'"/>
     <xsl:param name="welcome" select="'ברוכים הבאים'"/>
+    <xsl:param name="almost_completed" select="'כמעט וסיימנו...'"/>
     <xsl:param name="welcome_back" select="'ברוכים השבים'"/>
     <xsl:param name="nav_blog" select="'בלוג הפרוייקט'"/>
     <xsl:param name="nav_features" select="'פיצ׳רים'"/>
     <xsl:param name="nav_sourcecode" select="'הקוד'"/>
     <xsl:param name="nav_donations" select="'תרומות'"/>
+    <xsl:param name="link_to_main_page" select="'לעמוד הראשי'"/>
     <xsl:param name="back_to_main_page" select="'בחזרה לעמוד הראשי'"/>
     <xsl:param name="back_to_main_list" select="'בחזרה לרשימה הראשית'"/>
 
@@ -192,8 +208,8 @@
     <xsl:param name="file_not_found-what_to_do">
         <p>עימך הסליחה, אבל הפריט אליו ניסית לגשת לא קיים</p>
         <ul>
-            <li>ייתכן ויש שגיאה בכתובת?</li>
-            <li>ייתכן והלינק לא מעודכן?</li>
+            <li class="note">ייתכן ויש שגיאה בכתובת?</li>
+            <li class="note">ייתכן והלינק לא מעודכן?</li>
         </ul>
         <p>חזור ל<a href="/">דף הראשי</a></p>
     </xsl:param>
@@ -224,6 +240,13 @@
     <xsl:param name="btn_update_image" select="'עדכון תמונה'"/>
     <xsl:param name="btn_remove_image" select="'הסרת תמונה'"/>
     <xsl:param name="approve_profile_image" select="'נא לאשר את תמונת הפרופיל'"/>
+
+    <xsl:variable name="mailSubjects">
+        <label key="email-confirm">ברוכים הבאים לתיאודורוס</label>
+        <label key="invite-to-app">קיבלת הזמנה לתיאודורוס</label>
+        <label key="invite-to-topic">קיבלת הזמנה לדיון בנושא #</label>
+        <label key="daily-report">תיאודורוס: דיווח יומי</label>
+    </xsl:variable>
 
     <xsl:template match="/">
         <xsl:apply-templates />

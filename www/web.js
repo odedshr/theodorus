@@ -7,12 +7,16 @@ var config = require("../config.json"),
 var WebApplication = function () {
     var self = this;
     self.config = config;
-    self.crypto = require("crypto");
     self.qs = require("querystring");
     self.formidable = require("formidable");
     self.db = require ('./js/db/DbApi').get(config);
     self.rsa = require("./js/RSA");
     self.utils = require("./js/utilities");
+    self.mailer = require("./js/processes/MailProcess");
+    self.crypto = require("crypto");
+    self.encrypt = function encrypt (string) {
+        return self.crypto.createHash('md5').update(string).digest('hex');
+    }
     self.rsa_keys =  {
         "encryption":process.env.THEODORUS_RSA_ENCRYPT,
         "decryption":process.env.THEODORUS_RSA_DECRYPT,
@@ -23,6 +27,7 @@ var WebApplication = function () {
         this.req = req;
         this.res = res;
         this.url = req.url;
+        this.server = req.protocol + '://' + req.get('host')
         this.isJSON = (req.get("accept").indexOf("json")!=-1);
 
         this.cookie = function (userId, remember) {
@@ -116,11 +121,14 @@ var WebApplication = function () {
                                 "@type": "error",
                                 "@message": errorMessage
                             },
-                            "user": this.user,
-                            "referer":this.req.headers['referer']
+                            "user": this.user
                         }
                     }
                 };
+                if (this.req.headers['referer']==(self.server+self.url)) {
+                    console.log (this.req.headers['referer']+"=="+(self.server+self.url));
+                    output.app.page.referer = this.req.headers['referer'];
+                }
                 output.app[key] = data;
             }
             return output;
@@ -183,9 +191,14 @@ var WebApplication = function () {
     };
 
     self.xslt = function (content) {
-        var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
-            xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.utils.json2xml (content) : content)+"</xml>");
-        return xslt.transform( xsltDocument,xmlDocument, []);
+        try {
+            var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
+                xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.utils.json2xml (content) : content)+"</xml>");
+            return xslt.transform( xsltDocument,xmlDocument, []);
+        } catch (error) {
+            console.error("failed to xslt "+ ((typeof content === "object") ? self.utils.json2xml (content) : content) +"\n" + error);
+            return "";
+        }
     };
 
     /////////////////////////////////////////////////////////////////////
@@ -257,6 +270,7 @@ var WebApplication = function () {
     self.initialize = function () {
         var app = self.app = express(),
             profilesFolder = self.config.profile_images_folders;
+
         app.use(express.cookieParser());
         //app.use(express.bodyParser({ keepExtensions: true }));
         app.use(express.static(__dirname ));
@@ -307,9 +321,6 @@ try {
 } catch (error) {
     console.error((new Date()) + " | Failed to initialize app\n" + error);
 }
-
-
-
 /*
 
 
