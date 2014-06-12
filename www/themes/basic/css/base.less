@@ -237,6 +237,15 @@ h3 {
     button { float: left; }
   }
 }
+
+.page-confirm-email-sent {
+  .notes { margin: 1rem 0; }
+  .note {
+    float: none;
+    clear: both;
+  }
+}
+
 /* ================================================================================================================== */
 .form_add_topic {
   margin-right: 1rem;
@@ -555,9 +564,9 @@ h3 {
   }
 }
 /* ================================================================================================================== */
-.page_message {
+.error-message {
   float:right;
-  margin:1rem 16rem;
+  margin:1rem 1rem;
 
   h2 {
     color: #333;
@@ -645,10 +654,13 @@ h3 {
     margin-top: 0.5rem;
   }
 
-  .form_signup .form-buttons {
-    margin-left: 2.5rem;
-  }
+  .form_signup {
+    .signup-confirm-mail-intro {}
 
+    .form-buttons {
+      margin-left: 2.5rem;
+    }
+  }
 }
 
 @media only screen and (min-width: 481px) and (max-width: 700px) {

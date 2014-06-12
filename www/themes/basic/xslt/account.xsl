@@ -72,33 +72,61 @@
                 <input type="hidden" id="referer" name="referer" value="{//app/page/referer}" />
                 <button id="button-signin" type="submit"><xsl:value-of select="$btn_submit_signin" /></button>
                 <!--button id="button-cancel" type="reset"><xsl:value-of select="$btn_cancel" /></button-->
-                <a href="{//app/page/referer}" class="button-cancel"><xsl:value-of select="$btn_cancel" /></a>
+                <a href="{//app/page/referer}" class="button-cancel" onclick="history.go(-1);return false;"><xsl:value-of select="$btn_cancel" /></a>
             </div>
         </form>
     </xsl:template>
 
-    <xsl:template match="page[@type='signup']">
+    <xsl:template match="page[@type='confirm-email']">
         <form id="form_signup" action="/signup" method="post" class="page_form form_authentication form_signup">
             <h2><xsl:value-of select="$welcome" /></h2>
-            <div>
-                <label><xsl:value-of select="$lbl_name" /></label>
-                <input type="text" id="name" name="name" required="required" pattern=".{{4,}}" placeholder="{$lbl_name_example}"/>
-            </div>
+            <div class="signup-confirm-mail-intro"><xsl:value-of select="$explain_confirm_email" /></div>
             <div>
                 <label><xsl:value-of select="$lbl_email" /></label>
                 <input type="email" id="email" name="email" required="required" placeholder="{$lbl_email_example}"/>
             </div>
+            <div class="form-buttons">
+                <button id="button-signup" type="submit"><xsl:value-of select="$btn_submit_signup" /></button>
+                <a href="{//app/page/referer}" class="button-cancel" onclick="history.go(-1);return false;"><xsl:value-of select="$btn_cancel" /></a>
+            </div>
+        </form>
+    </xsl:template>
+
+    <xsl:template match="page[@type='confirm-email-sent']">
+        <div class="page_form page-confirm-email-sent">
+            <h2><xsl:value-of select="$lbl_confirm_email_sent" /></h2>
+            <ul class="notes">
+                <li class="note"><xsl:value-of select="$explain_confirm_email_check_email" /></li>
+                <li class="note"><xsl:value-of select="$explain_confirm_email_check_spam" /></li>
+            </ul>
+            <a href="/" class="button-back"><xsl:value-of select="$back_to_main_page" /></a>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="page[@type='signup']">
+        <form id="form_signup" action="/signup" method="post" class="page_form form_authentication form_signup">
+            <input type="hidden" id="email" name="email" value="{email}"/>
+
+            <h2><xsl:value-of select="$almost_completed" /></h2>
+            <div>
+                <label><xsl:value-of select="$lbl_name" /></label>
+                <input type="text" id="name" name="name" required="required" pattern=".{{4,}}" placeholder="{$lbl_name_example}" value="{name}" />
+            </div>
             <div>
                 <label><xsl:value-of select="$lbl_password" /></label>
-                <input type="password" id="password" name="password" required="required" pattern=".{{3,}}"/>
+                <input type="password" id="password" name="password" required="required" pattern=".{{3,}}" value="{password}"/>
                 <input type="hidden" id="md5" name="md5" value="false"/>
             </div>
             <div>
                 <label><xsl:value-of select="$lbl_repeat_password" /></label>
-                <input type="password" id="password_repeat" name="password_repeat" required="required"/>
+                <input type="password" id="password_repeat" name="password_repeat" required="required" value="{password_repeat}"/>
             </div>
             <div class="terms_of_use">
-                <input type="checkbox" id="terms_of_use" name="terms_of_use" required="required"/>
+                <input type="checkbox" id="terms_of_use" name="terms_of_use" required="required">
+                <xsl:if test="terms_of_use">
+                    <xsl:attribute name="checked">checked</xsl:attribute>
+                </xsl:if>
+                </input>
                 <label><xsl:value-of select="$lbl_terms_of_use" /></label>
                 <div id="terms-of-use" class="terms_of_use_details"><xsl:copy-of select="$terms_of_use" /></div>
             </div>
@@ -154,6 +182,32 @@
                 <button id="button-reject-profile-image" name="reject" type="submit" value="true"><xsl:value-of select="$btn_cancel" /></button>
             </div>
         </form>
+    </xsl:template>
+
+    <xsl:template match="mail[@type='email-confirm']">
+        <style>
+            .theodorus-mail h1 {
+                background-image: url('<xsl:value-of select="data/server"/>/ui/img/theodorus_logo_small.png');
+                background-repeat: no-repeat;
+                clear: both;
+                direction: ltr;
+                height: 55px;
+                margin: 0.5rem auto 0;
+                width: 173px;
+            }
+            .theodorus-mail h1 span { display: none; }
+            .theodorus-mail .link-confirm {
+                color: #105cb6;
+                text-align: center;
+            }
+        </style>
+        <div class="theodorus-mail">
+            <h1><span><xsl:value-of select="$app_name" /></span></h1>
+            <div>
+                <xsl:value-of select="$explain_email_confirmation_email" />
+            </div>
+            <a class="link-confirm" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
+        </div>
     </xsl:template>
 
 </xsl:stylesheet>
