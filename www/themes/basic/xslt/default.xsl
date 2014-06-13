@@ -34,6 +34,7 @@
     <xsl:param name="error_has_occoured" select="'אירעה שגיאה'"/>
     <xsl:param name="error_unknown" select="'שגיאה לא ידועה'"/>
     <xsl:variable name="errorMessages">
+        <error type="page-not-found">העמוד המבוקש לא נמצא</error>
         <error type="name-too-short">שם המשתמש קצר מדי</error>
         <error type="passwords-dont-match">הסיסמאות אינן תואמות</error>
         <error type="password-too-short">הסיסמא קצרה מדי</error>
@@ -62,12 +63,16 @@
         <error type="image-process-failed">עיבוד תמונה נכשל</error>
         <error type="user-already-activated">המשתמש כבר פעיל. אין צורך באימות הדואל...</error>
         <error type="email-confirmation-invalid">אימות הדואל נכשל. קוד האימות שגוי.</error>
+        <error type="email-is-unknown">דואל זה איננו רשום במערכת</error>
+        <error type="old-password-is-wrong">הסיסמא הישנה שגויה</error>
         <error type="unknown_error">שגיאה לא ידועה</error>
     </xsl:variable>
 
     <xsl:variable name="infoMessages">
         <error type="authenticating">מאמת נתונים</error>
         <error type="sending-data">שולח מידע</error>
+        <error type="reset-email-sent">הוראות לעדכון הסיסמא נשלחו לתיבת הדואל שלך</error>
+        <error type="password-changed">סיסמא עודכנה בהצלחה</error>
     </xsl:variable>
 
     <xsl:variable name="timestamps">
@@ -101,12 +106,29 @@
     <xsl:param name="explain_confirm_email_check_email" select="'על מנת להמשיך בתהליך ההרשמה יש ללחוץ על הקישור שמופיע במכתב האימות.'"/>
     <xsl:param name="explain_confirm_email_check_spam" select="'המכתב לא הגיע? כדאי לבדוק בתיבת הספאם.'"/>
 
+
+    <xsl:param name="title_forgotPassword" select="'שכחת את הסיסמא שלך?'"/>
+    <xsl:param name="explain_forgot_password">
+        <span>לא נורא, זה קורה לכולם. לקבלת קישור לאיפוס הסיסמא לתיבת הדואל שלך, נא להזין את הכתובת -</span>
+    </xsl:param>
+
+    <xsl:param name="btn_send_link" select="'שליחת קישור'"/>
+    <xsl:param name="explain_reset_password_email">קיבלת את הדואל? מצוין! כעת נותר רק לקבוע סיסמא חדשה.</xsl:param>
+    <xsl:param name="explain_reset_password_email_warning">אם לא ביקשת איפוס סיסמא מישהו אחר הזין את הדואל שלך, אולי זאת הזדמנות טובה לבחור סיסמא חדשה בכל זאת</xsl:param>
+
+    <xsl:param name="link_change_password" select="'שינוי סיסמא'"/>
+    <xsl:param name="btn_reset_password" select="'לאיפוס הסיסמא, לחצו כאן'"/>
+    <xsl:param name="title_change_password" select="'עדכון סיסמא'"/>
+    <xsl:param name="btn_update_password" select="'עדכון סיסמא'"/>
+
     <xsl:param name="lbl_name" select="'שם (או כינוי)'"/>
     <xsl:param name="lbl_name_example" select="'לדוגמא: ישראל ישראלי'"/>
     <xsl:param name="lbl_email" select="'כתובת דואל מלאה'"/>
     <xsl:param name="lbl_email_example" select="'e.g.: israel@gmail.com'"/>
+    <xsl:param name="lbl_current_password" select="'סיסמא נוכחית'"/>
     <xsl:param name="lbl_password" select="'סיסמא'"/>
     <xsl:param name="lbl_repeat_password" select="'סיסמה בשנית'"/>
+    <xsl:param name="lbl_forgot_password" select="'שכחת סיסמא?'"/>
     <xsl:param name="lbl_terms_of_use" select="'אני מאשר שקראתי ואני מסכים לפעול לפי כללי השימוש במערכת'"/>
     <xsl:param name="lbl_remember_me" select="'זכור אותי'"/>
     <xsl:param name="password_security_instructions">
@@ -244,6 +266,7 @@
     <xsl:variable name="mailSubjects">
         <label key="email-confirm">ברוכים הבאים לתיאודורוס</label>
         <label key="invite-to-app">קיבלת הזמנה לתיאודורוס</label>
+        <label key="reset-password">תיאודורוס: איפוס סיסמא</label>
         <label key="invite-to-topic">קיבלת הזמנה לדיון בנושא #</label>
         <label key="daily-report">תיאודורוס: דיווח יומי</label>
     </xsl:variable>

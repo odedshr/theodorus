@@ -69,6 +69,7 @@ exports.count = function count (tableName, filters, callback) {
 }
 
 exports.getCredentials = function(authKey,callback) { exports.load(Credentials, authKey, callback); };
+exports.getCredentialsByUserId = function(userId,callback) { exports.load(Credentials, {"user_id": userId}, callback); };
 exports.getUser = function(userId,callback) { exports.load(User, userId, callback); };
 exports.getUserByName = function(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
 exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
