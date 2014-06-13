@@ -2,7 +2,8 @@ var config = require("../config.json"),
     _ = require("underscore"),
     express = require('express'),
     xslt = require('node_xslt'),
-    fileSystem = require("fs");
+    fileSystem = require("fs"),
+    YEAR = 31536000000;
 
 var WebApplication = function () {
     var self = this;
@@ -17,11 +18,12 @@ var WebApplication = function () {
     self.encrypt = function encrypt (string) {
         return self.crypto.createHash('md5').update(string).digest('hex');
     }
-    self.rsa_keys =  {
+    self.rsaKeys =  {
         "encryption":process.env.THEODORUS_RSA_ENCRYPT,
         "decryption":process.env.THEODORUS_RSA_DECRYPT,
         "modulus":process.env.THEODORUS_RSA_MODULUS
     };
+    self.uiVersion = false;
 
     function Session(req,res) {
         this.req = req;
@@ -37,8 +39,8 @@ var WebApplication = function () {
                     "userId": userId,
                     "remember": remember
                 });
-                this.res.cookie( config.cookie_token, self.rsa.generateKey(self.rsa_keys).encrypt(cookieString),
-                    { maxAge: remember ? 31536000000 : 900000, httpOnly: false}); // remember ? year : 15m
+                this.res.cookie( config.cookie_token, self.rsa.generateKey(self.rsaKeys).encrypt(cookieString),
+                    { maxAge: remember ? YEAR : 900000, httpOnly: false}); // remember ? year : 15m
                 return true;
             } else {
                 var cookies = {};
@@ -75,7 +77,7 @@ var WebApplication = function () {
                 userId= false;
             if (token = (token ? self.qs.unescape(token) : false)) {
                 try {
-                    token = JSON.parse(self.rsa.generateKey(self.rsa_keys).decrypt(token));
+                    token = JSON.parse(self.rsa.generateKey(self.rsaKeys).decrypt(token));
                     if (token.ip==this.req.socket.remoteAddress) {
                         this.cookie(token.userId,token.remember); // re-set the cookie
                         userId = token.userId
@@ -159,6 +161,10 @@ var WebApplication = function () {
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
         self.port      = process.env.OPENSHIFT_NODEJS_PORT || config.port || 8080;
 
+        if (self.getTheodorusMode()=="dev") {
+            self.uiVersion = (new Date()).toISOString();
+        }
+
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
             //  allows us to run/test the app locally.
@@ -192,8 +198,14 @@ var WebApplication = function () {
 
     self.xslt = function (content) {
         try {
+            if ((typeof content === "object")) {
+                if (content.app) {
+                    content.app["@version"] = self.uiVersion;
+                }
+                content = self.utils.json2xml (content);
+            }
             var xsltDocument = xslt.readXsltFile(__dirname + "/themes/"+config.theme+"/xslt/default.xsl"),
-                xmlDocument = xslt.readXmlString("<xml>"+((typeof content === "object") ? self.utils.json2xml (content) : content)+"</xml>");
+                xmlDocument = xslt.readXmlString("<xml>"+content+"</xml>");
             return xslt.transform( xsltDocument,xmlDocument, []);
         } catch (error) {
             console.error("failed to xslt "+ ((typeof content === "object") ? self.utils.json2xml (content) : content) +"\n" + error);
@@ -234,21 +246,22 @@ var WebApplication = function () {
          //TODO: remove addHandler's functionWrapper code duplication
          var url = handlerDef.url,
             method = handlerDef.method.toLowerCase(),
+            pluginWrapper = function pluginWrapper (res, session, handler) {
+                self.plugins(url, session, handler,function(output) {
+                    res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
+                });
+            },
             functionWrapper = (method=="get" || method=="delete") ?
             function (req,res) {
                 var session = self.getSession(req,res);
                 res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html')+ "; charset=utf8");
-                self.plugins(url, session, handlerDef.handler,function(output) {
-                    res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
-                });
+                pluginWrapper (res, session, handlerDef.handler);
             } :
             function (req,res) {
                 var session = self.getSession(req,res);
                 res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
                 session.useInput(function() {
-                    self.plugins(url, session, handlerDef.handler,function(output) {
-                        res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
-                    });
+                    pluginWrapper (res, session, handlerDef.handler);
                 });
             };
 
@@ -275,7 +288,12 @@ var WebApplication = function () {
         //app.use(express.bodyParser({ keepExtensions: true }));
         app.use(express.static(__dirname ));
         // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
+        app.get("/ui/version", function (req, res) {
+            res.writeHead(200, {'Content-Type': "text/json" });
+            res.end(JSON.stringify({"version": self.uiVersion})); //
+        });
         app.get(/^[\/]{1,2}ui\/.*$/, function(req, res){
+            res.setHeader('Cache-Control', 'public, max-age=' + (YEAR / 1000));
             var requestedFile = req.url.replace(/[\/]{1,2}ui\//,"www/themes/"+config.theme+"/").replace(/\?_=\d+$/,"");
             if (requestedFile.lastIndexOf(".css") == (requestedFile.length-4)) {
                 res.writeHead(200, {'Content-Type': "text/css" });
@@ -286,6 +304,7 @@ var WebApplication = function () {
         });
         // profile-images are stored outside the project
         app.get(/^[\/]{1,2}profileImage\/.*$/, function(req, res){
+            res.setHeader('Cache-Control', 'public, max-age=' + (YEAR / 1000));
             //TODO: move this function to accountProcess (problem that process output must be json/text)
             var image = req.url.replace(/[\/]{1,2}profileImage\//,profilesFolder+"/");
             fileSystem.exists(image, function (exists) {

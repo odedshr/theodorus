@@ -5,6 +5,8 @@
 ////////////////////////////////////////////////////
 
 utils = {
+    useLocalStorage : false,
+
     date: {
         /*
          * @param {string} dateString - ISO date formatted string
@@ -75,9 +77,38 @@ utils = {
         }
     },
 
+    preloadXSLT : function (callback) {
+        function recursiveLoad (filename, callback) {
+            var children = {}
+            $.ajax({
+                cache: "true",
+                dataType: "text",
+                url : "/ui/xslt/" + filename,
+                success : function (data) {
+                    localStorage.setItem(filename,data);
+                    var imports = data.match(/<xsl:import href="([a-zA-Z0-9\-_.]+)" \/>/g);
+                    if (imports && imports.length) {
+                        children[filename] = imports.length;
+                        for (var i in imports){
+                            recursiveLoad (imports[i].match(/"([a-zA-Z0-9\-_.]+)"/)[0].replace(/"/g,""), function () {
+                                children[filename]--;
+                                if (!children[filename]) {
+                                    callback();
+                                }
+                            });
+                        };
+                    } else {
+                        callback();
+                    }
+                }
+            });
+        }
+        recursiveLoad ("default.xsl", callback);
+    },
+
     xslt : {
         transform : function transform(targetQuery, content, successFunction) {
-            (targetQuery ? $(targetQuery) : $).transform ({
+            var transformData = {
                 async: false,
                 xslCache: true,
                 xmlstr:"<xml>"+(typeof content == "string" ? content : utils.xslt.json2xml(content))+"</xml>",
@@ -86,7 +117,14 @@ utils = {
                 error: function (output) {
                     console.error ("error transforming "+ output);
                 }
-            });
+            };
+
+            if (utils.useLocalStorage) {
+                transformData.xslstr = localStorage.getItem("default.xsl");
+            } else {
+                transformData.xsl = "/ui/xslt/default.xsl";
+            }
+            (targetQuery ? $(targetQuery) : $).transform ();
         },
         json2xmlEngine : function json2xmlEngine(jsObj, tagName, ind) {
             var filteredType = ["undefined","function"],

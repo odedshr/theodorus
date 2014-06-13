@@ -69,3 +69,4 @@ cd /runtime/theodorus-profile-images
 - v0.8.1 - escaping all input to safe-tify input, fixed bug in responsive layout, added warning for DB integrity errors
 - 0.9 - colored tags, much faster page loading and rendering
 - 0.10 - fixed bug in signin, added email capabilities, added email confirmation
+- 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
