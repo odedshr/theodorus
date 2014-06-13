@@ -602,7 +602,7 @@ var AccountProcess = (function () {
                 }
             });
         },
-        
+
         updatePassword: function updatePassword (session, callback) {
             var input = session.input || {},
                 email = input.email,
@@ -610,6 +610,32 @@ var AccountProcess = (function () {
                 oldPassword = input.old_password,
                 password = input.password,
                 passwordRepeat = input.password_repeat,
+                onCredentialLoaded = function onCredentialLoaded (credential) {
+                    if (credential) {
+                        if (!hash && (credential.get("password") != io.encrypt(oldPassword))){
+                            return throwError("old-password-is-wrong","change-password");
+                        } else if (hash && (hash != io.encrypt("reset" + email))) {
+                            return throwError("email-confirmation-invalid","forgot-password");
+                        } else if ("true" != input.md5) {
+                            if (password.length <= io.config.minimum_password_length) {
+                                return throwError("password-too-short", "reset-password");
+                            } else {
+                                password = io.crypto.createHash('md5').update(password).digest('hex');
+                                passwordRepeat = io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
+                            }
+                        }
+                        if (password != passwordRepeat) {
+                            return throwError("passwords-dont-match");
+                        }
+                        credential.set("password", password);
+                        io.db.save(credential, function () {
+                            onFinish ("password-changed");
+                        });
+
+                    } else {
+                        return throwError("email-is-unknown");
+                    }
+                },
                 throwError = function throwError (errorMessage) {
                     callback(session.isJSON ?
                     {error: {"error": errorMessage}} : {
@@ -631,46 +657,34 @@ var AccountProcess = (function () {
                     if (session.isJSON) {
                         callback({"result":message});
                     } else {
-                        (io.getHandler("get",hash ? "/signin" : "/me"))( session, function (signInPage) {
-                            signInPage.app = signInPage.app || {};
-                            signInPage.app.message = {
+                        session.url = "/me"; // /me return json if it's not the main url
+                        (io.getHandler("get", hash ? "/signin" : "/me"))( session, function (nextPage) {
+                            nextPage.app = nextPage.app || {};
+                            nextPage.app.message = {
                                 "@type": "info",
                                 "@message": message
                             };
-                            callback(signInPage);
+                            callback(nextPage);
                         });
                     }
                 };
 
-            if (!oldPassword && (hash != io.encrypt("reset" + email))) {
+            if (oldPassword){
+                session.useUserId(function(userId) {
+                    if (userId) {
+                        io.db.getCredentialsByUserId(userId, onCredentialLoaded);
+                    } else {
+                        console.error("updatePassword : no user-id found")
+                        return throwError("operation-failed");
+                    }
+                })
+            } else if (hash == io.encrypt("reset" + email)) {
+                io.db.getCredentials(email, onCredentialLoaded);
+            } else {
+                console.error("updatePassword : no old password and hash didn't match")
                 return throwError("operation-failed");
             }
-            io.db.getCredentials(email, function (credential) {
-                if (credential) {
-                    if (!hash && (credential.get("password") != io.encrypt(oldPassword))){
-                        return throwError("old-password-is-wrong","change-password");
-                    } else if (hash && (hash != io.encrypt("reset" + email))) {
-                        return throwError("email-confirmation-invalid","forgot-password");
-                    } else if ("true" != input.md5) {
-                        if (password.length <= io.config.minimum_password_length) {
-                            return throwError("password-too-short", "reset-password");
-                        } else {
-                            password = io.crypto.createHash('md5').update(password).digest('hex');
-                            passwordRepeat = io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
-                        }
-                    }
-                    if (password != passwordRepeat) {
-                        return throwError("passwords-dont-match");
-                    }
-                    credential.set("password", password);
-                    io.db.save(credential, function () {
-                        onFinish ("password-changed");
-                    });
 
-                } else {
-                    return throwError("email-is-unknown");
-                }
-            });
         }
     };
 }());

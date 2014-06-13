@@ -265,6 +265,13 @@ var WebApplication = function () {
                 self.log("failed to init "+libraryName + " ("+error+")","error");
             }
         });
+        self.app.get('/404', function(req, res, next){
+            // trigger a 404 since no other middleware
+            // will match /404 after this one, and we're not
+            // responding here
+            console.error("11111");
+            next();
+        });
     };
 
     self.initialize = function () {

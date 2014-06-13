@@ -159,7 +159,7 @@
             <input type="hidden" id="hash" name="hash" value="{hash}"/>
 
             <h2><xsl:value-of select="$title_change_password" /></h2>
-            <xsl:if test="not(hash)">
+            <xsl:if test="not(hash) or hash = ''">
                 <div>
                     <label><xsl:value-of select="$lbl_current_password" /></label>
                     <input type="password" id="oldPassword" name="old_password" required="required" pattern=".{{3,}}" value="{old_password}"/>

@@ -34,6 +34,7 @@
     <xsl:param name="error_has_occoured" select="'אירעה שגיאה'"/>
     <xsl:param name="error_unknown" select="'שגיאה לא ידועה'"/>
     <xsl:variable name="errorMessages">
+        <error type="page-not-found">העמוד המבוקש לא נמצא</error>
         <error type="name-too-short">שם המשתמש קצר מדי</error>
         <error type="passwords-dont-match">הסיסמאות אינן תואמות</error>
         <error type="password-too-short">הסיסמא קצרה מדי</error>
