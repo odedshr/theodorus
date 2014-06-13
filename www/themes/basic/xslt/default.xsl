@@ -72,7 +72,6 @@
         <error type="sending-data">שולח מידע</error>
         <error type="reset-email-sent">הוראות לעדכון הסיסמא נשלחו לתיבת הדואל שלך</error>
         <error type="password-changed">סיסמא עודכנה בהצלחה</error>
-
     </xsl:variable>
 
     <xsl:variable name="timestamps">
@@ -106,6 +105,7 @@
     <xsl:param name="explain_confirm_email_check_email" select="'על מנת להמשיך בתהליך ההרשמה יש ללחוץ על הקישור שמופיע במכתב האימות.'"/>
     <xsl:param name="explain_confirm_email_check_spam" select="'המכתב לא הגיע? כדאי לבדוק בתיבת הספאם.'"/>
 
+
     <xsl:param name="title_forgotPassword" select="'שכחת את הסיסמא שלך?'"/>
     <xsl:param name="explain_forgot_password">
         <span>לא נורא, זה קורה לכולם. לקבלת קישור לאיפוס הסיסמא לתיבת הדואל שלך, נא להזין את הכתובת -</span>
@@ -115,6 +115,7 @@
     <xsl:param name="explain_reset_password_email">קיבלת את הדואל? מצוין! כעת נותר רק לקבוע סיסמא חדשה.</xsl:param>
     <xsl:param name="explain_reset_password_email_warning">אם לא ביקשת איפוס סיסמא מישהו אחר הזין את הדואל שלך, אולי זאת הזדמנות טובה לבחור סיסמא חדשה בכל זאת</xsl:param>
 
+    <xsl:param name="link_change_password" select="'שינוי סיסמא'"/>
     <xsl:param name="btn_reset_password" select="'לאיפוס הסיסמא, לחצו כאן'"/>
     <xsl:param name="title_change_password" select="'עדכון סיסמא'"/>
     <xsl:param name="btn_update_password" select="'עדכון סיסמא'"/>

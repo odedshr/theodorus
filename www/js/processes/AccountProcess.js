@@ -30,6 +30,7 @@ var AccountProcess = (function () {
             methods.push({"method": "GET", "url": "/resetPassword", "handler": AccountProcess.getResetPasswordPage.bind(AccountProcess)});
             methods.push({"method": "POST", "url": "/resetPassword", "handler": AccountProcess.sendResetPasswordEmail.bind(AccountProcess)});
             methods.push({"method": "GET", "url": /\/resetPassword\/[0-9a-zA-Z\.\-_@]+\/[0-9a-zA-Z]+\/?$/, "handler": AccountProcess.passwordResetConfirmation.bind(AccountProcess)});
+            methods.push({"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)});
             methods.push({"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)});
 
             var profileImageFolder = io.config.profile_images_folders;
@@ -591,6 +592,17 @@ var AccountProcess = (function () {
             }
         },
 
+        getUpdatePasswordPage: function getUpdatePasswordPage (session, callback) {
+            callback({
+                "app": {
+                    "mode": io.getTheodorusMode(),
+                    "page": {
+                        "@type": "change-password"
+                    }
+                }
+            });
+        },
+        
         updatePassword: function updatePassword (session, callback) {
             var input = session.input || {},
                 email = input.email,

@@ -211,6 +211,7 @@
                         </xsl:if>
                     </div>
                 </form>
+                <a href="/password" class="link-change-password"><xsl:value-of select="$link_change_password" /></a>
             </xsl:if>
         </div>
     </xsl:template>

@@ -763,8 +763,11 @@ h3 {
 /* ================================================================================================================== */
 .user-profile {
   float: right;
-  margin-right: 15rem;
   padding: 1rem;
+}
+.user-profile .link-change-password {
+  margin-top: 1rem;
+  display: block;
 }
 .profile-image {
   border: 0.1rem solid #aaaaaa;
