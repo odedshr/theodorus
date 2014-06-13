@@ -31,6 +31,7 @@ var WebApplication = function () {
         this.url = req.url;
         this.server = req.protocol + '://' + req.get('host')
         this.isJSON = (req.get("accept").indexOf("json")!=-1);
+        this.referer = req.headers['referer'];
 
         this.cookie = function (userId, remember) {
             if (arguments.length>0) {
@@ -128,7 +129,6 @@ var WebApplication = function () {
                     }
                 };
                 if (this.req.headers['referer']==(self.server+self.url)) {
-                    console.log (this.req.headers['referer']+"=="+(self.server+self.url));
                     output.app.page.referer = this.req.headers['referer'];
                 }
                 output.app[key] = data;
@@ -161,7 +161,7 @@ var WebApplication = function () {
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
         self.port      = process.env.OPENSHIFT_NODEJS_PORT || config.port || 8080;
 
-        if (self.getTheodorusMode()=="dev") {
+        if (self.getTheodorusMode()!="dev") {
             self.uiVersion = (new Date()).toISOString();
         }
 
@@ -176,19 +176,6 @@ var WebApplication = function () {
     self.getTheodorusMode = function getTheodorusMode () {
         return process.env.THEODORUS_MODE;
     }
-/*    self.getScriptList = function () {
-        var list =(process.env.THEODORUS_MODE=="dev") ? config.clientScriptsDebug : config.clientScripts;
-        return (typeof list != "undefined") ? list : [];
-    };
-
-    self.getScriptListXML = function () {
-        var list = self.getScriptList(),
-            xml = "";
-        list.forEach(function(script) {
-            xml+= "<script src='"+script+"' />";
-        });
-        return xml;
-    };*/
 
     self.plugins = function (url,session,mainFunc,callback) {
         mainFunc(session,function(output) {

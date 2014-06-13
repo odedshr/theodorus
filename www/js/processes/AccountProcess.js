@@ -27,6 +27,11 @@ var AccountProcess = (function () {
             methods.push({"method": "GET", "url": "/profileImage/remove", "handler": AccountProcess.removeProfileImage.bind(AccountProcess)});
             methods.push({"method": "DELETE", "url": "/profileImage", "handler": AccountProcess.removeProfileImage.bind(AccountProcess)});
 
+            methods.push({"method": "GET", "url": "/resetPassword", "handler": AccountProcess.getResetPasswordPage.bind(AccountProcess)});
+            methods.push({"method": "POST", "url": "/resetPassword", "handler": AccountProcess.sendResetPasswordEmail.bind(AccountProcess)});
+            methods.push({"method": "GET", "url": /\/resetPassword\/[0-9a-zA-Z\.\-_@]+\/[0-9a-zA-Z]+\/?$/, "handler": AccountProcess.passwordResetConfirmation.bind(AccountProcess)});
+            methods.push({"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)});
+
             var profileImageFolder = io.config.profile_images_folders;
             fileSystem.exists(profileImageFolder, function (exists) {
                 if (!exists) {
@@ -221,7 +226,7 @@ var AccountProcess = (function () {
                         "@type": "signin",
                         "name": input.name,
                         "email": input.email,
-                        "referer": session.req.headers['referer']
+                        "referer": session.referer
                     }
                 }
             });
@@ -280,13 +285,12 @@ var AccountProcess = (function () {
             } else {
                 io.db.getCredentials(email, function (result) {
                     var sendMail = function sendMail() {
-                        onFinish("confirm-email-sent");
                         (io.getHandler("put","/mail"))({    input: { emailTo: email,
                             emailTemplate: "email-confirm",
                             emailData: {    server: session.server,
                                 link:   "/confirm/" + email + "/" + io.encrypt("confirm" + email)
                             }
-                        }}, function (response){
+                        }}, function (){
                             onFinish("confirm-email-sent");
                         });
                     }
@@ -481,7 +485,7 @@ var AccountProcess = (function () {
                                     if (session.isJSON) {
                                         callback((user ? user : new User()).toJSON());
                                     } else {
-                                        session.res.writeHead(301, {location: _.unescape(session.input.referer) });
+                                        session.res.writeHead(301, {location: "/" });
                                         callback({});
                                     }
                                 });
@@ -500,6 +504,159 @@ var AccountProcess = (function () {
                     "page": {
                         "@type": "signout"
                     }
+                }
+            });
+        },
+
+        getResetPasswordPage: function getResetPasswordPage (session, callback) {
+            callback({
+                "app": {
+                    "mode": io.getTheodorusMode(),
+                    "page": {
+                        "@type": "forgot-password"
+                    }
+                }
+            });
+        },
+
+        sendResetPasswordEmail: function sendResetPasswordEmail (session, callback) {
+            var input = session.input || {},
+                email = input.email;
+
+            io.db.getCredentials(email, function (credential) {
+                if (credential) {
+                    (io.getHandler("put","/mail"))({    input: { emailTo: email,
+                        emailTemplate: "reset-password",
+                        emailData: {    server: session.server,
+                            link:   "/resetPassword/" + email + "/" + io.encrypt("reset" + email)
+                        }
+                    }}, function (){
+                        var message = "reset-email-sent";
+                        if (session.isJSON) {
+                            callback({"result":message});
+                        } else {
+                            (io.getHandler("get","/signin"))( session, function (signInPage) {
+                                signInPage.app = signInPage.app || {};
+                                signInPage.app.message = {
+                                    "@type": "info",
+                                    "@message": message
+                                };
+                                callback(signInPage);
+                            });
+                        }
+                    });
+                } else {
+                    var message = "email-is-unknown";
+                    callback(session.isJSON ?
+                    {error: {"error": message}} : {
+                        "app": {
+                            "mode": io.getTheodorusMode(),
+                            "message": { "@type": "error",
+                                "@message": message
+                            },
+                            "page": {
+                                "@type": "forgot-password",
+                                "email": input.email,
+                                "hash": input.hash
+                            }
+                        }
+                    });
+                }
+            });
+        },
+
+        passwordResetConfirmation: function passwordResetConfirmation (session, callback) {
+            var urlSplit = session.url.split("/"),
+                email = urlSplit[2],
+                confirmation =urlSplit[3];
+            if (confirmation == io.encrypt("reset" + email)) {
+                io.db.getCredentials(email, function (credential) {
+                    if (credential) {
+                        callback({
+                            "app": {
+                                "mode": io.getTheodorusMode(),
+                                "page": {
+                                    "@type": "change-password",
+                                    "email": email,
+                                    "hash": confirmation
+                                }
+                            }
+                        });
+                    } else {
+                        callback(session.getErrorHandler("email-confirmation-invalid","email",email));
+                    }
+                });
+            } else {
+                callback(session.getErrorHandler("email-confirmation-invalid","email",email));
+            }
+        },
+
+        updatePassword: function updatePassword (session, callback) {
+            var input = session.input || {},
+                email = input.email,
+                hash = input.hash,
+                oldPassword = input.old_password,
+                password = input.password,
+                passwordRepeat = input.password_repeat,
+                throwError = function throwError (errorMessage) {
+                    callback(session.isJSON ?
+                    {error: {"error": errorMessage}} : {
+                        "app": {
+                            "mode": io.getTheodorusMode(),
+                            "message": { "@type": "error",
+                                "@message": errorMessage
+                            },
+                            "page": {
+                                "@type": "change-password",
+                                "email": input.email,
+                                "hash": input.hash
+                            }
+                        }
+                    });
+                    return false;
+                },
+                onFinish = function onFinish (message) {
+                    if (session.isJSON) {
+                        callback({"result":message});
+                    } else {
+                        (io.getHandler("get",hash ? "/signin" : "/me"))( session, function (signInPage) {
+                            signInPage.app = signInPage.app || {};
+                            signInPage.app.message = {
+                                "@type": "info",
+                                "@message": message
+                            };
+                            callback(signInPage);
+                        });
+                    }
+                };
+
+            if (!oldPassword && (hash != io.encrypt("reset" + email))) {
+                return throwError("operation-failed");
+            }
+            io.db.getCredentials(email, function (credential) {
+                if (credential) {
+                    if (!hash && (credential.get("password") != io.encrypt(oldPassword))){
+                        return throwError("old-password-is-wrong","change-password");
+                    } else if (hash && (hash != io.encrypt("reset" + email))) {
+                        return throwError("email-confirmation-invalid","forgot-password");
+                    } else if ("true" != input.md5) {
+                        if (password.length <= io.config.minimum_password_length) {
+                            return throwError("password-too-short", "reset-password");
+                        } else {
+                            password = io.crypto.createHash('md5').update(password).digest('hex');
+                            passwordRepeat = io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
+                        }
+                    }
+                    if (password != passwordRepeat) {
+                        return throwError("passwords-dont-match");
+                    }
+                    credential.set("password", password);
+                    io.db.save(credential, function () {
+                        onFinish ("password-changed");
+                    });
+
+                } else {
+                    return throwError("email-is-unknown");
                 }
             });
         }

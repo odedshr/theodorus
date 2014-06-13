@@ -63,6 +63,7 @@
                 <label><xsl:value-of select="$lbl_password" /></label>
                 <input type="password" id="password" name="password" required="required"/>
                 <input type="hidden" id="md5" name="md5" value="false"/>
+                <a href="/resetPassword" class="link-forgot-password"><xsl:value-of select="$lbl_forgot_password" /></a>
             </div>
             <div>
                 <input type="checkbox" id="remember" name="remember" value="true"/>
@@ -137,6 +138,49 @@
         </form>
     </xsl:template>
 
+    <xsl:template match="page[@type='forgot-password']">
+        <form id="form_signup" action="/resetPassword" method="post" class="page_form form_authentication form_forgotPassword">
+            <h2><xsl:value-of select="$title_forgotPassword" /></h2>
+            <div class="forgotPassword-intro"><xsl:value-of select="$explain_forgot_password" /></div>
+            <div>
+                <label><xsl:value-of select="$lbl_email" /></label>
+                <input type="email" id="email" name="email" required="required" placeholder="{$lbl_email_example}"/>
+            </div>
+            <div class="form-buttons">
+                <button id="button-signup" type="submit"><xsl:value-of select="$btn_send_link" /></button>
+                <a href="/signin" class="button-cancel" onclick="history.go(-1);return false;"><xsl:value-of select="$btn_cancel" /></a>
+            </div>
+        </form>
+    </xsl:template>
+
+    <xsl:template match="page[@type='change-password']">
+        <form id="form_signup" action="/password" method="post" class="page_form form_authentication change_resetPassword">
+            <input type="hidden" id="email" name="email" value="{email}"/>
+            <input type="hidden" id="hash" name="hash" value="{hash}"/>
+
+            <h2><xsl:value-of select="$title_change_password" /></h2>
+            <xsl:if test="not(hash)">
+                <div>
+                    <label><xsl:value-of select="$lbl_current_password" /></label>
+                    <input type="password" id="oldPassword" name="old_password" required="required" pattern=".{{3,}}" value="{old_password}"/>
+                </div>
+            </xsl:if>
+            <div>
+                <label><xsl:value-of select="$lbl_password" /></label>
+                <input type="password" id="password" name="password" required="required" pattern=".{{3,}}" value="{password}"/>
+                <input type="hidden" id="md5" name="md5" value="false"/>
+            </div>
+            <div>
+                <label><xsl:value-of select="$lbl_repeat_password" /></label>
+                <input type="password" id="password_repeat" name="password_repeat" required="required" value="{password_repeat}"/>
+            </div>
+            <div class="form-buttons">
+                <button id="button-reset-password" type="submit"><xsl:value-of select="$btn_update_password" /></button>
+                <a href="/signin" class="button-cancel"><xsl:value-of select="$btn_cancel" /></a>
+            </div>
+        </form>
+    </xsl:template>
+
     <xsl:template match="page[@type='signout']">
         <div class="page_form">
             <h2><xsl:value-of select="$signout_title" /></h2>
@@ -207,6 +251,15 @@
                 <xsl:value-of select="$explain_email_confirmation_email" />
             </div>
             <a class="link-confirm" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="mail[@type='reset-password']">
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="$app_name"/></h1>
+            <div><xsl:value-of select="$explain_reset_password_email" /></div>
+            <div><xsl:value-of select="$explain_reset_password_email_warning" /></div>
+            <a style="color: #105cb6;" href="{data/server}{data/link}"><xsl:value-of select="$btn_reset_password" /></a>
         </div>
     </xsl:template>
 
