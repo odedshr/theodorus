@@ -136,10 +136,16 @@ function parseJSON (JSONData, schema) {
 }
 
 exports.getItem = function (sampleModel,key,callback) {
-    var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'");
-    exports.query ("SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1", function(rows) {
-        callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
-    });
+    var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'"),
+        query = "SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1";
+    try {
+        exports.query (query, function(rows) {
+            callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
+        });
+    } catch (error) {
+        console.error("getItem ("+query+") : " + error);
+        callback(false);
+    }
 };
 
 exports.getItems = function (sampleModel,queryOptions,callback) {

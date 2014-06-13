@@ -417,6 +417,11 @@ h3 {
 .form_authentication div {
   margin-top: 1rem;
 }
+.form_authentication .link-forgot-password {
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
 .form_authentication .terms_of_use label {
   display: inline;
 }
@@ -758,8 +763,11 @@ h3 {
 /* ================================================================================================================== */
 .user-profile {
   float: right;
-  margin-right: 15rem;
   padding: 1rem;
+}
+.user-profile .link-change-password {
+  margin-top: 1rem;
+  display: block;
 }
 .profile-image {
   border: 0.1rem solid #aaaaaa;
