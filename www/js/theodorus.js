@@ -6,8 +6,24 @@
             // loading fonts without js causes 1 sec delay before the text appear. I prefer to have bad font than this delay
             $("body").addClass("loaded-fonts");
             $(".force-web-font-preload").remove();
-            this.fixTimeReferences();
-            this.colorTags();
+
+            var self = this,
+                reRender = function reRender () {
+                    self.fixTimeReferences();
+                    self.colorTags();
+                };
+
+            if ((typeof theodorusUIVersion !== "undefined") && (typeof(Storage) !== "undefined") && (theodorusUIVersion != localStorage.getItem("theodorus_version"))) {
+                utils.preloadXSLT(function () {
+                    console.log("all loaded");
+                    localStorage.setItem("theodorus_version", theodorusUIVersion);
+                    utils.useLocalStorage = true;
+                    reRender();
+                });
+            } else {
+                reRender();
+            }
+
 
             /*
             $.ajaxSetup({ // all jquery.ajax communications should be json

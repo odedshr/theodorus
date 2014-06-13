@@ -35,22 +35,30 @@
 
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
 
-
                 <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
                 <style>
                     html { direction: rtl; }
                 </style>
-
+                <xsl:if test="@version != 'false'">
+                    <script>
+                        theodorusUIVersion = "<xsl:value-of select="@version"/>";
+                    </script>
+                </xsl:if>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
-                <!--<script language="javascript" type="text/javascript" src="/lib/json.js"></script>
+                <!--
                 <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>-->
                 <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/utilities.js"></script>
+                <xsl:choose>
+                    <xsl:when test="//app/mode = 'dev'">
+                        <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
+                    </xsl:when>
+                </xsl:choose>
                 <!--
                 <xsl:choose>
                     <xsl:when test="//app/mode = 'dev'">
@@ -130,6 +138,7 @@
             </head>
 
             <body>
+                <span class="force-web-font-preload">Loading fonts...</span>
                 <header class="page-header">
                    <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
                    <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
@@ -170,7 +179,6 @@
                     </xsl:for-each>
                 </ul>
                 <div id="report-bugs" />
-                <span class="force-web-font-preload">Loading fonts...</span>
             </body>
         </html>
     </xsl:template>

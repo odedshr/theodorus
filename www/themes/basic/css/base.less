@@ -26,6 +26,12 @@ a[href] { color: @linkColor; }
 
 .force-web-font-preload,
 .loaded-fonts { font-family: 'carmelit_regularregular', 'arial','halvetica'; }
+.force-web-font-preload {
+  direction: ltr;
+  position: absolute;
+  left: 0;
+  padding: 0.5rem;
+}
 
 .hidden { display: none; }
 
@@ -72,7 +78,8 @@ header {
   width: 15rem;
 
   h1 {
-    background-image: url('/ui/img/theodorus_logo_small.png');
+    background-image: url('/ui/img/all.png');
+    background-position: -0.8rem 0;
     background-repeat: no-repeat;
     clear: both;
     direction: ltr;
@@ -132,13 +139,23 @@ header {
     .nav_buttons-list {
       direction: rtl;
       text-align:right;
-      width: 6rem;
+      width: 7.5rem;
     }
     .nav_button:not(:first-child) { margin-top:1rem; }
     .suggest_topic {}
-    .nav_blog { list-style-image:url('/ui/img/icon_wordpress.png'); }
-    .nav_sourcecode { list-style-image:url('/ui/img/icon_git.png'); }
-    .nav_features { list-style-image:url('/ui/img/icon_trello.png'); }
+    .nav_button { list-style-type: none; }
+    .nav_button:before {
+      background: url('/ui/img/all.png') no-repeat transparent;
+      content: " ";
+      display: inline-block;
+      height: 1rem;
+      margin-left:0.5rem;
+      width: 1rem;
+    }
+    .nav_features:before { background-position: 0 -3.45rem; }
+    .nav_blog:before { background-position: -1rem -3.45rem; }
+    .nav_sourcecode:before { background-position: -2rem -3.45rem; }
+
   }
 
   .tags {
