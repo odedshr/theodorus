@@ -43,7 +43,8 @@ var TopicProcess = (function () {
         },
 
         getMainPage: function getMainPage(session,callback) {
-            var page = Math.max(1,parseInt(session.url.replace(/\D/g,"")*1)),
+            var isJSONOriginal = session.isJSON;
+                page = Math.max(1,parseInt(session.url.replace(/\D/g,"")*1)),
                 tasks = [   {"method":"get","url":"/topics"+session.url.substr(1),"outputName":"topics"},
                             {"method":"get","url":"/topics/count","outputName":"topicCount"},
                             {"method":"get","url":"/me","outputName":"me"},
@@ -53,6 +54,7 @@ var TopicProcess = (function () {
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
                     if (!(--taskCount)) {
+                        session.isJSON = isJSONOriginal;
                         callback({
                             "app":{
                                 "mode": io.getTheodorusMode(),
@@ -68,6 +70,7 @@ var TopicProcess = (function () {
                         });
                     }
                 };
+            session.isJSON = true;
             tasks.forEach(function (task) {
                 (io.getHandler(task.method,task.url))(session, function (output) {
                     taskOutput[task.outputName] = output;
@@ -77,15 +80,16 @@ var TopicProcess = (function () {
         },
 
         getAddTopicPage: function getMainPage(session,callback) {
-            var tasks = [   {"method":"get","url":"/me","outputName":"me"},
+            var isJSONOriginal = session.isJSON,
+                tasks = [   {"method":"get","url":"/me","outputName":"me"},
                             {"method":"get","url":"/tags","outputName":"tags"}
                         ],
                 taskCount = tasks.length,
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
                     if (!(--taskCount)) {
+                        session.isJSON = isJSONOriginal;
                         if (taskOutput.me.can("suggest")) {
-                            console.log("can suggest");
                             callback({
                                 "app":{
                                     "mode": io.getTheodorusMode(),
@@ -97,7 +101,6 @@ var TopicProcess = (function () {
                                 }
                             });
                         } else {
-                            console.log("cannot suggest");
                             callback({
                                 "app":{
                                     "mode": io.getTheodorusMode(),
@@ -112,6 +115,7 @@ var TopicProcess = (function () {
 
                     }
                 };
+            session.isJSON = true;
             tasks.forEach(function (task) {
                 (io.getHandler(task.method,task.url))(session, function (output) {
                     taskOutput[task.outputName] = output;
@@ -214,7 +218,8 @@ var TopicProcess = (function () {
             } else {
                 io.db.getTopic(topicKey, function (topic){
                     if (topic) {
-                        var topicId = topic.get("topic_id"),
+                        var isJSONOriginal = isJSONOriginal.isJSON,
+                            topicId = topic.get("topic_id"),
                             tasks = [  {"method":"get","url":"/topics/"+topicId+"/read","outputName":"content"},
                                        {"method":"get","url":"/topics/"+topicId+"/tags","outputName":"topicTags"},
                                        {"method":"get","url":"/topics/"+topicId+"/comments","outputName":"comments"},
@@ -223,6 +228,7 @@ var TopicProcess = (function () {
                             taskOutput = {},
                             taskCompleted = function taskCompleted() {
                                 if (!(--taskCount)) {
+                                    session.isJSON = isJSONOriginal;
                                     topic.set("content",taskOutput.content);
                                     topic.set("tags", { "tag": taskOutput.topicTags});
                                     callback (session.isJSON ? topic.toJSON() : {
@@ -243,10 +249,11 @@ var TopicProcess = (function () {
                                 }
                             };
 
-                        if (!session.isJSON) {
+                        if (!isJSONOriginal) {
                             tasks.push({"method":"get","url":"/me","outputName":"me"});
                             tasks.push({"method":"get","url":"/tags","outputName":"tags"});
                             taskCount = tasks.length;
+                            session.isJSON = true;
                         }
 
                         if (tasks.length>0) {
@@ -308,8 +315,8 @@ var TopicProcess = (function () {
                         var topicId = topic.get("topic_id");
                         io.db.setUserTopic(userId,topicId,attribute,value,function (output){
                             if (!output) {
-                                console.error("failed to save user-topic");
-                                callback ({"error":"operation-failed"});
+                                session.log("failed to save user-topic" +JSON.stringify({"user":userId,"topic":topicId,"attribute":attribute,"value":value}),"error");
+                                callback(session.getErrorHandler("operation-failed"));
                             } else {
                                 io.db.getTopicStatistics(topicId, function (statistics) {
                                     var value = statistics[attribute];
@@ -350,7 +357,7 @@ var TopicProcess = (function () {
             }
             if (session.isJSON) {
                 io.db.load(Comment, commentId, function commentLoaded(comment) {
-                    console.error(JSON.stringify(comment));
+                    callback(comment);
                 });
             } else {
                 TopicProcess.getTopic(session, function topicLoaded(pageInfo) {
@@ -445,7 +452,7 @@ var TopicProcess = (function () {
                                             callback({});
                                         }
                                     } else {
-                                        console.error("error saving topic" + JSON.stringify(error));
+                                        session.log("error saving topic" + JSON.stringify(error) +"\n"+JSON.stringify(topic.toJSON()), error);
                                         callback({"error":error});
                                     }
                                 });
@@ -453,7 +460,7 @@ var TopicProcess = (function () {
                                 callback(session.getErrorHandler("cannot-remove-item"));
                             }
                         } else {
-                            console.log(userId + " !=" + JSON.stringify(topic.toJSON())+ ","+ topic.get("initiator"));
+                            session.log("removeTopic: " + userId + " !=" + JSON.stringify(topic.toJSON())+ ","+ topic.get("initiator"),"error");
                             callback(session.getErrorHandler("cannot-remove-item"));
                         }
                         //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});
@@ -484,7 +491,7 @@ var TopicProcess = (function () {
                                             callback({});
                                         }
                                     } else {
-                                        console.error("error saving comment" + JSON.stringify(error));
+                                        session.error("removeComment: error saving comment" + JSON.stringify(error) +"\n"+JSON.stringify(comment.toJSON()));
                                         callback({"error":error});
                                     }
                                 });
@@ -492,7 +499,7 @@ var TopicProcess = (function () {
                                 callback(session.getErrorHandler("cannot-remove-item"));
                             }
                         } else {
-                            console.log(userId + " !=" + JSON.stringify(comment.toJSON())+ ","+ comment.get("user_id"));
+                            session.log("removeComment: "+userId + " !=" + JSON.stringify(comment.toJSON())+ ","+ comment.get("user_id"));
                             callback(session.getErrorHandler("cannot-remove-item"));
                         }
                         //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});

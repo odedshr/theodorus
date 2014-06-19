@@ -38,7 +38,7 @@ var AccountProcess = (function () {
                 if (!exists) {
                     fileSystem.mkdir(profileImageFolder, function (e) {
                         if (e) {
-                            console.error(e);
+                            io.error(e);
                         }
                     });
                 }
@@ -50,9 +50,10 @@ var AccountProcess = (function () {
         getAccount: function (session, callback) {
             session.userUserAccount(function (user) {
                 if (user) {
+                    user = user ? user : new User();
                     callback(
-                        (session.isJSON || session.url != "/me") ?
-                            ((user ? user : new User()).toJSON()) :
+                        (session.isJSON) ?
+                            user.toJSON() :
                         {
                             "app": {
                                 "mode": io.getTheodorusMode(),
@@ -165,7 +166,7 @@ var AccountProcess = (function () {
                                         session.res.writeHead(301, {location: _.unescape(session.input.referer)});
                                         callback({});
                                     } else {
-                                        console.error("io.db.save(User)=>user-not-saved");
+                                        session.error("approveProfileImage: io.db.save(User)=>user-not-saved" + JSON.stringify(user.toJSON()));
                                     }
                                 });
                             } else {
@@ -312,7 +313,7 @@ var AccountProcess = (function () {
                                 sendMail();
                             });
                         } catch (err) {
-                            console.error("io.db.save(User).callback=>" + err);
+                            session.error("sendConfirmationEmail: io.db.save(User).callback=>" + err);
                             callback(session.getErrorHandler("operation-failed", "email", email));
                         }
 
@@ -358,7 +359,7 @@ var AccountProcess = (function () {
                 error = false,
                 throwError = function (errorMessage, comment) {
                     if (comment) {
-                        console.error(comment);
+                        session.error("finalizeSignUp: " + comment, error);
                     }
                     callback(session.isJSON ?
                     {error: errorMessage} : {
@@ -593,14 +594,31 @@ var AccountProcess = (function () {
         },
 
         getUpdatePasswordPage: function getUpdatePasswordPage (session, callback) {
-            callback({
-                "app": {
-                    "mode": io.getTheodorusMode(),
-                    "page": {
-                        "@type": "change-password"
-                    }
+            session.useUserId(function(userId) {
+                if (userId) {
+                    io.db.getCredentialsByUserId(userId, function (credential) {
+                        callback({
+                            "app": {
+                                "mode": io.getTheodorusMode(),
+                                "page": {
+                                    "@type": "change-password",
+                                    "email": credential.get("auth_key")
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    io.log("updatePassword : no user-id found", "error");
+                    (io.getHandler("get", "/signin" ))( session, function (nextPage) {
+                        nextPage.app = nextPage.app || {};
+                        nextPage.app.message = {
+                            "@type": "error",
+                            "@message": "bad-credentials"
+                        };
+                        callback(nextPage);
+                    });
                 }
-            });
+            })
         },
 
         updatePassword: function updatePassword (session, callback) {
@@ -657,7 +675,6 @@ var AccountProcess = (function () {
                     if (session.isJSON) {
                         callback({"result":message});
                     } else {
-                        session.url = "/me"; // /me return json if it's not the main url
                         (io.getHandler("get", hash ? "/signin" : "/me"))( session, function (nextPage) {
                             nextPage.app = nextPage.app || {};
                             nextPage.app.message = {
@@ -669,19 +686,9 @@ var AccountProcess = (function () {
                     }
                 };
 
-            if (oldPassword){
-                session.useUserId(function(userId) {
-                    if (userId) {
-                        io.db.getCredentialsByUserId(userId, onCredentialLoaded);
-                    } else {
-                        console.error("updatePassword : no user-id found")
-                        return throwError("operation-failed");
-                    }
-                })
-            } else if (hash == io.encrypt("reset" + email)) {
+            if (oldPassword || (hash == io.encrypt("reset" + email))){
                 io.db.getCredentials(email, onCredentialLoaded);
             } else {
-                console.error("updatePassword : no old password and hash didn't match")
                 return throwError("operation-failed");
             }
 

@@ -7,6 +7,7 @@ var config = require("../config.json"),
 
 var WebApplication = function () {
     var self = this;
+    self.envVar = function envVar(varName) { return process.env[varName]; };
     self.config = config;
     self.qs = require("querystring");
     self.formidable = require("formidable");
@@ -19,9 +20,9 @@ var WebApplication = function () {
         return self.crypto.createHash('md5').update(string).digest('hex');
     }
     self.rsaKeys =  {
-        "encryption":process.env.THEODORUS_RSA_ENCRYPT,
-        "decryption":process.env.THEODORUS_RSA_DECRYPT,
-        "modulus":process.env.THEODORUS_RSA_MODULUS
+        "encryption":self.envVar("THEODORUS_RSA_ENCRYPT"),
+        "decryption":self.envVar("THEODORUS_RSA_DECRYPT"),
+        "modulus":self.envVar("THEODORUS_RSA_MODULUS")
     };
     self.uiVersion = false;
 
@@ -153,13 +154,22 @@ var WebApplication = function () {
             case "warn" : target = console.warn; break;
             default : target = console.log; break;
         }
-        target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + content);
+        target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + ((typeof content === "object") ? JSON.stringify(content) : content));
+        if (self.mailLogs && self.getTheodorusMode()!="dev" && type == "error") {
+            (self.getHandler("put","/mail"))({    input: {
+                emailTemplate: "logged-action",
+                emailData: {    server: self.ipaddress,
+                    type:  type,
+                    content: content
+                }
+            }}, function (){});
+        }
     };
 
     self.setupVariables = function() {
         //  Set the environment variables we need.
-        self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
-        self.port      = process.env.OPENSHIFT_NODEJS_PORT || config.port || 8080;
+        self.ipaddress = self.envVar("OPENSHIFT_NODEJS_IP");
+        self.port      = self.envVar("OPENSHIFT_NODEJS_PORT") || config.port || 8080;
 
         if (self.getTheodorusMode()!="dev") {
             self.uiVersion = (new Date()).toISOString();
@@ -265,13 +275,6 @@ var WebApplication = function () {
                 self.log("failed to init "+libraryName + " ("+error+")","error");
             }
         });
-        self.app.get('/404', function(req, res, next){
-            // trigger a 404 since no other middleware
-            // will match /404 after this one, and we're not
-            // responding here
-            console.error("11111");
-            next();
-        });
     };
 
     self.initialize = function () {
@@ -317,6 +320,8 @@ var WebApplication = function () {
 
         self.setupVariables();
         self.initProcesses();
+
+        self.mailLogs = true;
     };
 
     self.start = function () {

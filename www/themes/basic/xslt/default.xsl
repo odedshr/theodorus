@@ -263,9 +263,14 @@
     <xsl:param name="btn_remove_image" select="'הסרת תמונה'"/>
     <xsl:param name="approve_profile_image" select="'נא לאשר את תמונת הפרופיל'"/>
 
+    <xsl:param name="logged_action_server" select="'שרת'"/>
+    <xsl:param name="logged_action_type" select="'סוג הודעה'"/>
+    <xsl:param name="logged_action_content" select="'תוכן'"/>
+
     <xsl:variable name="mailSubjects">
         <label key="email-confirm">ברוכים הבאים לתיאודורוס</label>
         <label key="invite-to-app">קיבלת הזמנה לתיאודורוס</label>
+        <label key="logged-action">תיאודורוס: פעולה מתועדת</label>
         <label key="reset-password">תיאודורוס: איפוס סיסמא</label>
         <label key="invite-to-topic">קיבלת הזמנה לדיון בנושא #</label>
         <label key="daily-report">תיאודורוס: דיווח יומי</label>
