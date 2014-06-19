@@ -81,6 +81,7 @@ var TagProcess = (function () {
                 tagRegEx = url.match(/tags\/([^:\/ ]+)\/?(:\d)?/),
                 tag = tagRegEx[1],
                 page = (url.replace("tags/"+tag,"").replace(/\D/g,"")*1),
+                isJSONOriginal = session.isJSON,
                 tasks = [
                     {"method":"get","url":"/tags/"+tag+"/count","outputName":"topicCount"},
                     {"method":"get","url":"/me","outputName":"me"},
@@ -93,6 +94,7 @@ var TagProcess = (function () {
                 taskOutput = {},
                 taskCompleted = function taskCompleted() {
                     if (!(--taskCount)) {
+                        session.isJSON = isJSONOriginal;
                         callback({
                             "app":{
                                 "mode": io.getTheodorusMode(),
@@ -110,9 +112,9 @@ var TagProcess = (function () {
                     }
                 };
 
-
             io.db.getTopics(parameters, function(topics){
                 taskOutput.topics = topics;
+                session.isJSON = true;
                 tasks.forEach(function (task) {
                     (io.getHandler(task.method,task.url))(session, function (output) {
                         taskOutput[task.outputName] = output;

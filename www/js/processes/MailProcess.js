@@ -23,7 +23,10 @@ var io = null,
         mail : function mail (session,callback) {
             var input = session.input || {} ;
 
-            if (!input.emailTo || !input.emailTemplate) {
+            if (!input.emailTo) {
+                input.emailTo = process.env.THEODORUS_MAIL_USER;
+            }
+            if (!input.emailTemplate) {
                 callback("missing-parameters");
             } else {
                 this.smtpTransport.sendMail({

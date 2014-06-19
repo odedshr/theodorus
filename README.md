@@ -71,3 +71,4 @@ cd /runtime/theodorus-profile-images
 - 0.10 - fixed bug in signin, added email capabilities, added email confirmation
 - 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
 - 0.12 - added "forgot password" + change password features
+- 0.13 - bug fixes ("change password" should verify used is logged on, topic-by-tag has css error, email onError)

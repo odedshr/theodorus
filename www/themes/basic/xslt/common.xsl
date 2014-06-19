@@ -242,6 +242,15 @@
 
     <xsl:template match="mail-subject"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailSubjects)/*[@key=$vSelector]"/></xsl:template>
     <xsl:template match="mail-body"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailBody)/*[@key=$vSelector]"/></xsl:template>
+    <xsl:template match="mail[@type='logged-action']">
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="$app_name"/></h1>
+            <div><label><xsl:value-of select="$logged_action_server" /></label><div><xsl:value-of select="data/server" /></div></div>
+            <div><label><xsl:value-of select="$logged_action_type" /></label><div><xsl:value-of select="data/type" /></div></div>
+            <div><label><xsl:value-of select="$logged_action_content" /></label><div><xsl:value-of select="data/content" /></div></div>
+        </div>
+    </xsl:template>
+
 
     <xsl:template match="testUnits">
        <h1>Theodorus Unit Tests</h1>
