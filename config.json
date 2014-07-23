@@ -1,4 +1,5 @@
 {
+    "application_name":"THEODORUS",
     "port":8080,
     "theme":"basic",
     "table_prefix":"",

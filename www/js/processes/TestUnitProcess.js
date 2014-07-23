@@ -18,7 +18,7 @@ var TestUnitProcess = (function () {
         "crypto" : require("crypto"),
         "qs" : require("querystring"),
         "rsa" : require("../RSA"),
-        "getTheodorusMode": function () { return "dev"; }
+        "getApplicationMode": function () { return "dev"; }
     };
     var testSession = {
         "useUserId" : function(callback) {

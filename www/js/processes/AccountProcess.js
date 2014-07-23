@@ -56,7 +56,7 @@ var AccountProcess = (function () {
                             user.toJSON() :
                         {
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "settings",
                                     "user": user,
@@ -118,7 +118,7 @@ var AccountProcess = (function () {
                                             } else {
                                                 callback(session.isJSON ? {"image": targetFileName} : {
                                                     "app": {
-                                                        "mode": io.getTheodorusMode(),
+                                                        "mode": io.getApplicationMode(),
                                                         "page": {
                                                             "@type": "approve-profile-image",
                                                             "image": targetFileName,
@@ -223,7 +223,7 @@ var AccountProcess = (function () {
 
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "signin",
                         "name": input.name,
@@ -245,7 +245,7 @@ var AccountProcess = (function () {
             }
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": pageType,
                         "name": input.name,
@@ -272,7 +272,7 @@ var AccountProcess = (function () {
                 onFinish = function onFinish(pageType) {
                     callback({
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "page": {
                                 "@type": pageType,
                                 "email": input.email,
@@ -335,7 +335,7 @@ var AccountProcess = (function () {
                     } else {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "signup",
                                     "email": email
@@ -364,7 +364,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: errorMessage} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": {
                                 "@type": "error",
                                 "@message": errorMessage
@@ -445,7 +445,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": errorMessage}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": errorMessage
                             },
@@ -502,7 +502,7 @@ var AccountProcess = (function () {
             session.cookie("", false);
             callback(session.isJSON ? {} : {
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "signout"
                     }
@@ -513,7 +513,7 @@ var AccountProcess = (function () {
         getResetPasswordPage: function getResetPasswordPage (session, callback) {
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "forgot-password"
                     }
@@ -552,7 +552,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": message}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": message
                             },
@@ -576,7 +576,7 @@ var AccountProcess = (function () {
                     if (credential) {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "change-password",
                                     "email": email,
@@ -599,7 +599,7 @@ var AccountProcess = (function () {
                     io.db.getCredentialsByUserId(userId, function (credential) {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "change-password",
                                     "email": credential.get("auth_key")
@@ -658,7 +658,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": errorMessage}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": errorMessage
                             },

@@ -72,3 +72,10 @@ cd /runtime/theodorus-profile-images
 - 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
 - 0.12 - added "forgot password" + change password features
 - 0.13 - bug fixes ("change password" should verify used is logged on, topic-by-tag has css error, email onError)
+- 0.14 - add test-units
+- 0.15 - move elements to plugins
+check db
+mail if failed to init
+obj should check its dependencies
+syvar missing throe exception
+second listen (?)
