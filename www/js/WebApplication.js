@@ -330,7 +330,9 @@
         self.start = function (callback) {
             self.portListener = self.app.listen(self.port, self.ipaddress, function() {
                 self.log("Node server running "+self.appName+" on "+self.ipaddress+":"+self.port,"info");
-                callback();
+                if (typeof callback == "function") {
+                    callback();
+                }
             });
         };
 

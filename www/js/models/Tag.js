@@ -14,7 +14,7 @@ var Tag = AbstractModel.extend({
         "tag":"string",
         "count":"number",
         "color":"string"
-    },
+    }
 });
 
 ///////////////////////////////
