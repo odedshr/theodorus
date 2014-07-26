@@ -57,7 +57,7 @@ var TopicProcess = (function () {
                         session.isJSON = isJSONOriginal;
                         callback({
                             "app":{
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type":"feed",
                                     "topics": { "topic": taskOutput.topics },
@@ -92,7 +92,7 @@ var TopicProcess = (function () {
                         if (taskOutput.me.can("suggest")) {
                             callback({
                                 "app":{
-                                    "mode": io.getTheodorusMode(),
+                                    "mode": io.getApplicationMode(),
                                     "page": {
                                         "@type":"addTopic",
                                         "tags": { "tag": taskOutput.tags },
@@ -103,7 +103,7 @@ var TopicProcess = (function () {
                         } else {
                             callback({
                                 "app":{
-                                    "mode": io.getTheodorusMode(),
+                                    "mode": io.getApplicationMode(),
                                     "page": {
                                         "@type":"addTopic",
                                         "tags": { "tag": taskOutput.tags },
@@ -218,7 +218,7 @@ var TopicProcess = (function () {
             } else {
                 io.db.getTopic(topicKey, function (topic){
                     if (topic) {
-                        var isJSONOriginal = isJSONOriginal.isJSON,
+                        var isJSONOriginal = session.isJSON,
                             topicId = topic.get("topic_id"),
                             tasks = [  {"method":"get","url":"/topics/"+topicId+"/read","outputName":"content"},
                                        {"method":"get","url":"/topics/"+topicId+"/tags","outputName":"topicTags"},
@@ -233,7 +233,7 @@ var TopicProcess = (function () {
                                     topic.set("tags", { "tag": taskOutput.topicTags});
                                     callback (session.isJSON ? topic.toJSON() : {
                                         "app":{
-                                            "mode": io.getTheodorusMode(),
+                                            "mode": io.getApplicationMode(),
                                             "page": {
                                                 "@type":"topicView",
                                                 "topic": topic.toJSON(),

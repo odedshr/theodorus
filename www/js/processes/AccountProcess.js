@@ -33,22 +33,26 @@ var AccountProcess = (function () {
             methods.push({"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)});
             methods.push({"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)});
 
+            //TODO: this should not run automatically
             var profileImageFolder = io.config.profile_images_folders;
-            fileSystem.exists(profileImageFolder, function (exists) {
-                if (!exists) {
-                    fileSystem.mkdir(profileImageFolder, function (e) {
-                        if (e) {
-                            io.error(e);
-                        }
-                    });
-                }
-            });
-
+            if (profileImageFolder) {
+                fileSystem.exists(profileImageFolder, function (exists) {
+                    if (!exists) {
+                        fileSystem.mkdir(profileImageFolder, function (e) {
+                            if (e) {
+                                io.error(e);
+                            }
+                        });
+                    }
+                });
+            } else {
+                throw "profileImageFolder-not-defined"
+            }
             return methods;
         },
 
         getAccount: function (session, callback) {
-            session.userUserAccount(function (user) {
+            session.useUserAccount(function (user) {
                 if (user) {
                     user = user ? user : new User();
                     callback(
@@ -56,7 +60,7 @@ var AccountProcess = (function () {
                             user.toJSON() :
                         {
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "settings",
                                     "user": user,
@@ -72,13 +76,17 @@ var AccountProcess = (function () {
         },
 
         getProfileImage: function getProfileImage(session, callback) {
-            session.userUserAccount(function (user) {
+            var picture = false,
+                locationObject;
+            session.useUserAccount(function (user) {
                 if (user) {
-                    session.res.writeHead(301, {location: "profileImage/" + user.get("picture")});
-                } else {
-                    session.res.writeHead(301, {location: "/ui/img/anonymous.png"});
+                    picture = user.get("picture");
                 }
-                callback({});
+                locationObject = {location: picture ? ("profileImage/" + user.get("picture")) : "/ui/img/anonymous.png"};
+                if (!session.isJSON) {
+                    session.res.writeHead(301, locationObject);
+                }
+                callback(locationObject);
             });
         },
 
@@ -118,7 +126,7 @@ var AccountProcess = (function () {
                                             } else {
                                                 callback(session.isJSON ? {"image": targetFileName} : {
                                                     "app": {
-                                                        "mode": io.getTheodorusMode(),
+                                                        "mode": io.getApplicationMode(),
                                                         "page": {
                                                             "@type": "approve-profile-image",
                                                             "image": targetFileName,
@@ -192,7 +200,7 @@ var AccountProcess = (function () {
                 }
                 callback({});
             };
-            session.userUserAccount(function (user) {
+            session.useUserAccount(function (user) {
                 if (user) {
                     var picture = user.get("picture");
                     if (picture) {
@@ -223,7 +231,7 @@ var AccountProcess = (function () {
 
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "signin",
                         "name": input.name,
@@ -245,7 +253,7 @@ var AccountProcess = (function () {
             }
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": pageType,
                         "name": input.name,
@@ -272,7 +280,7 @@ var AccountProcess = (function () {
                 onFinish = function onFinish(pageType) {
                     callback({
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "page": {
                                 "@type": pageType,
                                 "email": input.email,
@@ -335,7 +343,7 @@ var AccountProcess = (function () {
                     } else {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "signup",
                                     "email": email
@@ -364,7 +372,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: errorMessage} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": {
                                 "@type": "error",
                                 "@message": errorMessage
@@ -445,7 +453,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": errorMessage}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": errorMessage
                             },
@@ -502,7 +510,7 @@ var AccountProcess = (function () {
             session.cookie("", false);
             callback(session.isJSON ? {} : {
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "signout"
                     }
@@ -513,7 +521,7 @@ var AccountProcess = (function () {
         getResetPasswordPage: function getResetPasswordPage (session, callback) {
             callback({
                 "app": {
-                    "mode": io.getTheodorusMode(),
+                    "mode": io.getApplicationMode(),
                     "page": {
                         "@type": "forgot-password"
                     }
@@ -552,7 +560,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": message}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": message
                             },
@@ -576,7 +584,7 @@ var AccountProcess = (function () {
                     if (credential) {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "change-password",
                                     "email": email,
@@ -599,7 +607,7 @@ var AccountProcess = (function () {
                     io.db.getCredentialsByUserId(userId, function (credential) {
                         callback({
                             "app": {
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type": "change-password",
                                     "email": credential.get("auth_key")
@@ -658,7 +666,7 @@ var AccountProcess = (function () {
                     callback(session.isJSON ?
                     {error: {"error": errorMessage}} : {
                         "app": {
-                            "mode": io.getTheodorusMode(),
+                            "mode": io.getApplicationMode(),
                             "message": { "@type": "error",
                                 "@message": errorMessage
                             },

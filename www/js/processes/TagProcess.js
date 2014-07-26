@@ -97,7 +97,7 @@ var TagProcess = (function () {
                         session.isJSON = isJSONOriginal;
                         callback({
                             "app":{
-                                "mode": io.getTheodorusMode(),
+                                "mode": io.getApplicationMode(),
                                 "page": {
                                     "@type":"feed",
                                     "tag": tag,

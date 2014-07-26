@@ -1,6 +1,7 @@
-var DEFAULT_LANGUAGE = "he";
+var DEFAULT_LANGUAGE = "he",
+    AbstractModel = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel")).model();
 
-var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model()).extend({
+var User = AbstractModel.extend({
     autoId: true,
     defaults: {
         "score": 0,
@@ -8,39 +9,15 @@ var User = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./
         permissions: {} // user with default might be anonymous who doesn't have any permissions
     },
 
-    can: function (permission) {
+    can: function (action) {
         var permissions = this.get("permissions");
-        return ((typeof permissions == "undefined") || permissions[permission]);
-    },
-
-/*  I might use this data-holders for plug-in information
-    data: function (store, key,value) {
-        var dataObj = this.get(store);
-        if (arguments.length==3) {
-            dataObj = dataObj ? dataObj : {};
-            dataObj[key]=value;
-            return this.set(store,dataObj);
-        } else {
-            return dataObj ? dataObj[key] : null;
+        if (typeof permissions == "undefined") {
+            permissions = {};
+            this.set("permissions",permissions);
         }
+        var permission = permissions[action];
+        return ((typeof permission != "undefined") && permission);
     },
-
-    getPrivate: function (key) {
-        return this.data("private",key);
-    },
-
-    getPublic: function (key) {
-        return this.data("public",key);
-    },
-
-    setPrivate: function (key,value) {
-        return this.data("private",key,value);
-    },
-
-    setPublic: function (key,value) {
-        return this.data("public",key,value);
-    },
-*/
 
     collection: "users",
     key:"user_id",

@@ -30,14 +30,6 @@ var Comment = AbstractModel.extend({
 });
 
 ///////////////////////////////
-
-var Comments = AbstractCollection.extend({
-    name: "comments",
-    url: "/comments",
-    model: Comment
-});
-
-///////////////////////////////
 if (typeof exports !== "undefined") {
     exports.model = function () { return Comment; };
 }

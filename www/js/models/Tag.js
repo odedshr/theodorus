@@ -14,10 +14,6 @@ var Tag = AbstractModel.extend({
         "tag":"string",
         "count":"number",
         "color":"string"
-    },
-
-    xml: function () {
-        return "<tag count='"+this.get("count")+"' color='"+this.get("color")+"'>"+this.get("tag")+"</tag>";
     }
 });
 
@@ -32,4 +28,5 @@ var Tags = AbstractCollection.extend({
 ///////////////////////////////
 if (typeof exports !== "undefined") {
     exports.model = function () { return Tag; };
+    exports.collection = function () { return Tags; };
 }

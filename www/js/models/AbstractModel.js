@@ -3,6 +3,9 @@ var Backbone = (Backbone || require("backbone"));
 var AbstractModel = Backbone.Model.extend({
     autoId: false,
     initialize: function(data) {
+        if (typeof this.schema == "undefined") {
+            throw "model-has-no-schema";
+        }
         var schema = this.schema;
         for (var key in schema) {
             if (data && data.hasOwnProperty(key)) {
@@ -16,60 +19,33 @@ var AbstractModel = Backbone.Model.extend({
                 }
             }
         }
-    }/*,
-
-     XML output is deprecated: use json2xml instead
-    xml: function() {
-        var tag = this.constructor.name;
-        return "<"+tag+" />";
-    },
-
-    xmlAttribute: function(attribute) {
-        var value = this.get(attribute);
-        if (!value || value=="undfined") {
-            return "";
-        }
-        if (value && (typeof value == "object") && value.xml) {
-            return value.xml();
-        }
-        if (this.schema[attribute]=="date" && (typeof prettyDate !== "undefined")) {
-            try {
-                var formattedDate = (new Date(value)).format();
-                var dateCode =prettyDate(value);
-                var numValue = Number(dateCode.replace(/\D/g,""));
-                return "<"+attribute+" timestamp='"+value+"' formatted='"+formattedDate+"' value='"+numValue+"'>"+dateCode.replace(/(\d)+/g,"#")+"</"+attribute+">";
-            } catch(error) {
-                return "";
-            }
-
-        }
-        return "<"+attribute+">"+value+"</"+attribute+">";
-    }*/
+    }
 });
-
 
 var AbstractCollection = Backbone.Collection.extend ({
     name: "collection",
     getPage: function () {
+        if (typeof this.url == "undefined") {
+            throw "called-getPage-on-collection-with-no-url";
+        }
         var matches = this.url.match(/:\d+/);
         return (matches ? matches[0].replace(/\D/g,"")*1 : 0);
     },
 
     setPage: function(pageNum) {
+        if (typeof this.url == "undefined") {
+            throw "called-setPage-on-collection-with-no-url";
+        }
+        if (isNaN(pageNum)) {
+            throw "pageNum-parameter-must-be-a-number";
+        }
         var matches = this.url.match(/:\d+/);
         if (matches) {
             this.url = this.url.replace(/:\d+/,":"+pageNum);
         } else {
             this.url = (this.url+"/:"+pageNum).replace(/\/\/:/,"/:");
         }
-    },
-
-    xml: function () {
-        var xml = "";
-        this.forEach(function(model) {
-            xml+= "\n\t"+model.xml();
-        });
-        return "<"+this.name+">"+xml+"</"+this.name+">";
+        return this;
     }
 });
 

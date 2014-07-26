@@ -1,5 +1,5 @@
 // http://blog.nodeknockout.com/post/34641712180/sending-email-from-node-js
-
+(function MailerProcessFactory() {
 var io = null,
     mailer = (typeof mailer !== "undefined") ? mailer : require("nodemailer");
     MailProcess = (function () {
@@ -49,3 +49,5 @@ var io = null,
 if (typeof exports !== "undefined") {
     exports.init = MailProcess.init.bind(MailProcess);
 }
+
+})();

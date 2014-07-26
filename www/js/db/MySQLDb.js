@@ -93,7 +93,7 @@ exports.save = function (item, callback) {
                     } else {
                         insert (connection, item, callback);
                     }
-                    connection.end();
+                    connection.release();
             }
         });
     } catch (error) {
@@ -179,7 +179,7 @@ exports.query = function (query,callback) {
                         throw error;
                     }
                 });
-                connection.end();
+                connection.release();
             } catch (error) {
                 console.error("error occurred for this query: "+ query);
                 dumpError(error);
