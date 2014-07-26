@@ -1,7 +1,7 @@
 (function DbApi() {
     var initDb = function initDb (config) {
         if (typeof config.db_type == "undefined") {
-            throw Exception("No db_type defined in config")
+            throw "DbApi:config.db_type-undefined";
         }
         var db = null;
         switch (config.db_type) {

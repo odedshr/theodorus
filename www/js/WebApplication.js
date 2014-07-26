@@ -27,6 +27,7 @@
             "modulus":self.envVar(self.appName+"_RSA_MODULUS")
         };
         self.uiVersion = false;
+        self.portListener = false; // will get results from app.listen() and used to shut down the server
 
         function AppAPI(req,res) {
             this.req = req;
@@ -94,7 +95,7 @@
                 callback(userId);
             };
 
-            this.userUserAccount = function userUserAccount (callback) {
+            this.useUserAccount = function useUserAccount (callback) {
                 this.useUserId(function(userId) {
                     if (userId) {
                         self.db.getAccount(userId, function(user) {
@@ -326,15 +327,21 @@
             self.mailLogs = true;
         };
 
-        self.start = function () {
-            self.app.listen(self.port, self.ipaddress, function() {
+        self.start = function (callback) {
+            self.portListener = self.app.listen(self.port, self.ipaddress, function() {
                 self.log("Node server running "+self.appName+" on "+self.ipaddress+":"+self.port,"info");
+                callback();
             });
         };
 
-        self.run = function () {
+        self.run = function (callback) {
             self.initialize();
-            self.start();
+            self.start(callback);
+        }
+
+        self.stop = function stop() {
+            self.portListener && self.portListener.close();
+            self.log("Node server stopped listening on "+self.ipaddress+":"+self.port,"info")
         }
     };
 
@@ -342,3 +349,20 @@
         exports.newWebApplication = function newWebApplication(config) { return new WebApplication(config); };
     }
 })();
+
+/*
+
+
+ function getMethodNotImplementedMessage (req,res) {
+ res.setHeader('Content-Type', 'application/json' );
+ res.end(JSON.stringify({"error":"not-implemented","method":req.method+"/"+req.url}));
+ }
+ // comments
+ app.get(/^\/~[a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage);
+ // search
+ app.get(/^\/\?[a-zA-Z0-9_-]{1,140}\/?$/, getMethodNotImplementedMessage);
+ // errors
+ app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
+
+
+ */

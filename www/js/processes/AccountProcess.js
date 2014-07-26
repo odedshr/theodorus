@@ -33,22 +33,26 @@ var AccountProcess = (function () {
             methods.push({"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)});
             methods.push({"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)});
 
+            //TODO: this should not run automatically
             var profileImageFolder = io.config.profile_images_folders;
-            fileSystem.exists(profileImageFolder, function (exists) {
-                if (!exists) {
-                    fileSystem.mkdir(profileImageFolder, function (e) {
-                        if (e) {
-                            io.error(e);
-                        }
-                    });
-                }
-            });
-
+            if (profileImageFolder) {
+                fileSystem.exists(profileImageFolder, function (exists) {
+                    if (!exists) {
+                        fileSystem.mkdir(profileImageFolder, function (e) {
+                            if (e) {
+                                io.error(e);
+                            }
+                        });
+                    }
+                });
+            } else {
+                throw "profileImageFolder-not-defined"
+            }
             return methods;
         },
 
         getAccount: function (session, callback) {
-            session.userUserAccount(function (user) {
+            session.useUserAccount(function (user) {
                 if (user) {
                     user = user ? user : new User();
                     callback(
@@ -72,13 +76,17 @@ var AccountProcess = (function () {
         },
 
         getProfileImage: function getProfileImage(session, callback) {
-            session.userUserAccount(function (user) {
+            var picture = false,
+                locationObject;
+            session.useUserAccount(function (user) {
                 if (user) {
-                    session.res.writeHead(301, {location: "profileImage/" + user.get("picture")});
-                } else {
-                    session.res.writeHead(301, {location: "/ui/img/anonymous.png"});
+                    picture = user.get("picture");
                 }
-                callback({});
+                locationObject = {location: picture ? ("profileImage/" + user.get("picture")) : "/ui/img/anonymous.png"};
+                if (!session.isJSON) {
+                    session.res.writeHead(301, locationObject);
+                }
+                callback(locationObject);
             });
         },
 
@@ -192,7 +200,7 @@ var AccountProcess = (function () {
                 }
                 callback({});
             };
-            session.userUserAccount(function (user) {
+            session.useUserAccount(function (user) {
                 if (user) {
                     var picture = user.get("picture");
                     if (picture) {
