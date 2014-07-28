@@ -25,10 +25,10 @@ exports.getTests = function AbstractModelTestSuite () {
                 return (collection.getPage()==false);
             },"called-getPage-on-collection-with-no-url", "fails on getPage on collection with no URL");
         },
-        function testAbstactCollectionReturnZeroForUrlWithNoPage(assert) {
+        function testAbstactCollectionReturnOneForUrlWithNoPage(assert) {
             var collection = new AbstractCollection();
             collection.url = "a-url"
-            assert.equal (collection.getPage(),0,"getPage with unnumbered url retrieved zero");
+            assert.equal (collection.getPage(),1,"getPage with unnumbered url retrieved one");
         },
         function testAbstactCollectionReturnPageNumberForUrlWithPage(assert) {
             var collection = new AbstractCollection();

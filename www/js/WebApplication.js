@@ -190,10 +190,19 @@
             return self.envVar(self.appName+"_MODE");
         }
 
-        self.plugins = function (url,session,mainFunc,callback) {
-            mainFunc(session,function(output) {
-                callback(output);
-            });
+        self.executePlugins = function (pattern,session,mainFunc,callback) {
+            var plugins = self.plugins[pattern],
+                nextHandler = function(session, nextHandler, callback) {
+                    if (plugins.length) {
+                        (plugins.pop())(session, nextHandler, callback);
+                    } else {
+                        mainFunc(session,function(output) {
+                            callback(output);
+                        });
+                    }
+                }
+            plugins = (typeof plugins == "undefined") ? [] : plugins.slice(0), // slice(0) clones the array
+            nextHandler (session, nextHandler, callback);
         };
 
         self.xslt = function (content) {
@@ -225,6 +234,8 @@
             "delete":[],
             "put":[]
         };
+        self.plugins = {};
+
         self.getHandler = function(method,url) {
             var i, handler, handlers = self.handlers[method];
             for (i in handlers) {
@@ -244,36 +255,70 @@
              * addHandler function ...
              * */
             //TODO: remove addHandler's functionWrapper code duplication
-            var url = handlerDef.url,
-                method = handlerDef.method.toLowerCase(),
-                pluginWrapper = function pluginWrapper (res, session, handler) {
-                    self.plugins(url, session, handler,function(output) {
-                        res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
+            var url = handlerDef.url;
+                method = handlerDef.method.toLowerCase();
+            var pluginWrapper = function pluginWrapper(res, session, handler) {
+                self.executePlugins(method + ":" + url, session, handler, function (output) {
+                    if (session.isJSON) {
+                        res.end(JSON.stringify(output));
+                    } else {
+                        if (output.directive) {
+                            switch (output.directive) {
+                                case "redirect":
+                                    var location = output.location;
+                                    location = (location!="referer") ? location : session.req.headers['referer'];
+                                    res.writeHead(301,{"location" : location} );
+                                    res.end();
+                                    break;
+                                case "default": res.end(session.get404());
+                            }
+                        } else {
+                            var app = output.app;
+                            app.mode = self.getApplicationMode();
+                            app.server = "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host;
+                            app.referer = session.req.headers.referer;
+                            res.end(self.xslt(output));
+                        }
+                    }
+                });
+            };
+            functionWrapper = (method == "get" || method == "delete") ?
+                function (req, res) {
+                    var session = self.getAppAPI(req, res);
+                    res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
+                    pluginWrapper(res, session, handlerDef.handler);
+                } :
+                function (req, res) {
+                    var session = self.getAppAPI(req, res);
+                    res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
+                    session.useInput(function () {
+                        pluginWrapper(res, session, handlerDef.handler);
                     });
-                },
-                functionWrapper = (method=="get" || method=="delete") ?
-                    function (req,res) {
-                        var session = self.getAppAPI(req,res);
-                        res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html')+ "; charset=utf8");
-                        pluginWrapper (res, session, handlerDef.handler);
-                    } :
-                    function (req,res) {
-                        var session = self.getAppAPI(req,res);
-                        res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
-                        session.useInput(function() {
-                            pluginWrapper (res, session, handlerDef.handler);
-                        });
-                    };
+                };
 
             self.handlers[method].push ({   "pattern":url,
                 "method":handlerDef.handler}); // store func for internal invocation // handlerDef.url
             self.app[method](url, functionWrapper); // external invocation
         };
 
+        self.addPlugin = function addPlugin (handlerDef) {
+            var pattern = handlerDef.method.toLowerCase()+":"+handlerDef.url,
+                repo = self.plugins[pattern];
+            if (typeof repo == "undefined") {
+                repo = [];
+                self.plugins[pattern] = repo;
+            }
+            self.plugins[pattern].push (handlerDef.handler);
+        };
+
         self.initProcesses =  function () {
             config.processes.forEach( function(libraryName) {
                 try {
-                    require("./"+libraryName).init(self).forEach(self.addHandler.bind(self));
+                    var library = require("./"+libraryName);
+                    library.init(self).forEach(self.addHandler.bind(self));
+                    if (library.plugins) {
+                        library.plugins().forEach(self.addPlugin.bind(self));
+                    }
                 } catch (error) {
                     self.log("failed to init "+libraryName + " ("+error+")","error");
                 }
@@ -367,4 +412,11 @@
  app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
 
 
+a word on plugins
+up until now I had a single function needed to be run
+it got a input in session.input and its output was sent to callback
+
+now I need to run an unknown amount functions,
+each function may alter the session.input and then call the next function,
+when the next function ends, the current function should get the output and update it, and then call the next function
  */

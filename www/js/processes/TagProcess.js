@@ -4,7 +4,6 @@ var io = null,
     TOPIC_PAGE_SIZE = 0;
 
 var TagProcess = (function () {
-
     return {
         init: function (ioFunctions) {
             io = ioFunctions;
@@ -20,6 +19,17 @@ var TagProcess = (function () {
             ];
         },
 
+        plugins: function plugins () {
+            return [
+                {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
+                {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
+                {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetTopicTags.bind(TagProcess)},
+                {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetUserTopicTags.bind(TagProcess)},
+                {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
+                {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)}
+            ];
+        },
+
         getTags: function getTags (session,callback) {
             io.db.getTags (function (items) {
                 if (items) {
@@ -30,35 +40,76 @@ var TagProcess = (function () {
             });
         },
 
-        getTopicTags: function getTopicTags (session,callback) {
+        pGetTags: function pGetTags (session, nextHandler, callback) {
+            if (session.isJSON) {
+                nextHandler(session, nextHandler, callback);
+            } else {
+                nextHandler(session, nextHandler, function (output) {
+                    TagProcess.getTags(session,function(tags) {
+                        output.app.page.tags = { "tag": tags };
+                        callback(output);
+                    });
+                });
+            }
+
+        },
+
+        getTopicIdFromURL: function getTopicIdFromURL (url) {
             //TODO: allow accepting TopicSlug as input
-            var topicId =  session.url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,"");
-            io.db.getTopicTags(topicId, function(tags){
+            return url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,"");
+        },
+
+        getTopicTags: function getTopicTags (session,callback) {
+            io.db.getTopicTags(TagProcess.getTopicIdFromURL(session.url), function(tags){
                 callback(tags);
             });
         },
 
+        pGetTopicTags: function pGetTopicTags (session, nextHandler, callback) {
+            if (session.isJSON) {
+                nextHandler(session, nextHandler, callback);
+            } else {
+                nextHandler(session, nextHandler, function (output) {
+                    TagProcess.getTopicTags(session, function(tags){
+                        output.app.page.topic.tags = { "tag": tags };
+                        callback(output);
+                    });
+                });
+            }
+
+        },
+
         getUserTopicTags: function getUserTopicTags (session,callback) {
-            //TODO: allow accepting TopicSlug as input
-            var topicId =session.url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,"");
             session.useUserId(function(userId) {
                 if (userId) {
-                    io.db.getUserTopicTagString(topicId, userId, function(tags){
+                    io.db.getUserTopicTagString(TagProcess.getTopicIdFromURL(session.url), userId, function(tags){
                         callback(tags);
                     });
                 } else {
-                    callback("");
+                    callback({"error":"no-permissions"});
                 }
             });
         },
 
+        pGetUserTopicTags: function pGetUserTopicTags (session, nextHandler, callback) {
+            if (session.isJSON) {
+                nextHandler(session, nextHandler, callback);
+            } else {
+                nextHandler(session, nextHandler, function (output) {
+                    TagProcess.getUserTopicTags(session, function(tags){
+                        output.app.page.userTopicTags = { "tag": tags };
+                        callback(output);
+                    });
+                });
+            }
+        },
+
         updateUserTopicTags: function updateUserTopicTags (session, callback) {
-            var topicId =session.url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,"");
             session.useUserId(function(userId) {
                 if (userId) {
-                    io.db.replaceUserTopicTags(topicId, userId, _.uniq(session.input.tags.split(/\s?,\s?/g)), function () {
-                        session.res.writeHead(301,{location: session.req.headers['referer']});
-                        callback({});
+                    io.db.replaceUserTopicTags(TagProcess.getTopicIdFromURL(session.url), userId, _.uniq(session.input.tags.split(/\s?,\s?/g)), function () {
+                        callback({  "directive":"redirect",
+                                    "location":"referer"});
                     });
                 } else {
                     callback(session.getErrorHandler("no-permission"));
@@ -66,60 +117,38 @@ var TagProcess = (function () {
             })
         },
 
-        getTagTopicCount: function getTagTopics (session, callback) {
-            var url = decodeURIComponent(session.url),
-                tagRegEx = url.match(/tags\/([^:\/ ]+)\/?(:\d)?/),
-                tag = tagRegEx[1];
+        getTagFromURL: function getTagFromURL (url) {
+            var tagRegEx = decodeURIComponent(url).match(/tags\/([^:\/ ]+)\/?(:\d)?/);
+            return tagRegEx[1];
+        },
 
-            io.db.getTagTopicCount(tag,function (count){
+        getTagTopicCount: function getTagTopics (session, callback) {
+            io.db.getTagTopicCount(TagProcess.getTagFromURL(session.url),function (count){
                 callback({"count":count});
             });
         },
 
         getTagTopics: function getTagTopics (session, callback) {
-            var url = decodeURIComponent(session.url),
-                tagRegEx = url.match(/tags\/([^:\/ ]+)\/?(:\d)?/),
-                tag = tagRegEx[1],
-                page = (url.replace("tags/"+tag,"").replace(/\D/g,"")*1),
-                isJSONOriginal = session.isJSON,
-                tasks = [
-                    {"method":"get","url":"/tags/"+tag+"/count","outputName":"topicCount"},
-                    {"method":"get","url":"/me","outputName":"me"},
-                    {"method":"get","url":"/tags","outputName":"tags"}
-                ],
+            var tag = TagProcess.getTagFromURL(session.url),
+                page = (decodeURIComponent(session.url).replace("tags/"+tag,"").replace(/\D/g,"")*1),
                 parameters ={   "tag": tag,
                     "pageSize":TOPIC_PAGE_SIZE,
-                    "page":page },
-                taskCount = tasks.length,
-                taskOutput = {},
-                taskCompleted = function taskCompleted() {
-                    if (!(--taskCount)) {
-                        session.isJSON = isJSONOriginal;
-                        callback({
-                            "app":{
-                                "mode": io.getApplicationMode(),
-                                "page": {
-                                    "@type":"feed",
-                                    "tag": tag,
-                                    "topics": { "topic": taskOutput.topics },
-                                    "pageIndex": page,
-                                    "pageCount": Math.ceil(taskOutput.topicCount.count / TOPIC_PAGE_SIZE),
-                                    "tags": { "tag": taskOutput.tags },
-                                    "user":taskOutput.me
-                                }
-                            }
-                        });
-                    }
-                };
+                    "page":page };
 
             io.db.getTopics(parameters, function(topics){
-                taskOutput.topics = topics;
-                session.isJSON = true;
-                tasks.forEach(function (task) {
-                    (io.getHandler(task.method,task.url))(session, function (output) {
-                        taskOutput[task.outputName] = output;
-                        taskCompleted();
-                    } );
+                io.db.getTagTopicCount(tag,function (count){
+                    var data = {
+                        "tag": tag,
+                        "topics": { "topic": topics },
+                        "pageIndex": page,
+                        "pageCount": Math.ceil(count / TOPIC_PAGE_SIZE)
+                    };
+                    callback(session.isJSON ? data : {
+                        "app":{
+                            "page": _.extend(data,{
+                                "@type":"feed"
+                            })
+                        }});
                 });
             });
         }
@@ -128,6 +157,7 @@ var TagProcess = (function () {
 
 if (typeof exports !== "undefined") {
     exports.init = TagProcess.init.bind(TagProcess);
+    exports.plugins = TagProcess.plugins.bind(TagProcess);
 }
 
 // tags actions

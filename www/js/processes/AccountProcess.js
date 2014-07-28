@@ -51,28 +51,46 @@ var AccountProcess = (function () {
             return methods;
         },
 
+        plugins: function plugins () {
+            return [
+                {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
+                {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
+                {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
+                {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)}
+            ];
+        },
+
         getAccount: function (session, callback) {
             session.useUserAccount(function (user) {
-                if (user) {
-                    user = user ? user : new User();
-                    callback(
-                        (session.isJSON) ?
-                            user.toJSON() :
-                        {
-                            "app": {
-                                "mode": io.getApplicationMode(),
-                                "page": {
-                                    "@type": "settings",
-                                    "user": user,
-                                    "profile": user
-                                }
+                user = user ? user : (new User.Account()).toJSON();
+                callback(
+                    (session.isJSON) ? user :
+                    {
+                        "app": {
+                            "mode": io.getApplicationMode(),
+                            "page": {
+                                "@type": "settings",
+                                "user": user,
+                                "profile": user
                             }
                         }
-                    );
-                } else {
-                    callback((new User.Account()).toJSON());
-                }
+                    }
+                );
             });
+        },
+
+        pGetAccount: function pGetAccount (session, nextHandler, callback) {
+            if (session.isJSON) {
+                nextHandler(session, nextHandler, callback);
+            } else {
+                nextHandler(session, nextHandler, function (output) {
+                    session.useUserAccount (function (user) {
+                        output.app.page.user = ((user ? user : new User.Account()).toJSON());
+                        callback(output);
+                    });
+                });
+            }
+
         },
 
         getProfileImage: function getProfileImage(session, callback) {
@@ -83,10 +101,7 @@ var AccountProcess = (function () {
                     picture = user.get("picture");
                 }
                 locationObject = {location: picture ? ("profileImage/" + user.get("picture")) : "/ui/img/anonymous.png"};
-                if (!session.isJSON) {
-                    session.res.writeHead(301, locationObject);
-                }
-                callback(locationObject);
+                callback(session.isJSON ? locationObject : _.extend(locationObject, {  "directive":"redirect"} ));
             });
         },
 
@@ -171,8 +186,8 @@ var AccountProcess = (function () {
                                 user.set("picture", imageName);
                                 io.db.save(user, function (user) {
                                     if (user) {
-                                        session.res.writeHead(301, {location: _.unescape(session.input.referer)});
-                                        callback({});
+                                        callback({  directive: "redirect",
+                                                    location: _.unescape(session.input.referer)});
                                     } else {
                                         session.error("approveProfileImage: io.db.save(User)=>user-not-saved" + JSON.stringify(user.toJSON()));
                                     }
@@ -188,17 +203,15 @@ var AccountProcess = (function () {
             } else {
                 fileSystem.unlink(io.config.profile_images_folders + "/temp-" + session.input.image, function () {
                 });
-                session.res.writeHead(301, {location: _.unescape(session.input.referer)});
-                callback({});
+                callback({ directive: "redirect",
+                           location: _.unescape(session.input.referer)});
             }
         },
 
         removeProfileImage: function removeProfileImage(session, callback) {
             var onCompletion = function () {
-                if (!session.isJSON) {
-                    session.res.writeHead(301, {location: session.req.headers['referer']});
-                }
-                callback({});
+                callback({ directive: "redirect",
+                           location: "referer"});
             };
             session.useUserAccount(function (user) {
                 if (user) {
@@ -431,8 +444,8 @@ var AccountProcess = (function () {
                                         if (session.isJSON) {
                                             callback({"result": user.toJSON()});
                                         } else {
-                                            session.res.writeHead(301, {location: "/" });
-                                            callback({});
+                                            callback({  directive: "redirect",
+                                                        location: "/"});
                                         }
                                     });
                                 });
@@ -495,8 +508,8 @@ var AccountProcess = (function () {
                                     if (session.isJSON) {
                                         callback((user ? user : new User()).toJSON());
                                     } else {
-                                        session.res.writeHead(301, {location: "/" });
-                                        callback({});
+                                        callback({  directive: "redirect",
+                                                    location: "/"});
                                     }
                                 });
                             }
@@ -706,4 +719,5 @@ var AccountProcess = (function () {
 
 if (typeof exports !== "undefined") {
     exports.init = AccountProcess.init.bind(AccountProcess);
+    exports.plugins = AccountProcess.plugins.bind(AccountProcess);
 }

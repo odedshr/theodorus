@@ -11,8 +11,7 @@ var TopicProcess = (function () {
             TOPIC_PAGE_SIZE  = (io.config.topic_page_size) ? io.config.topic_page_size : TOPIC_PAGE_SIZE;
 
             return [
-                {"method":"GET",  "url":"/",                                                        "handler":TopicProcess.getMainPage.bind(TopicProcess)},
-                {"method":"GET",  "url":/^\/:\d+\/?/,                                               "handler":TopicProcess.getMainPage.bind(TopicProcess)},
+                {"method":"GET",  "url":/^\/(:\d+\/?)?$/,                                           "handler":TopicProcess.getTopics.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/topics\/count\/?$/,                                     "handler":TopicProcess.getTopicCount.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/topics(:\d+)?\/?$/,                                     "handler":TopicProcess.getTopics.bind(TopicProcess)},
                 {"method":"GET",  "url":/^\/topics\/add\/?$/,                                       "handler":TopicProcess.getAddTopicPage.bind(TopicProcess)},
@@ -36,109 +35,64 @@ var TopicProcess = (function () {
             ]
         },
 
+        plugins: function plugins () {
+            return [
+                {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TopicProcess.pGetComments.bind(TopicProcess)},
+            ];
+        },
+
         getTopicCount: function getTopicCount (session,callback) {
             io.db.getTopicCount(function(count){
                 callback({"count":count});
             });
         },
 
-        getMainPage: function getMainPage(session,callback) {
-            var isJSONOriginal = session.isJSON;
-                page = Math.max(1,parseInt(session.url.replace(/\D/g,"")*1)),
-                tasks = [   {"method":"get","url":"/topics"+session.url.substr(1),"outputName":"topics"},
-                            {"method":"get","url":"/topics/count","outputName":"topicCount"},
-                            {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
-                taskCount = tasks.length,
-                taskOutput = {},
-                taskCompleted = function taskCompleted() {
-                    if (!(--taskCount)) {
-                        session.isJSON = isJSONOriginal;
-                        callback({
-                            "app":{
-                                "mode": io.getApplicationMode(),
-                                "page": {
-                                    "@type":"feed",
-                                    "topics": { "topic": taskOutput.topics },
-                                    "pageIndex": page,
-                                    "pageCount": Math.ceil(taskOutput.topicCount.count / TOPIC_PAGE_SIZE),
-                                    "tags": { "tag": taskOutput.tags },
-                                    "user":taskOutput.me
-                                }
-                            }
-                        });
-                    }
-                };
-            session.isJSON = true;
-            tasks.forEach(function (task) {
-                (io.getHandler(task.method,task.url))(session, function (output) {
-                    taskOutput[task.outputName] = output;
-                    taskCompleted();
-                } );
-            });
-        },
-
         getAddTopicPage: function getMainPage(session,callback) {
-            var isJSONOriginal = session.isJSON,
-                tasks = [   {"method":"get","url":"/me","outputName":"me"},
-                            {"method":"get","url":"/tags","outputName":"tags"}
-                        ],
-                taskCount = tasks.length,
-                taskOutput = {},
-                taskCompleted = function taskCompleted() {
-                    if (!(--taskCount)) {
-                        session.isJSON = isJSONOriginal;
-                        if (taskOutput.me.can("suggest")) {
-                            callback({
-                                "app":{
-                                    "mode": io.getApplicationMode(),
-                                    "page": {
-                                        "@type":"addTopic",
-                                        "tags": { "tag": taskOutput.tags },
-                                        "user":taskOutput.me
-                                    }
-                                }
-                            });
-                        } else {
-                            callback({
-                                "app":{
-                                    "mode": io.getApplicationMode(),
-                                    "page": {
-                                        "@type":"addTopic",
-                                        "tags": { "tag": taskOutput.tags },
-                                        "user":taskOutput.me
-                                    }
-                                }
-                            });
+            session.useUserAccount(function(user) {
+                if (user && user.can("suggest")) {
+                    callback({
+                        "app":{
+                            "page": {
+                                "@type":"addTopic"
+                            }
                         }
-
-                    }
-                };
-            session.isJSON = true;
-            tasks.forEach(function (task) {
-                (io.getHandler(task.method,task.url))(session, function (output) {
-                    taskOutput[task.outputName] = output;
-                    taskCompleted();
-                } );
+                    });
+                } else {
+                    callback(session.getErrorHandler("no-permissions"));
+                }
             });
         },
 
         getTopics: function (session,callback) {
-            var page = parseInt(session.url.replace(/\D/g,"")*1);
-
             session.useUserId(function(userId) {
-                io.db.getTopics ({
-                    "user" : userId,
-                    "pageSize" : TOPIC_PAGE_SIZE,
-                    "page": page
-                },function (items) {
-                    if (items) {
-                        callback(items);
+                var page = Math.max(1,parseInt(session.url.replace(/\D/g,"")*1)),
+                    parameters = {
+                        "user" : userId,
+                        "pageSize" : TOPIC_PAGE_SIZE,
+                        "page": page
+                    };
+
+                io.db.getTopics (parameters,function (topics) {
+                    if (topics) {
+                        io.db.getTopicCount(function(count){
+                            var output = {
+                                "topics": { "topic": topics },
+                                "pageIndex": page,
+                                "pageCount": Math.ceil(count / TOPIC_PAGE_SIZE)
+                            }
+                            callback(session.isJSON ? output : {
+                                "app":{
+                                    "page": _.extend(output, {
+                                        "@type":"feed"
+                                    })
+                                }
+                            });
+                        });
+
                     } else {
                         callback(session.getErrorHandler("error-getting-topics"));
                     }
-                }, parseInt(session.url.replace(/\D/g,"")));
+                }, page);
             });
         },
 
@@ -175,8 +129,8 @@ var TopicProcess = (function () {
                                             if (session.isJSON) {
                                                 callback(result.toJSON());
                                             } else {
-                                                session.res.writeHead(301,{location: session.req.headers['referer']});
-                                                callback({});
+                                                callback({  "directive":"redirect",
+                                                            "location":"referer"});
                                             }
                                         } else {
                                             callback(session.getErrorHandler(error,"input",input));
@@ -218,55 +172,18 @@ var TopicProcess = (function () {
             } else {
                 io.db.getTopic(topicKey, function (topic){
                     if (topic) {
-                        var isJSONOriginal = session.isJSON,
-                            topicId = topic.get("topic_id"),
-                            tasks = [  {"method":"get","url":"/topics/"+topicId+"/read","outputName":"content"},
-                                       {"method":"get","url":"/topics/"+topicId+"/tags","outputName":"topicTags"},
-                                       {"method":"get","url":"/topics/"+topicId+"/comments","outputName":"comments"},
-                                       {"method":"get","url":"/topics/"+topicId+"/tags/my","outputName":"myTags"}],
-                            taskCount = tasks.length,
-                            taskOutput = {},
-                            taskCompleted = function taskCompleted() {
-                                if (!(--taskCount)) {
-                                    session.isJSON = isJSONOriginal;
-                                    topic.set("content",taskOutput.content);
-                                    topic.set("tags", { "tag": taskOutput.topicTags});
-                                    callback (session.isJSON ? topic.toJSON() : {
-                                        "app":{
-                                            "mode": io.getApplicationMode(),
-                                            "page": {
-                                                "@type":"topicView",
-                                                "topic": topic.toJSON(),
-                                                "comments": { "comment": taskOutput.comments},
-                                                "tags": { "tag": taskOutput.tags },
-                                                "userTopicTags":taskOutput.myTags,
-                                                "user":taskOutput.me,
-                                                "server": "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
-                                                "referer": referer
-                                            }
-                                        }
-                                    })
+                        var topicId = topic.get("topic_id");
+                        io.db.getTopicRead(topicId, function(topicRead){
+                            topic.set("content",topicRead);
+                            callback(session.isJSON ? topic.toJSON() : {
+                                "app":{
+                                    "page": {
+                                        "@type":"topicView",
+                                        "topic": topic.toJSON()
+                                    }
                                 }
-                            };
-
-                        if (!isJSONOriginal) {
-                            tasks.push({"method":"get","url":"/me","outputName":"me"});
-                            tasks.push({"method":"get","url":"/tags","outputName":"tags"});
-                            taskCount = tasks.length;
-                            session.isJSON = true;
-                        }
-
-                        if (tasks.length>0) {
-                            var sessionClone = _.clone(session);
-                            tasks.forEach(function (task) {
-                                (io.getHandler(task.method,task.url))(_.extend(sessionClone, {url: task.url}), function (output) {
-                                    taskOutput[task.outputName] = output;
-                                    taskCompleted();
-                                } );
                             });
-                        } else {
-                            taskCompleted();
-                        }
+                        });
                     } else {
                         callback(session.get404());
                     }
@@ -332,8 +249,8 @@ var TopicProcess = (function () {
                                                     "value":(value ? value : 0)
                                                 });
                                             } else {
-                                                session.res.writeHead(301,{location: session.req.headers['referer']});
-                                                callback({});
+                                                callback({  "directive":"redirect",
+                                                            "location":"referer"});
                                             }
                                         } else {
                                             callback (topicSaveResult);
@@ -404,8 +321,8 @@ var TopicProcess = (function () {
                                         if (session.isJSON) {
                                             callback(result.toJSON());
                                         } else {
-                                            session.res.writeHead(301,{location: source});
-                                            callback({});
+                                            callback({  "directive":"redirect",
+                                                        "location":"referer"});
                                         }
                                     } else {
                                         callback (session.getErrorHandler(error));
@@ -424,7 +341,6 @@ var TopicProcess = (function () {
         report: function report     (session,callback) { this.setUserTopicAttribute(session,callback,"report",session.url.indexOf("/report")!=-1); },
 
         getComments: function getComments (session,callback) {
-            //TODO: allow accepting TopicSlug as input
             var topicKey = this.getTopicIndexByUrl(session.url);
             session.useUserId(function (userId) {
                 io.db.getComments(topicKey.topic_id,userId, function (comments) {
@@ -432,6 +348,20 @@ var TopicProcess = (function () {
                 });
             });
         },
+
+        pGetComments: function getComments (session, nextHandler, callback) {
+            if (session.isJSON) {
+                nextHandler(session, nextHandler, callback);
+            } else {
+                nextHandler(session, nextHandler, function (output) {
+                    TopicProcess.getComments(session,function(comments) {
+                        output.app.page.comments = { "comment": comments }
+                        callback(output);
+                    });
+                });
+            }
+        },
+
 
         invite: function invite     (session,callback) { callback({"error":"method-not-implemented"});}, //  case "post/topic/##/invite/[person]": // {invite-message}
 
@@ -448,8 +378,8 @@ var TopicProcess = (function () {
                                         if (session.isJSON) {
                                             callback(result.toJSON());
                                         } else {
-                                            session.res.writeHead(301,{location: session.req.headers['referer']});
-                                            callback({});
+                                            callback({  "directive":"redirect",
+                                                        "location":"referer"});
                                         }
                                     } else {
                                         session.log("error saving topic" + JSON.stringify(error) +"\n"+JSON.stringify(topic.toJSON()), error);
@@ -487,8 +417,8 @@ var TopicProcess = (function () {
                                         if (session.isJSON) {
                                             callback(result.toJSON());
                                         } else {
-                                            session.res.writeHead(301,{location: session.req.headers['referer']});
-                                            callback({});
+                                            callback({  "directive":"redirect",
+                                                        "location":"referer"});
                                         }
                                     } else {
                                         session.error("removeComment: error saving comment" + JSON.stringify(error) +"\n"+JSON.stringify(comment.toJSON()));
@@ -514,4 +444,5 @@ var TopicProcess = (function () {
 
 if (typeof exports !== "undefined") {
     exports.init = TopicProcess.init.bind(TopicProcess);
+    exports.plugins = TopicProcess.plugins.bind(TopicProcess);
 }
