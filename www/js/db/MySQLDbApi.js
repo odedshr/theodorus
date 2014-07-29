@@ -11,7 +11,7 @@ var db = require('./MySQLDb'),
     Topic = require("../models/Topic").model(),
     Comment = require("../models/Comment").model(),
     Tag = require("../models/Tag").model(),
-    utils = require("../utilities"),
+    prettyDate = require("../utils/PrettyDate").renderer,
     prefix = "";
 
 
@@ -118,8 +118,8 @@ exports.getTopics = function (parameters, callback) {
                     var topic = new Topic ({
                         "topic_id":topicData.topic_id,
                         "slug":topicData.slug,
-                        "created":utils.getDetailedDate(topicData.created),
-                        "modified":utils.getDetailedDate(topicData.modified),
+                        "created":prettyDate(topicData.created),
+                        "modified":prettyDate(topicData.modified),
                         "title":topicData.title,
                         "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                         "endorse":topicData.endorse,
@@ -212,7 +212,7 @@ exports.getComments = function (topicId, userId, callback) {
                         comment= new Comment ({
                             "comment_id":commentId,
                             "parent_id":parentId,
-                            "created":utils.getDetailedDate(commentData.created),
+                            "created":prettyDate(commentData.created),
                             "content":commentData.content,
                             "endorse":parseInt(commentData.endorse),
                             "follow":parseInt(commentData.follow),

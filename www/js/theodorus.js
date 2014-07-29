@@ -14,10 +14,10 @@
                 };
 
             if ((typeof theodorusUIVersion !== "undefined") && (typeof(Storage) !== "undefined") && (theodorusUIVersion != localStorage.getItem("theodorus_version"))) {
-                utils.preloadXSLT(function () {
+                XSLT.preloadXSLT(function () {
                     console.log("all loaded");
                     localStorage.setItem("theodorus_version", theodorusUIVersion);
-                    utils.useLocalStorage = true;
+                    XSLT.useLocalStorage = true;
                     reRender();
                 });
             } else {
@@ -47,7 +47,7 @@
             for(var i = 0, ll = timeRefsList.length; i != ll; timeRefs.push(timeRefsList[i++]));
 
             timeRefs.forEach(function(ref) {
-                utils.xslt.transform(ref,{"datetime":utils.date.render(ref.getAttribute("datetime"))},function(output){});
+                XSLT.transform(ref,{"datetime":PrettyDate.render(ref.getAttribute("datetime"))},function(output){});
             });
             //var refs = document.getElementsByTagName("time");
             //alert (refs[0].getAttribute("datetime")+","+refs[0].innerHTML);
@@ -165,5 +165,4 @@
 
     _.bindAll(Theodorus, "init","namespace", "onAccountLoaded","parseURL");
     window.onload = Theodorus.init ;
-
 })();

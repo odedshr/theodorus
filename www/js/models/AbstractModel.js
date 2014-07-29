@@ -29,7 +29,7 @@ var AbstractCollection = Backbone.Collection.extend ({
             throw "called-getPage-on-collection-with-no-url";
         }
         var matches = this.url.match(/:\d+/);
-        return (matches ? matches[0].replace(/\D/g,"")*1 : 0);
+        return (matches ? matches[0].replace(/\D/g,"")*1 : 1);
     },
 
     setPage: function(pageNum) {

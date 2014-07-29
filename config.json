@@ -19,6 +19,7 @@
         "processes/AccountProcess",
         "processes/UserProcess",
         "processes/TopicProcess",
+        "processes/CommentProcess",
         "processes/TagProcess"
     ]
 }

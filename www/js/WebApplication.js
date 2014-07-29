@@ -1,7 +1,7 @@
 (function () {
+    //xslt = require('node_xslt'),
     var _ = require("underscore"),
         express = require('express'),
-        xslt = require('node_xslt'),
         fileSystem = require("fs"),
         YEAR = 31536000000,
         rootFolder = __dirname.substr(0,__dirname.lastIndexOf("/")),
@@ -15,18 +15,17 @@
         self.crypto = require("crypto");
         self.db = require (__dirname+'/db/DbApi').get(config);
         self.rsa = require(__dirname+"/RSA");
-        self.utils = require(__dirname+"/utilities");
         self.mailer = require(__dirname+"/processes/MailProcess");
         self.appName = config.application_name;
-        self.encrypt = function encrypt (string) {
-            return self.crypto.createHash('md5').update(string).digest('hex');
-        }
+        self.encrypt = function encrypt (string) { return self.crypto.createHash('md5').update(string).digest('hex'); }
         self.rsaKeys =  {
             "encryption":self.envVar(self.appName+"_RSA_ENCRYPT"),
             "decryption":self.envVar(self.appName+"_RSA_DECRYPT"),
             "modulus":self.envVar(self.appName+"_RSA_MODULUS")
         };
-        self.uiVersion = false;
+        self.getApplicationMode = function getApplicationMode () { return self.envVar(self.appName+"_MODE"); }
+        self.uiVersion = (self.getApplicationMode()!="dev") ? (new Date()).toISOString() : false;
+        self.xslt = require(__dirname+"/utils/XSLTRenderer").init(rootFolder + "/themes/"+config.theme,self.uiVersion);
         self.portListener = false; // will get results from app.listen() and used to shut down the server
 
         function AppAPI(req,res) {
@@ -112,6 +111,11 @@
                 return this.getErrorHandler('item-not-found');
             };
 
+            this.get501 = function () {
+                res.status(501);
+                return this.getErrorHandler('system-error');
+            };
+
             this.getErrorHandler = function (errorMessage,key,data) {
                 self.log (errorMessage+"\n"+data,"error");
                 var output;
@@ -153,6 +157,10 @@
             var date = new Date(),
                 target;
             switch (type) {
+                case "exception" :
+                    target = console.error;
+                    content = (content.message ? ("\nMessage: " + content.message) : "") + (content.stack ? ("\nStacktrace:\n====================\n"+content.stack): "");
+                    break;
                 case "error" : target = console.error; break;
                 case "warn" : target = console.warn; break;
                 default : target = console.log; break;
@@ -174,42 +182,11 @@
             self.ipaddress = self.envVar("OPENSHIFT_NODEJS_IP");
             self.port      = self.envVar("OPENSHIFT_NODEJS_PORT") || config.port || 8080;
 
-            if (self.getApplicationMode()!="dev") {
-                self.uiVersion = (new Date()).toISOString();
-            }
-
             if (typeof self.ipaddress === "undefined") {
                 //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
                 //  allows us to run/test the app locally.
                 self.log('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1',"warn");
                 self.ipaddress = "127.0.0.1";
-            }
-        };
-
-        self.getApplicationMode = function getApplicationMode () {
-            return self.envVar(self.appName+"_MODE");
-        }
-
-        self.plugins = function (url,session,mainFunc,callback) {
-            mainFunc(session,function(output) {
-                callback(output);
-            });
-        };
-
-        self.xslt = function (content) {
-            try {
-                if ((typeof content === "object")) {
-                    if (content.app) {
-                        content.app["@version"] = self.uiVersion;
-                    }
-                    content = self.utils.json2xml (content);
-                }
-                var xsltDocument = xslt.readXsltFile(rootFolder + "/themes/"+config.theme+"/xslt/default.xsl"),
-                    xmlDocument = xslt.readXmlString("<xml>"+content+"</xml>");
-                return xslt.transform( xsltDocument,xmlDocument, []);
-            } catch (error) {
-                console.error("failed to xslt "+ ((typeof content === "object") ? self.utils.json2xml (content) : content) +"\n" + error);
-                return "";
             }
         };
 
@@ -225,6 +202,9 @@
             "delete":[],
             "put":[]
         };
+        self.plugins = {};
+
+        // getHandler(method,url) function is used for internal invocations
         self.getHandler = function(method,url) {
             var i, handler, handlers = self.handlers[method];
             for (i in handlers) {
@@ -237,43 +217,90 @@
             return function(){}; // if no method found, return a zombie function
         };
 
-        self.addHandler = function (handlerDef) {
-            /* self.NoInputHandler and self.WithInputHandler are practically the same except for the input question, which I
-             * prefer will happen only on init and not every time the function runs ...
-             * Also, notice that the functionWrapper uses handlerDef.handler, so I cannot extract it from within the
-             * addHandler function ...
-             * */
-            //TODO: remove addHandler's functionWrapper code duplication
+        self.executePlugins = function (pattern,session,mainFunc,callback) {
+            try {
+                var plugins = self.plugins[pattern],
+                    nextHandler = function(session, nextHandler, callback) {
+                        if (plugins.length) {
+                            (plugins.pop())(session, nextHandler, callback);
+                        } else {
+                            mainFunc(session,function(output) {
+                                callback(output);
+                            });
+                        }
+                    }
+                plugins = (typeof plugins == "undefined") ? [] : plugins.slice(0), // slice(0) clones the array
+                    nextHandler (session, nextHandler, callback);
+            } catch (err) {
+                self.log(err,"exception");
+                callback(session.get501());
+            }
+        };
+
+        self.executeHandler = function executeHandler(res, session, handlerDef) {
+            var method = session.req.method.toLocaleLowerCase(),
+                handler = handlerDef.handler;
+            self.executePlugins(method + ":" + handlerDef.url, session, handler, function (output) {
+                if (session.isJSON) {
+                    res.end(JSON.stringify(output));
+                } else {
+                    if (output.directive) {
+                        switch (output.directive) {
+                            case "redirect":
+                                var location = output.location;
+                                location = (location!="referer") ? location : session.req.headers['referer'];
+                                res.writeHead(301,{"location" : location} );
+                                res.end();
+                                break;
+                            case "default": res.end(session.get404());
+                        }
+                    } else {
+                        var app = output.app;
+                        app.mode = self.getApplicationMode();
+                        app.server = "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host;
+                        app.referer = session.req.headers.referer;
+                        res.end(self.xslt(output));
+                    }
+                }
+            });
+        };
+
+        self.addHandler = function addHandler (handlerDef) {
             var url = handlerDef.url,
-                method = handlerDef.method.toLowerCase(),
-                pluginWrapper = function pluginWrapper (res, session, handler) {
-                    self.plugins(url, session, handler,function(output) {
-                        res.end((session.isJSON || !output.app) ? JSON.stringify(output) : self.xslt(output));
-                    });
-                },
-                functionWrapper = (method=="get" || method=="delete") ?
-                    function (req,res) {
-                        var session = self.getAppAPI(req,res);
-                        res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html')+ "; charset=utf8");
-                        pluginWrapper (res, session, handlerDef.handler);
-                    } :
-                    function (req,res) {
-                        var session = self.getAppAPI(req,res);
-                        res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
-                        session.useInput(function() {
-                            pluginWrapper (res, session, handlerDef.handler);
-                        });
-                    };
+                method = handlerDef.method.toLowerCase();
 
             self.handlers[method].push ({   "pattern":url,
-                "method":handlerDef.handler}); // store func for internal invocation // handlerDef.url
-            self.app[method](url, functionWrapper); // external invocation
+                                            "method":handlerDef.handler}); // store func for internal invocation // handlerDef.url
+            self.app[method](url, function (req, res) { // external invocation
+                var session = self.getAppAPI(req, res);
+                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
+                if (req.method == "GET" || req.method == "DELETE") {
+                    self.executeHandler(res, session, handlerDef);
+                } else {
+                    session.useInput(function () {
+                        self.executeHandler(res, session, handlerDef);
+                    });
+                }
+            }); // external invocation
+        };
+
+        self.addPlugin = function addPlugin (handlerDef) {
+            var pattern = handlerDef.method.toLowerCase()+":"+handlerDef.url,
+                repo = self.plugins[pattern];
+            if (typeof repo == "undefined") {
+                repo = [];
+                self.plugins[pattern] = repo;
+            }
+            self.plugins[pattern].push (handlerDef.handler);
         };
 
         self.initProcesses =  function () {
             config.processes.forEach( function(libraryName) {
                 try {
-                    require("./"+libraryName).init(self).forEach(self.addHandler.bind(self));
+                    var library = require("./"+libraryName);
+                    library.init(self);
+                    library.methods().forEach(self.addHandler.bind(self));
+                    library.plugins().forEach(self.addPlugin.bind(self));
                 } catch (error) {
                     self.log("failed to init "+libraryName + " ("+error+")","error");
                 }
@@ -367,4 +394,11 @@
  app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
 
 
+a word on plugins
+up until now I had a single function needed to be run
+it got a input in session.input and its output was sent to callback
+
+now I need to run an unknown amount functions,
+each function may alter the session.input and then call the next function,
+when the next function ends, the current function should get the output and update it, and then call the next function
  */
