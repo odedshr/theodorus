@@ -58,6 +58,7 @@
         <result type="comment-too-long">התגובה ארוכה מדי</result>
         <result type="comment-too-short">התגובה קצרה מדי</result>
         <error type="item-not-found">הפריט לא נמצא</error>
+        <error type="system-error">שגיאת מערכת</error>
         <error type="topic-not-found">הודעה לא נמצאה</error>
         <error type="comment-not-found">תגובה לא נמצאה</error>
         <error type="image-process-failed">עיבוד תמונה נכשל</error>

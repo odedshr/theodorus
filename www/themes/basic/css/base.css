@@ -142,6 +142,7 @@ a[href] {
   font-family: 'carmelit_regularregular', 'arial', 'halvetica';
 }
 .force-web-font-preload {
+  color: white;
   direction: ltr;
   position: absolute;
   left: 0;
