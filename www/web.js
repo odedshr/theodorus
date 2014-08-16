@@ -17,7 +17,7 @@
                 console.error(err.stack);
             }
         } else {
-            console.error('dumpError :: argument is not an object');
+            console.error(err);
         }
     }
 })();

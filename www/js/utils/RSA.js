@@ -19,7 +19,7 @@
 // Tweaked by Ian Bunning
 // Alterations:
 // Fix bug in function biFromHex(s) to allow
-// parsing of strings of length != 0 (mod 4)
+// parsing of strings of length !== 0 (mod 4)
 
 // Changes made by Dave Shapiro as of 12/30/2004:
 //
@@ -51,7 +51,7 @@
 
 
 // (unused:) var biRadixBase = 2;
-var bitsPerDigit = biRadixBits = 16,
+var bitsPerDigit = (biRadixBits = 16),
     biRadix = 1 << 16, // = 2^16 = 65536
     biHalfRadix = biRadix >>> 1,
     biRadixSquared = biRadix * biRadix,
@@ -92,7 +92,7 @@ var lr10 = biFromNumber(1000000000000000);
 
 function BigInt(flag)
 {
-    if (typeof flag == "boolean" && flag == true) {
+    if (typeof flag == "boolean" && flag === true) {
         this.digits = null;
     }
     else {
@@ -114,7 +114,7 @@ function biFromDecimal(s)
     else {
         var digitCount = s.length - i;
         var fgl = digitCount % dpl10;
-        if (fgl == 0) fgl = dpl10;
+        if (fgl === 0) fgl = dpl10;
         result = biFromNumber(Number(s.substr(i, fgl)));
         i += fgl;
         while (i < s.length) {
@@ -157,12 +157,12 @@ function reverseStr(s)
     return result;
 }
 
-var hexatrigesimalToChar = new Array(
+var hexatrigesimalToChar = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
     'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
     'u', 'v', 'w', 'x', 'y', 'z'
-);
+];
 
 function biToString(x, radix)
     // 2 <= radix <= 36
@@ -192,8 +192,8 @@ function biToDecimal(x)
     return (x.isNeg ? "-" : "") + reverseStr(result);
 }
 
-var hexToChar = new Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    'a', 'b', 'c', 'd', 'e', 'f');
+var hexToChar = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    'a', 'b', 'c', 'd', 'e', 'f'];
 
 function digitToHex(n)
 {
@@ -244,7 +244,7 @@ function hexToDigit(s)
     var sl = Math.min(s.length, 4);
     for (var i = 0; i < sl; ++i) {
         result <<= 4;
-        result |= charToHex(s.charCodeAt(i))
+        result |= charToHex(s.charCodeAt(i));
     }
     return result;
 }
@@ -326,7 +326,7 @@ function biSubtract(x, y)
         // Fix up the negative sign, if any.
         if (c == -1) {
             c = 0;
-            for (var i = 0; i < x.digits.length; ++i) {
+            for (i = 0; i < x.digits.length; ++i) {
                 n = 0 - result.digits[i] + c;
                 result.digits[i] = n & 0xffff;
                 // Stupid non-conforming modulus operation.
@@ -346,7 +346,7 @@ function biSubtract(x, y)
 function biHighIndex(a)
 {
     var result = a.digits.length - 1;
-    while (result > 0 && a.digits[result] == 0) --result;
+    while (result > 0 && a.digits[result] === 0) --result;
     return result;
 }
 
@@ -357,7 +357,7 @@ function biNumBits(b)
     var m = (n + 1) * bitsPerDigit;
     var result;
     for (result = m; result > m - bitsPerDigit; --result) {
-        if ((d & 0x8000) != 0) break;
+        if ((d & 0x8000) !== 0) break;
         d <<= 1;
     }
     return result;
@@ -410,9 +410,9 @@ function arrayCopy(src, srcStart, dest, destStart, n)
     }
 }
 
-var highBitMasks = new Array(0x0000, 0x8000, 0xC000, 0xE000, 0xF000, 0xF800,
+var highBitMasks = [0x0000, 0x8000, 0xC000, 0xE000, 0xF000, 0xF800,
     0xFC00, 0xFE00, 0xFF00, 0xFF80, 0xFFC0, 0xFFE0,
-    0xFFF0, 0xFFF8, 0xFFFC, 0xFFFE, 0xFFFF);
+    0xFFF0, 0xFFF8, 0xFFFC, 0xFFFE, 0xFFFF];
 
 function biShiftLeft(x, n)
 {
@@ -432,9 +432,9 @@ function biShiftLeft(x, n)
     return result;
 }
 
-var lowBitMasks = new Array(0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
+var lowBitMasks = [0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
     0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
-    0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF);
+    0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF];
 
 function biShiftRight(x, n)
 {
@@ -578,9 +578,9 @@ function biDivideModulo(x, y)
         r = biSubtract(y, r);
     }
     // Check for the unbelievably stupid degenerate case of r == -0.
-    if (r.digits[0] == 0 && biHighIndex(r) == 0) r.isNeg = false;
+    if (r.digits[0] === 0 && biHighIndex(r) === 0) r.isNeg = false;
 
-    return new Array(q, r);
+    return [q, r];
 }
 
 function biDivide(x, y)
@@ -603,9 +603,9 @@ function biPow(x, y)
     var result = bigOne;
     var a = x;
     while (true) {
-        if ((y & 1) != 0) result = biMultiply(result, a);
+        if ((y & 1) !== 0) result = biMultiply(result, a);
         y >>= 1;
-        if (y == 0) break;
+        if (y === 0) break;
         a = biMultiply(a, a);
     }
     return result;
@@ -617,9 +617,9 @@ function biPowMod(x, y, m)
     var a = x;
     var k = y;
     while (true) {
-        if ((k.digits[0] & 1) != 0) result = biMultiplyMod(result, a, m);
+        if ((k.digits[0] & 1) !== 0) result = biMultiplyMod(result, a, m);
         k = biShiftRight(k, 1);
-        if (k.digits[0] == 0 && biHighIndex(k) == 0) break;
+        if (k.digits[0] === 0 && biHighIndex(k) === 0) break;
         a = biMultiplyMod(a, a, m);
     }
     return result;
@@ -692,9 +692,9 @@ function BarrettMu_powMod(x, y)
     var a = x;
     var k = y;
     while (true) {
-        if ((k.digits[0] & 1) != 0) result = this.multiplyMod(result, a);
+        if ((k.digits[0] & 1) !== 0) result = this.multiplyMod(result, a);
         k = biShiftRight(k, 1);
-        if (k.digits[0] == 0 && biHighIndex(k) == 0) break;
+        if (k.digits[0] === 0 && biHighIndex(k) === 0) break;
         a = this.multiplyMod(a, a);
     }
     return result;
@@ -742,7 +742,7 @@ function encryptedString (key, s)
     // incompatibility with Flash MX's ActionScript.
 {
    // key = generateKey(key);
-    var a = new Array();
+    var a = [];
     var sl = s.length;
     var i = 0;
     while (i < sl) {
@@ -750,7 +750,7 @@ function encryptedString (key, s)
         i++;
     }
 
-    while (a.length % key.chunkSize != 0) {
+    while (a.length % key.chunkSize !== 0) {
         a[i++] = 0;
     }
 
@@ -771,8 +771,7 @@ function encryptedString (key, s)
     return result.substring(0, result.length - 1); // Remove last space.
 }
 
-function decryptedString (key, s)
-{
+function decryptedString (key, s) {
     var blocks = s.split(" ");
     var result = "";
     var i, j, block;
@@ -791,22 +790,24 @@ function decryptedString (key, s)
         }
     }
     // Remove trailing null, if any.
-    if (result.charCodeAt(result.length - 1) == 0) {
+    if (result.charCodeAt(result.length - 1) === 0) {
         result = result.substring(0, result.length - 1);
     }
     return result;
-};
+}
 
-
-exports.generateKey = function (keySettings) {
-    return {
-        key: new RSAKeyPair(keySettings.encryption, keySettings.decryption, keySettings.modulus),
-        test: function () { return this.key.radix; },
-        encrypt: function (string) { return encryptedString(this.key, string); },
-        decrypt: function (string) { return decryptedString(this.key,string); }
-    }
+if (typeof exports !== "undefined") {
+    exports.generateKey = function (keySettings) {
+        return {
+            key: new RSAKeyPair(keySettings.encryption, keySettings.decryption, keySettings.modulus),
+            test: function () { return this.key.radix; },
+            encrypt: function (string) { return encryptedString(this.key, string); },
+            decrypt: function (string) { return decryptedString(this.key,string); }
+        };
+    };
 
 }
+
 /*
  var key;function createKey()
  {var f=document.frm;var index=f.selKeySize.selectedIndex;var keySize=Number(f.selKeySize.options[index].value);

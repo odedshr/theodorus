@@ -9,7 +9,9 @@
         return {
             init: function (ioFunctions) {
                 io = ioFunctions;
-                TOPIC_PAGE_SIZE  = (io.config.topic_page_size) ? io.config.topic_page_size : TOPIC_PAGE_SIZE;
+                var topicPageSize = io.config["topic_page_size"];
+                TOPIC_PAGE_SIZE  = (topicPageSize) ? topicPageSize : TOPIC_PAGE_SIZE;
+                return this;
             },
 
             getMethods: function getMethods () { return this.methods; },

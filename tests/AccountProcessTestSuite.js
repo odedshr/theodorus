@@ -1,14 +1,17 @@
 exports.getTests = function AccountProcess () {
     var config = config || require("../config.json"), // required because of the profile_image_folders
         User = User || require("../www/js/models/User").model(),
+        lib = require ("../www/js/processes/AccountProcess.js"),
         Timer = function (timeout) {
             var start = new Date(),
                 TIMEOUT = isNaN(timeout) ? 5000 : timeout,
                 isTimeout = function () { return ((new Date()) - this.start < this.TIMEOUT); }
         }
-        functions = require ("../www/js/processes/AccountProcess.js").init({ config: {
+
+        lib.init({ config: {
             "profile_images_folders" : config.profile_images_folders
-        } }),
+        } });
+        var functions = lib.methods();
         functionsByMethod = {
                         "GET": [],
                         "POST": [],
@@ -23,8 +26,8 @@ exports.getTests = function AccountProcess () {
                     return aFunction.handler;
                 }
             }
-            console.log("failed to match handler for "+ method+":"+url);
-            throw "handler-not-defined";
+            console.error("failed to match handler for "+ method+":"+url);
+            throw new Error("handler-not-defined");
         }
 
     for (var f in functions) {
@@ -104,7 +107,7 @@ exports.getTests = function AccountProcess () {
                 calledBack = true;
             });
             while (!calledBack && timer.isTimeout()) {}
-            assert.ok ((typeof actualObject.permissions === "object"),"retrieved object with permissions attribute");
+            assert.ok ((typeof actualObject.get("permissions") === "object"),"retrieved object with permissions attribute");
         },
 
         function testGetAnonymousProfilePicture (assert) {

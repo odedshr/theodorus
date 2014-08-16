@@ -4,16 +4,23 @@
         mailer = (typeof mailer !== "undefined") ? mailer : require("nodemailer"),
         MailProcess = (function () {
         return {
-            smtpTransport : mailer.createTransport("SMTP",{
-                service: process.env.THEODORUS_MAIL_SERVICE,
-                auth: {
-                    user: process.env.THEODORUS_MAIL_USER,
-                    pass: process.env.THEODORUS_MAIL_PASSWORD
-                }
-            }),
+            smtpTransport : false,
+            defaultRecepient : false,
 
             init : function init (ioFunctions) {
                 io = ioFunctions;
+
+                var appName = io.vars("application_name", true);
+
+                this.smtpTransport = mailer.createTransport("SMTP",{
+                    service: io.vars(appName+"_MAIL_SERVICE", true),
+                    auth: {
+                        user: io.vars(appName+"_MAIL_USER",true),
+                        pass: io.vars(appName+"_MAIL_PASSWORD",true)
+                    }
+                });
+                this.defaultRecepient = io.vars(appName+"_MAIL_USER",true);
+                return this;
             },
 
             getMethods: function getMethods () { return this.methods; },
@@ -21,7 +28,7 @@
 
             mail : function mail (input,callback) {
                 if (!input.emailTo) {
-                    input.emailTo = process.env.THEODORUS_MAIL_USER;
+                    input.emailTo = this.defaultRecepient;
                 }
                 if (!input.emailTemplate) {
                     callback("missing-parameters");
@@ -54,6 +61,7 @@
     MailProcess.plugins = [];
 
     if (typeof exports !== "undefined") {
+        exports.mail = MailProcess.mail.bind(MailProcess);
         exports.init = MailProcess.init.bind(MailProcess);
         exports.methods = MailProcess.getMethods.bind(MailProcess);
         exports.plugins = MailProcess.getPlugins.bind(MailProcess);

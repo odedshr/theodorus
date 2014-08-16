@@ -11,7 +11,7 @@ mv theodorus.controllers.min.js ./www/js
 readyjs ./www/js/views -o theodorus.views.min.js
 mv theodorus.views.min.js ./www/js
 
-readyjs ./www/js/utils -o theodorus.utils.min.js
+readyjs ./www/js/utils -o theodorus.utils.min.js -i Encryption.js
 mv theodorus.utils.min.js ./www/js
 
 # Invoke the Forever module (to START our Node.js server).

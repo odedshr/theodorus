@@ -8,25 +8,58 @@
 
     WebApplication = function (config) {
         var self = this;
-        self.envVar = function envVar(varName) { return process.env[varName]; };
         self.config = config;
+        self.vars = function vars(varName, isRequired) {
+            var variable = process.env[varName];
+            if (typeof variable === "undefined") {
+                variable = config[varName];
+                if (typeof variable === "undefined" && isRequired) {
+                    throw Error("The required variable "+varName + " was not found. Please fix problem and try again");
+                }
+            }
+            return variable
+        };
+        self.getApplicationMode = function getApplicationMode () { return self.vars(self.appName+"_MODE"); }
+        self.mail = require(__dirname+"/processes/MailProcess").init(this).mail;
+        self.log = function log (content, type) {
+            var date = new Date(),
+                target;
+            switch (type) {
+                case "exception" :
+                    target = console.error;
+                    content = (content.message ? ("\nMessage: " + content.message) : "") + (content.stack ? ("\nStacktrace:\n====================\n"+content.stack): "");
+                    break;
+                case "error" : target = console.error; break;
+                case "warn" : target = console.warn; break;
+                default : target = console.log; break;
+            }
+            target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + ((typeof content === "object") ? JSON.stringify(content) : content));
+            if (self.mailLogs && self.getApplicationMode()!="dev" && type == "error") {
+                self.mail({
+                    emailTemplate: "logged-action",
+                    emailData: {    server: self.ipaddress,
+                        type:  type,
+                        content: content
+                    }
+                },function () {});
+            }
+        };
+
+
         self.qs = require("querystring");
         self.formidable = require("formidable");
-        self.crypto = require("crypto");
-        self.db = require (__dirname+'/db/DbApi').get(config);
-        self.rsa = require(__dirname+"/RSA");
-        self.mailer = require(__dirname+"/processes/MailProcess");
-        self.appName = config.application_name;
-        self.encrypt = function encrypt (string) { return self.crypto.createHash('md5').update(string).digest('hex'); }
-        self.rsaKeys =  {
-            "encryption":self.envVar(self.appName+"_RSA_ENCRYPT"),
-            "decryption":self.envVar(self.appName+"_RSA_DECRYPT"),
-            "modulus":self.envVar(self.appName+"_RSA_MODULUS")
-        };
-        self.getApplicationMode = function getApplicationMode () { return self.envVar(self.appName+"_MODE"); }
         self.uiVersion = (self.getApplicationMode()!="dev") ? (new Date()).toISOString() : false;
         self.xslt = require(__dirname+"/utils/XSLTRenderer").init(rootFolder + "/themes/"+config.theme,self.uiVersion);
+        self.db = require (__dirname+'/db/DbApi').init(self.vars, self.log);
+        self.appName = config.application_name;
         self.portListener = false; // will get results from app.listen() and used to shut down the server
+        {
+            var encryption = require(__dirname+"/utils/Encryption");
+            encryption.init(self.vars);
+            self.encrypt = encryption.encrypt.bind(encryption);
+            self.rsaEncrypt = encryption.rsaEncrypt.bind(encryption);
+            self.rsaDecrypt = encryption.rsaDecrypt.bind(encryption);
+        }
 
         function AppAPI(req,res) {
             this.req = req;
@@ -43,7 +76,7 @@
                         "userId": userId,
                         "remember": remember
                     });
-                    this.res.cookie( config.cookie_token, self.rsa.generateKey(self.rsaKeys).encrypt(cookieString),
+                    this.res.cookie( config.cookie_token, self.rsaEncrypt(cookieString),
                         { maxAge: remember ? YEAR : 900000, httpOnly: false}); // remember ? year : 15m
                     return true;
                 } else {
@@ -81,7 +114,7 @@
                     userId= false;
                 if (token = (token ? self.qs.unescape(token) : false)) {
                     try {
-                        token = JSON.parse(self.rsa.generateKey(self.rsaKeys).decrypt(token));
+                        token = JSON.parse(self.rsaDecrypt(token));
                         if (token.ip==this.req.socket.remoteAddress) {
                             this.cookie(token.userId,token.remember); // re-set the cookie
                             userId = token.userId
@@ -153,34 +186,10 @@
         /*  Helper functions.                                                 */
         /*  ================================================================  */
 
-        self.log = function log (content, type) {
-            var date = new Date(),
-                target;
-            switch (type) {
-                case "exception" :
-                    target = console.error;
-                    content = (content.message ? ("\nMessage: " + content.message) : "") + (content.stack ? ("\nStacktrace:\n====================\n"+content.stack): "");
-                    break;
-                case "error" : target = console.error; break;
-                case "warn" : target = console.warn; break;
-                default : target = console.log; break;
-            }
-            target (date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds() +" | " + ((typeof content === "object") ? JSON.stringify(content) : content));
-            if (self.mailLogs && self.getApplicationMode()!="dev" && type == "error") {
-                (self.getHandler("put","/mail"))({    input: {
-                    emailTemplate: "logged-action",
-                    emailData: {    server: self.ipaddress,
-                        type:  type,
-                        content: content
-                    }
-                }}, function (){});
-            }
-        };
-
         self.setupVariables = function() {
             //  Set the environment variables we need.
-            self.ipaddress = self.envVar("OPENSHIFT_NODEJS_IP");
-            self.port      = self.envVar("OPENSHIFT_NODEJS_PORT") || config.port || 8080;
+            self.ipaddress = self.vars("OPENSHIFT_NODEJS_IP");
+            self.port      = self.vars("OPENSHIFT_NODEJS_PORT") || config.port || 8080;
 
             if (typeof self.ipaddress === "undefined") {
                 //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
@@ -274,6 +283,7 @@
             self.app[method](url, function (req, res) { // external invocation
                 var session = self.getAppAPI(req, res);
                 res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
+                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
                 if (req.method == "GET" || req.method == "DELETE") {
                     self.executeHandler(res, session, handlerDef);
                 } else {
@@ -344,10 +354,6 @@
                 });
             });
 
-            self.addHandler({"method":"GET", "url":"/web.js", "handler":function(session,callback) {
-                callback({"error":"no-permission-to-access-file"});
-            }});
-
             self.setupVariables();
             self.initProcesses();
 
@@ -370,7 +376,7 @@
 
         self.stop = function stop() {
             self.portListener && self.portListener.close();
-            self.log("Node server stopped listening on "+self.ipaddress+":"+self.port,"info")
+            self.log("Node server stopped listening on "+self.ipaddress+":"+self.port,"info");
         }
     };
 
