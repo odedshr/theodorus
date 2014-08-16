@@ -4,9 +4,7 @@
     "CommentTestSuite",
     "CredentialTestSuite",
     "TopicTestSuite",
-    "UserTestSuite"
-    ],
-  "exclude": [
+    "UserTestSuite",
     "MailProcessTestSuite",
     "MySQLDbAPITestSuite",
     "MySQLDbTestSuite",
@@ -14,9 +12,12 @@
     "PrettyDateTestSuite",
     "TagProcessTestSuite",
     "TopicProcessTestSuite",
-     "UserProcessTestSuite",
+    "UserProcessTestSuite",
     "WebApplicationAppAPITestSuite",
     "WebApplicationTestSuite",
-    "XSLTGeneratorTestSuite"
+    "XSLTGeneratorTestSuite",
+    "EncryptionTestSuite"
+    ],
+  "exclude": [
   ]
 }

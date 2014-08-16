@@ -34,9 +34,9 @@ function renderWhereString (filters) {
     return "";
 }
 
-exports.init = function init (config) {
-    db.init(config);
-    prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
+exports.init = function init (vars,log) {
+    db.init(vars, log);
+    prefix = db.getPrefix();
 };
 
 exports.load = function load (itemClass, itemId, callback) {

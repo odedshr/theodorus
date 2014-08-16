@@ -26,6 +26,7 @@
                 } else {
                     throw "profileImageFolder-not-defined"
                 }
+                return this;
             },
 
             getMethods: function getMethods () { return AccountProcess.methods; },
@@ -93,7 +94,7 @@
                                     if (features) {
                                         // session.input.files.upload.name = the original file name
                                         // name should be commmon for user so he might have only one
-                                        var targetFileName = io.crypto.createHash('md5').update("user_" + userId).digest('hex') + "." + features.format.toLowerCase();
+                                        var targetFileName = io.encrypt("user_" + userId) + "." + features.format.toLowerCase();
 
                                         imageMagick.crop({
                                             srcPath: originalFileName,
@@ -379,8 +380,8 @@
                     if (password.length <= io.config.minimum_password_length) {
                         return throwError("password-too-short");
                     } else {
-                        password = io.crypto.createHash('md5').update(password).digest('hex');
-                        passwordRepeat = io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
+                        password = io.encrypt(password);
+                        passwordRepeat = io.encrypt(passwordRepeat);
                     }
                 }
                 if (password != passwordRepeat) {
@@ -461,7 +462,7 @@
                             if (password.length == 0) {
                                 throwError();
                             } else {
-                                password = io.crypto.createHash('md5').update(password).digest('hex');
+                                password = io.encrypt(password);
                             }
                         }
 
@@ -630,8 +631,8 @@
                                 if (password.length <= io.config.minimum_password_length) {
                                     return throwError("password-too-short", "reset-password");
                                 } else {
-                                    password = io.crypto.createHash('md5').update(password).digest('hex');
-                                    passwordRepeat = io.crypto.createHash('md5').update(passwordRepeat).digest('hex');
+                                    password = io.encrypt(password);
+                                    passwordRepeat = io.encrypt(passwordRepeat);
                                 }
                             }
                             if (password != passwordRepeat) {

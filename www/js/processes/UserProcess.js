@@ -5,6 +5,7 @@
         return {
             init: function init (ioFunctions) {
                 io = ioFunctions;
+                return this;
             },
 
             getMethods: function getMethods () { return this.methods; },

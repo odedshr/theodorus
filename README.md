@@ -12,6 +12,12 @@ to educate people to participate in the political debate and encourage them to e
 ** I will appreciate any feedback regarding the project itself and its maintenance.
 
 ### Settings to configure
+The following items should be configured as a environment variables (that way they are hidden by anyone plainly looking
+at your code). Use the command line (or terminal console) to set them:
+E.g. setenv THEODORUS_MAIL_SERVICE Gmail
+You can also write them to your config.json which is much easier, but less secured. Please not that environment variables
+ overrides config.json
+
 * process.env.THEODORUS_MODE : "dev", "test", "prod"
 * RSA information:
   - process.env.THEODORUS_RSA_ENCRYPT
@@ -27,13 +33,9 @@ to educate people to participate in the political debate and encourage them to e
   - process.env.THEODORUS_MYSQL_PASSWORD
   - process.env.THEODORUS_MYSQL_SCHEMA
 * Mailer information
-  - process.env.THEODORUS_MAIL_SERVICE
-  - process.env.THEODORUS_MAIL_USER
-  - process.env.THEODORUS_MAIL_PASSWORD
-
-setenv THEODORUS_MAIL_SERVICE Gmail
-setenv THEODORUS_MAIL_USER theodorus972@gmail.com
-setenv THEODORUS_MAIL_PASSWORD q1W@e3R$
+  - process.env.THEODORUS_MAIL_SERVICE (e.g. "Gmail")
+  - process.env.THEODORUS_MAIL_USER (e.g. "my-email@gmail.com")
+  - process.env.THEODORUS_MAIL_PASSWORD (e.g. "7ru57n01")
 
 ###  Installation
   1. sign up for openshift
@@ -72,10 +74,9 @@ cd /runtime/theodorus-profile-images
 - 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
 - 0.12 - added "forgot password" + change password features
 - 0.13 - bug fixes ("change password" should verify used is logged on, topic-by-tag has css error, email onError)
-- 0.14 - add test-units
-- 0.15 - move elements to plugins
-check db
-mail if failed to init
-obj should check its dependencies
-syvar missing throe exception
-second listen (?)
+- 0.14 - add test-unit framework
+- 0.15 - refactored to support plugins (not including xslt)
+- 0.16 - db is built if not exists + encapsulate encryption
+- 0.17 - xslt-plugin
+- 0.18 - English
+- 0.19 - multi-communities
