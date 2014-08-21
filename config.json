@@ -16,11 +16,13 @@
     "profile_images_folders":"../theodorus-profile-images",
     "sql_instructions": "../../../extra/sql_instructions.json",
     "processes": [
-        "processes/MailProcess",
-        "processes/AccountProcess",
-        "processes/UserProcess",
-        "processes/TopicProcess",
-        "processes/CommentProcess",
-        "processes/TagProcess"
+        "MailProcess",
+        "AccountProcess",
+        "UserProcess",
+        "TopicProcess",
+        "CommentProcess"
+    ],
+    "plugins": [
+        "tags"
     ]
 }

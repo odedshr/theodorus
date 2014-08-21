@@ -305,14 +305,21 @@
         };
 
         self.initProcesses =  function () {
-            config.processes.forEach( function(libraryName) {
+            var libs = [];
+            config.processes.forEach( function (processName) {
+                libs.push("./processes/"+processName);
+            });
+            config.plugins.forEach( function (pluginName) {
+                libs.push("../plugins/"+pluginName+"/process");
+            });
+            libs.forEach( function(libraryFileName) {
                 try {
-                    var library = require("./"+libraryName);
+                    var library = require(libraryFileName);
                     library.init(self);
                     library.methods().forEach(self.addHandler.bind(self));
                     library.plugins().forEach(self.addPlugin.bind(self));
                 } catch (error) {
-                    self.log("failed to init "+libraryName + " ("+error+")","error");
+                    self.log("failed to init "+libraryFileName + " ("+error+")","error");
                 }
             });
         };

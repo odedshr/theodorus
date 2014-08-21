@@ -57,6 +57,7 @@
                 } else {
                     nextHandler(session, nextHandler, function (output) {
                         session.useUserAccount (function (user) {
+                            output.app.page = output.app.page || {} ;
                             output.app.page.user = ((user ? user : new User.Account()).toJSON());
                             callback(output);
                         });

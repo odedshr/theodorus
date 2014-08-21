@@ -83,30 +83,6 @@
                 </li>
             </ul>
 
-            <xsl:if test="topic/tags/tag or //user/user_id">
-                <div class="tags">
-                    <a name="tags" class="tags-title"><xsl:value-of select="$lbl_tags"/></a>
-
-                    <ul class="tag-list">
-                        <xsl:for-each select="topic/tags/tag[position() &lt;= 10]">
-                            <li class="tag">
-                                <span class="tag-label"><xsl:value-of select="tag" /></span>
-                                <span class="tag-count"><xsl:value-of select="count" /></span>
-                            </li>
-                        </xsl:for-each>
-                    </ul>
-
-                    <xsl:if test="//user/user_id">
-                        <form id="tags" class="tags-edit" action="/topics/{topic/topic_id}/tags" method="post">
-                            <label class="instructions"><xsl:value-of select="$lbl_tags_instructions"/></label>
-                            <input id="tags" name="tags" class="tags-field" type="text" value="{userTopicTags}" placeholder="{$lbl_tags_placeholder}" title="{$lbl_tags_instructions}" pattern="([^#\/:\s](\s?,\s)?)+"/>
-                            <button id="button_update_tags" accesskey="t"><xsl:value-of select="$btn_update_tags" /></button>
-                        </form>
-                    </xsl:if>
-                </div>
-            </xsl:if>
-
-
             <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
                 <input type="hidden" name="topic_id" value="{topic/topic_id}" />
 

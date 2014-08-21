@@ -1,5 +1,5 @@
-var AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model();
-    AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./AbstractModel").collection();
+var AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./../../js/models/AbstractModel").model();
+    AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./../../js/models/AbstractModel").collection();
 
 var Tag = AbstractModel.extend({
     autoId: false,

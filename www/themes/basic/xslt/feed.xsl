@@ -16,32 +16,7 @@
                 xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" encoding="UTF-8"/>
 
-    <!--xsl:template match="mainfeed">
-        <noscript>
-            <h1><xsl:value-of select="$javascript_disabled_title" /></h1>
-            <div><xsl:value-of select="$javascript_disabled_instructions" /></div>
-        </noscript>
-        <header>
-            <h1><span><xsl:value-of select="$app_name" /></span></h1>
-        </header>
-        <xsl:apply-templates />
-    </xsl:template -->
-
     <xsl:template match="page[@type='feed']">
-        <xsl:if test="tag">
-            <div class="tag-topics-header">
-                <a href="/" class="button-back"><xsl:value-of select="$back_to_main_list" /></a>
-                <h2 class="tag-topics-title">
-                    <xsl:call-template name="string-replace-all">
-                        <xsl:with-param name="text"
-                                        select="$showing_items_related_to_x" />
-                        <xsl:with-param name="replace" select="$variable" />
-                        <xsl:with-param name="by" select="tag" />
-                    </xsl:call-template>
-                </h2>
-            </div>
-        </xsl:if>
-
         <xsl:if test="//permissions/suggest = 'true'">
             <form id="form_add_topic" action="/topics" method="POST" class="form_add_topic">
                 <textarea name="title" id="topic_title" class="topic_add_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />

@@ -15,7 +15,6 @@
 
             if ((typeof theodorusUIVersion !== "undefined") && (typeof(Storage) !== "undefined") && (theodorusUIVersion != localStorage.getItem("theodorus_version"))) {
                 XSLT.preloadXSLT(function () {
-                    console.log("all loaded");
                     localStorage.setItem("theodorus_version", theodorusUIVersion);
                     XSLT.useLocalStorage = true;
                     reRender();

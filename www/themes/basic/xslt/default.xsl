@@ -14,7 +14,7 @@
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:exslt="http://exslt.org/common"><!-- keep xslt here. it's used by feed.xsl-->
-    <xsl:import href="common.xsl" />
+    <xsl:include href="common.xsl" />
     <xsl:output method="html" encoding="UTF-8"/>
 
     <xsl:param name="variable" select="'#'"/>

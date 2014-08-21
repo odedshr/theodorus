@@ -1,5 +1,5 @@
 exports.getTests = function TagTestSuite () {
-    var library = require ("../www/js/models/Tag.js"),
+    var library = require ("../www/plugins/tags/Tag.js"),
         Tag = library.model(),
         Tags = library.collection();
 
