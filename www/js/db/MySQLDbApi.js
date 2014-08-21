@@ -12,7 +12,7 @@
         Credentials = require("../models/Credentials").model(),
         Topic = require("../models/Topic").model(),
         Comment = require("../models/Comment").model(),
-        Tag = require("../models/Tag").model(),
+        Tag = require("../../plugins/tags/Tag").model(),
         prettyDate = require("../utils/PrettyDate").renderer,
         vars = function () { return false;},
         log = console.log,

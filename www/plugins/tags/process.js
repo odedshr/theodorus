@@ -1,10 +1,10 @@
-(function TagProcessClosure () {
+(function TagPluginClosure () {
     var io = null,
-        Tag = (typeof Tag !== "undefined") ? Tag : require("../../plugins/tags/Tag").model(),
+        Tag = (typeof Tag !== "undefined") ? Tag : require("./Tag").model(),
         _ = (typeof _ !== "undefined") ? _ : require("underscore"),
         TOPIC_PAGE_SIZE = 0;
 
-    var TagProcess = (function () {
+    var TagPlugin = (function () {
         return {
             init: function (ioFunctions) {
                 io = ioFunctions;
@@ -30,8 +30,9 @@
                     nextHandler(session, nextHandler, callback);
                 } else {
                     nextHandler(session, nextHandler, function (output) {
-                        TagProcess.getTags(session,function(tags) {
-                            output.app.page.tags = { "tag": tags };
+                        TagPlugin.getTags(session,function(tags) {
+                            output.app.plugins = output.app.plugins || {};
+                            output.app.plugins.tags = { "tag": tags };
                             callback(output);
                         });
                     });
@@ -55,8 +56,9 @@
                     nextHandler(session, nextHandler, callback);
                 } else {
                     nextHandler(session, nextHandler, function (output) {
-                        TagProcess.getTopicTags(session, function(tags){
-                            output.app.page.topic.tags = { "tag": tags };
+                        TagPlugin.getTopicTags(session, function(tags){
+                            output.app.plugins = output.app.plugins || {};
+                            output.app.plugins.topicTags = { "tag": tags };
                             callback(output);
                         });
                     });
@@ -67,7 +69,7 @@
             getUserTopicTags: function getUserTopicTags (session,callback) {
                 session.useUserId(function(userId) {
                     if (userId) {
-                        io.db.getUserTopicTagString(TagProcess.getTopicIdFromURL(session.url), userId, function(tags){
+                        io.db.getUserTopicTagString(TagPlugin.getTopicIdFromURL(session.url), userId, function(tags){
                             callback(tags);
                         });
                     } else {
@@ -81,8 +83,9 @@
                     nextHandler(session, nextHandler, callback);
                 } else {
                     nextHandler(session, nextHandler, function (output) {
-                        TagProcess.getUserTopicTags(session, function(tags){
-                            output.app.page.userTopicTags = { "tag": tags };
+                        TagPlugin.getUserTopicTags(session, function(tags){
+                            output.app.plugins = output.app.plugins || {};
+                            output.app.plugins.userTopicTags = { "tag": tags };
                             callback(output);
                         });
                     });
@@ -92,9 +95,9 @@
             updateUserTopicTags: function updateUserTopicTags (session, callback) {
                 session.useUserId(function(userId) {
                     if (userId) {
-                        io.db.replaceUserTopicTags(TagProcess.getTopicIdFromURL(session.url), userId, _.uniq(session.input.tags.split(/\s?,\s?/g)), function () {
+                        io.db.replaceUserTopicTags(TagPlugin.getTopicIdFromURL(session.url), userId, _.uniq(session.input.tags.split(/\s?,\s?/g)), function () {
                             callback({  "directive":"redirect",
-                                        "location":"referer"});
+                                "location":"referer"});
                         });
                     } else {
                         callback(session.getErrorHandler("no-permission"));
@@ -108,13 +111,13 @@
             },
 
             getTagTopicCount: function getTagTopics (session, callback) {
-                io.db.getTagTopicCount(TagProcess.getTagFromURL(session.url),function (count){
+                io.db.getTagTopicCount(TagPlugin.getTagFromURL(session.url),function (count){
                     callback({"count":count});
                 });
             },
 
             getTagTopics: function getTagTopics (session, callback) {
-                var tag = TagProcess.getTagFromURL(session.url),
+                var tag = TagPlugin.getTagFromURL(session.url),
                     page = (decodeURIComponent(session.url).replace("tags/"+tag,"").replace(/\D/g,"")*1),
                     parameters ={   "tag": tag,
                         "pageSize":TOPIC_PAGE_SIZE,
@@ -123,16 +126,21 @@
                 io.db.getTopics(parameters, function(topics){
                     io.db.getTagTopicCount(tag,function (count){
                         var data = {
-                            "tag": tag,
                             "topics": { "topic": topics },
                             "pageIndex": page,
                             "pageCount": Math.ceil(count / TOPIC_PAGE_SIZE)
                         };
-                        callback(session.isJSON ? data : {
+                        callback(session.isJSON ? _.extend(data, { "tag": tag }) : {
                             "app":{
-                                "page": _.extend(data,{
-                                    "@type":"feed"
-                                })
+                                "page": {},
+                                "plugins": {
+                                    "tagTopics": {
+                                        "tag": tag,
+                                        "page" : _.extend(data,{
+                                            "@type":"feed"
+                                        })
+                                    }
+                                }
                             }});
                     });
                 });
@@ -140,28 +148,28 @@
         };
     }());
 
-    TagProcess.methods = [
-        {"method":"GET",  "url":/^\/tags\/?$/,  "handler":TagProcess.getTags.bind(TagProcess)},
-        {"method":"GET",  "url":/^\/tags\/[^#\/:\s]{3,140}\/count?\/?$/,  "handler":TagProcess.getTagTopicCount.bind(TagProcess)},
-        {"method":"GET",  "url":/^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/,  "handler":TagProcess.getTagTopics.bind(TagProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags(\/(\d+))?\/?$/,                            "handler":TagProcess.getTopicTags.bind(TagProcess)},
-        {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/?$/,                            "handler":TagProcess.updateUserTopicTags.bind(TagProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/my\/?$/,                            "handler":TagProcess.getUserTopicTags.bind(TagProcess)}
+    TagPlugin.methods = [
+        {"method":"GET",  "url":/^\/tags\/?$/,  "handler":TagPlugin.getTags.bind(TagPlugin)},
+        {"method":"GET",  "url":/^\/tags\/[^#\/:\s]{3,140}\/count?\/?$/,  "handler":TagPlugin.getTagTopicCount.bind(TagPlugin)},
+        {"method":"GET",  "url":/^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/,  "handler":TagPlugin.getTagTopics.bind(TagPlugin)},
+        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags(\/(\d+))?\/?$/,                            "handler":TagPlugin.getTopicTags.bind(TagPlugin)},
+        {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/?$/,                            "handler":TagPlugin.updateUserTopicTags.bind(TagPlugin)},
+        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/my\/?$/,                            "handler":TagPlugin.getUserTopicTags.bind(TagPlugin)}
     ];
 
-    TagProcess.plugins = [
-        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetTopicTags.bind(TagProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagProcess.pGetUserTopicTags.bind(TagProcess)},
-        {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)},
-        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": TagProcess.pGetTags.bind(TagProcess)}
+    TagPlugin.plugins = [
+        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": TagPlugin.pGetTags.bind(TagPlugin)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagPlugin.pGetTags.bind(TagPlugin)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagPlugin.pGetTopicTags.bind(TagPlugin)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": TagPlugin.pGetUserTopicTags.bind(TagPlugin)},
+        {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": TagPlugin.pGetTags.bind(TagPlugin)},
+        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": TagPlugin.pGetTags.bind(TagPlugin)}
     ];
 
     if (typeof exports !== "undefined") {
-        exports.init = TagProcess.init.bind(TagProcess);
-        exports.methods = TagProcess.getMethods.bind(TagProcess);
-        exports.plugins = TagProcess.getPlugins.bind(TagProcess);
+        exports.init = TagPlugin.init.bind(TagPlugin);
+        exports.methods = TagPlugin.getMethods.bind(TagPlugin);
+        exports.plugins = TagPlugin.getPlugins.bind(TagPlugin);
     }
 })();
 // tags actions

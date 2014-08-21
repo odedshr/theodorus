@@ -177,7 +177,7 @@
 
     exports.query = function (query,callback,logQuery) {
         if (logQuery) {
-            console.log(query);
+            log (query);
         }
         try {
             pool.getConnection(function(err, connection) {

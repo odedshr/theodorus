@@ -63,9 +63,12 @@ var XSLT = (function XSLTRendererClosure () {
 
     if (typeof exports !== "undefined") {
         XSLTRenderer.engine = require('node_xslt');
+        XSLTRenderer.cheerio = require('cheerio');
 
         XSLTRenderer.transform = function transform (content) {
             try {
+                //console.log(JSON.stringify(content));
+                //console.log(this.json2xml (content)); // this is a good place to check the input-xml
                 if ((typeof content === "object")) {
                     if (content.app) {
                         content.app["@version"] = this.uiVersion;
@@ -73,8 +76,34 @@ var XSLT = (function XSLTRendererClosure () {
                     content = this.json2xml (content);
                 }
                 var xsltDocument = this.engine.readXsltFile(this.templateFolder+"/xslt/default.xsl"),
-                    xmlDocument = this.engine.readXmlString("<xml>"+content+"</xml>");
-                return this.engine.transform( xsltDocument,xmlDocument, []);
+                    xmlDocument = this.engine.readXmlString("<xml>"+content+"</xml>"),
+                    output = this.engine.transform( xsltDocument,xmlDocument, []);
+
+                var $ = XSLTRenderer.cheerio.load(output);
+                $("#plugins").children().each(function repositionPlugin(index,domElement) {
+                    try {
+                    var info = $(this).attr("class").match(/reposition-(\w*)-([\w\d\-_]*)/);
+
+                    if (info) {
+                        var position = info[1],
+                            target = $("#"+info[2]);
+
+                        if (target.html() != "null") {
+                            switch (position) {
+                                case "before": target.before(domElement); break;
+                                case "prepend": target.prepend(domElement); break;
+                                case "append": target.append(domElement); break;
+                                case "after": target.after(domElement); break;
+                            }
+                        }
+                    }
+                    } catch (error) {
+                        console.error("failed to reposition item #"+index+":" + $(this).html());
+                    }
+                });
+                //console.log($.html());
+                //console.error(JSON.stringify(content));
+                return $.html();
             } catch (error) {
                 console.error("failed to xslt "+ ((typeof content === "object") ? this.json2xml (content) : content) +"\n" + error);
                 return "";
