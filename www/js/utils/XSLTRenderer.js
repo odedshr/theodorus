@@ -77,7 +77,7 @@ var XSLT = (function XSLTRendererClosure () {
                 }
                 var xsltDocument = this.engine.readXsltFile(this.templateFolder+"/xslt/default.xsl"),
                     xmlDocument = this.engine.readXmlString("<xml>"+content+"</xml>"),
-                    output = this.engine.transform( xsltDocument,xmlDocument, []);
+                    output = this.engine.transform( xsltDocument,xmlDocument, ["language","'hebrew'"]);
 
                 var $ = XSLTRenderer.cheerio.load(output);
                 $("#plugins").children().each(function repositionPlugin(index,domElement) {

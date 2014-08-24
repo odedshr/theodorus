@@ -58,5 +58,10 @@
         "modified": "2014-08-02T08:25:40.763Z",
         "create-sql": "CREATE TABLE #PREFIX.comments (`comment_id` int(11) NOT NULL AUTO_INCREMENT,`topic_id` int(11) DEFAULT NULL,`opinion_id` int(11) DEFAULT '0',`parent_id` int(11) DEFAULT '0',`user_id` int(11) DEFAULT NULL,`created` varchar(24) DEFAULT NULL,`content` varchar(140) DEFAULT NULL,`follow` tinyint(4) DEFAULT NULL,`endorse` tinyint(4) DEFAULT NULL,`report` tinyint(4) DEFAULT NULL,`report_status` varchar(10) DEFAULT NULL,PRIMARY KEY (`comment_id`),KEY `idx_comment_topic` (`topic_id`,`parent_id`,`created`),KEY `idx_comment_user` (`user_id`,`created`),KEY `fk_comment_user` (`user_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
         "updates": []
+    },
+    "communities" : {
+        "modified": "2014-08-23T11:54:40.763Z",
+        "create-sql": "CREATE TABLE #PREFIX.communities (`community_id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(20) NULL , `config` TEXT NULL , PRIMARY KEY (`community_id`) )  ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "updates": []
     }
 }
