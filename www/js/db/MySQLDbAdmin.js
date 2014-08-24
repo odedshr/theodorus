@@ -32,7 +32,7 @@
                    } else {
                        self.isTableExists((new ModelUpdate()).collection, function(output) {
                            var checkAllTablesExceptModelUpdateCallback = function checkAllTablesExceptModelUpdateCallback(output) {
-                               self.log(output.updated ? "Database had "+output.updated+" updates" : "Database is up to date");
+                               self.log((output && output.updated) ? "Database had "+output.updated+" updates" : "Database is up to date");
                            }
                            if (output.result==false) {
                                self.createModelUpdateTable(function () {

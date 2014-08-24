@@ -78,5 +78,5 @@ cd /runtime/theodorus-profile-images
 - 0.15 - refactored to support plugins (not including xslt)
 - 0.16 - db is built if not exists + encapsulate encryption
 - 0.17 - xslt-plugin
-- 0.18 - English
+- 0.18 - English (added theme) + added missing cheerio DOM manipulation
 - 0.19 - multi-communities

@@ -1,6 +1,5 @@
 var VALID_REPORT_STATUS = ["na","questioned", "ok", "irrelevant","offensive","spam","violent"],
     AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model();
-    AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./AbstractModel").collection();
 
 var Comment = AbstractModel.extend({
     autoId: true,

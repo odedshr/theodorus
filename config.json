@@ -1,7 +1,7 @@
 {
     "application_name":"THEODORUS",
     "port":8080,
-    "theme":"basic",
+    "theme":"default.rtl",
     "table_prefix":"",
     "db_type":"mysql",
     "cookie_token":"tdrs::token",
@@ -15,6 +15,7 @@
     "topic_page_size":10,
     "profile_images_folders":"../theodorus-profile-images",
     "sql_instructions": "../../../extra/sql_instructions.json",
+    "default_community": "../../../../../extra/default_community.json",
     "processes": [
         "MailProcess",
         "AccountProcess",

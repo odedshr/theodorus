@@ -11,155 +11,184 @@
         <!ENTITY yen    "&#165;">
         <!ENTITY euro   "&#8364;">
         ]>
-    <xsl:stylesheet id="sheet" version="1.0"
-                    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                    xmlns:exslt="http://exslt.org/common">
-        <xsl:output method="html" encoding="UTF-8"/>
+<xsl:stylesheet id="sheet" version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="html" encoding="UTF-8"/>
 
-        <xsl:template match="mainfeed">
-            <noscript>
-                <h1><xsl:value-of select="$javascript_disabled_title" /></h1>
-                <div><xsl:value-of select="$javascript_disabled_instructions" /></div>
-            </noscript>
-            <header>
-                <h1><span><xsl:value-of select="$app_name" /></span></h1>
-            </header>
-            <div id="loading_system"><xsl:value-of select="$system_loading" /></div>
-        </xsl:template>
+    <xsl:template match="page[@type='feed']">
+        <xsl:if test="//permissions/suggest = 'true'">
+            <form id="form_add_topic" action="/topics" method="POST" class="form_add_topic">
+                <textarea name="title" id="topic_title" class="topic_add_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
+                <button id="button_suggest" accesskey="s" class="topic_add_submit"><xsl:value-of select="$btn_suggest" /></button>
+            </form>
+        </xsl:if>
+        <div id="feed_wrapper" class="feed_wrapper">
+            <div id="feed" class="feed">
+                <div id="topics" class="topics">
+                    <xsl:choose>
+                        <xsl:when test="topics/topic">
+                            <xsl:apply-templates select="topics" />
+                            <div class="page-controls">
+                                <xsl:choose>
+                                    <xsl:when test="pageCount &gt; 1">
+                                        <a class="nav-page-link nav-page-prev">
+                                            <xsl:if test="pageIndex &gt; 1">
+                                                <xsl:attribute name="href">/:<xsl:value-of select="pageIndex - 1" /></xsl:attribute>
+                                            </xsl:if>
+                                            <xsl:value-of select="$previous" />
+                                        </a>
 
-        <xsl:template match="page[@type='feed']">
-            <header>
-                <h1><span><xsl:value-of select="$app_name" /></span></h1>
-                <div id="account">
-                    <xsl:apply-templates select="user" />
-                </div>
-            </header>
-            <div id="feed_wrapper">
-                <div id="feed">
-                    <div id="topics" />
-                    <div id="sidebar">
-                        <xsl:if test="addTopic">
-                            <div id="suggest_topic">
-                                <a id="link_suggest_topic" href="/topics/add" class="button" accesskey="a"><xsl:value-of select="$link_suggest_topic" /></a>
+                                        <xsl:value-of select="$page" />
+                                        <span class="nav-page-value"><xsl:value-of select="pageIndex" /></span>
+                                        <xsl:value-of select="$out_of" />
+                                        <span class="nav-page-value"><xsl:value-of select="pageCount" /></span>
+
+                                        <a class="nav-page-link nav-page-next">
+                                            <xsl:if test="pageIndex &lt; pageCount">
+                                                <xsl:attribute name="href">/:<xsl:value-of select="pageIndex + 1" /></xsl:attribute>
+                                            </xsl:if>
+                                            <xsl:value-of select="$next" />
+                                        </a>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                            <xsl:call-template name="string-replace-all">
+                                                <xsl:with-param name="text"
+                                                                select="$showing_x_items" />
+                                                <xsl:with-param name="replace" select="$variable" />
+                                                <xsl:with-param name="by" select="count(topics/topic)" />
+                                            </xsl:call-template>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </div>
-                        </xsl:if>
-                        <div id="tags" />
-                    </div>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <div class="no-topics">
+                                <xsl:value-of select="$lbl_no_topics_found" />&nbsp;
+                                <xsl:if test="//permissions/suggest = 'true'">
+                                    <xsl:value-of select="$lbl_no_topics_found_suggest_one" />
+                                </xsl:if>
+                            </div>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </div>
             </div>
-        </xsl:template>
+        </div>
+    </xsl:template>
 
-        <xsl:template match="addTopic">
-            <form id="form_add_topic" action="/topics" method="POST">
-                <div>
-                    <label><xsl:value-of select="$lbl_topic_title" /></label>
-                    <textarea name="title" id="topic_title" maxlength="140" required="required" pattern="{{5,}}" placeholder="{$example_topic_title}" />
-                    <div><span id="topic_title_chars_left"/><span><xsl:value-of select="$characters_left" /></span></div>
-                </div>
-                <div>
-                    <label><xsl:value-of select="$lbl_topic_slug" /></label>
-                    <span id="topic_complete_slug">
-                        <span id="slug_prefix"><xsl:value-of select="@prefix" /></span>
-                        <input type="text" name="slug" id="slug" placeholder="{$example_topic_title_slug}" pattern="[a-zA-Z0-9\.\-_\$]{{0,140}}" />
-                        <div id="slug_result" />
-                    </span>
-                </div>
-                <div>
-                    <label><xsl:value-of select="$lbl_topic_tags" /></label>
-                    <input type="text" name="tags" id="topic_tags" placeholder="{$example_topic_tags}" />
-                </div>
-                <div>
-                    <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
-                    <button id="button_cancel" type="reset" accesskey="x"><xsl:value-of select="$btn_cancel" /></button>
-                </div>
-            </form>
-        </xsl:template>
+    <xsl:template match="slugTest">
+        <xsl:variable name="vSelector" select="@result"/>
+        <xsl:variable name="resultMessage" select="exslt:node-set($slugResults)/*[@type=$vSelector]"/>
+        <xsl:if test="count(exslt:node-set($slugResults)/*[@type=$vSelector]) &gt; 0">
+            <xsl:value-of select="$resultMessage"/>
+        </xsl:if>
+    </xsl:template>
 
-        <xsl:template match="slugTest">
-            <xsl:variable name="vSelector" select="@result"/>
-            <xsl:variable name="resultMessage" select="exslt:node-set($slugResults)/*[@type=$vSelector]"/>
-            <xsl:if test="count(exslt:node-set($slugResults)/*[@type=$vSelector]) &gt; 0">
-                <xsl:value-of select="$resultMessage"/>
+    <xsl:template match="tags">
+        <h2><xsl:value-of select="$lbl_tags" /></h2>
+        <ul>
+            <xsl:apply-templates select="tag">
+                <xsl:sort select="count" data-type="number" order="descending"/>
+            </xsl:apply-templates>
+        </ul>
+    </xsl:template>
+
+    <xsl:template match="tag">
+        <li class="tag-wrapper">
+            <div class="tag">
+                <span class="tag-color" style="background-color:{color}">&nbsp;</span>
+                <a href="/#{current()}"><xsl:value-of select="tag" /></a>
+            </div>
+            <xsl:if test="count &gt; 0">
+                <span class="tag-count"><xsl:value-of select="count" /></span>
             </xsl:if>
-        </xsl:template>
+        </li>
+    </xsl:template>
 
-        <xsl:template match="tags">
-            <h2><xsl:value-of select="$lbl_tags" /></h2>
-            <ul>
-                <xsl:for-each select="tag">
-                    <xsl:sort select="@count" data-type="number" order="descending"/>
-                    <li class="tag-wrapper">
-                        <div class="tag">
-                            <span class="tag-color" style="background-color:{@color}">&nbsp;</span>
-                            <a href="/#{current()}"><xsl:apply-templates select="current()" /></a>
-                        </div>
-                        <xsl:if test="@count &gt; 0">
-                            <span class="tag-count"><xsl:apply-templates select="@count" /></span>
-                        </xsl:if>
-                    </li>
-                </xsl:for-each>
-            </ul>
-        </xsl:template>
+    <xsl:template match="topics">
+        <ul>
+            <xsl:apply-templates select="topic" />
+        </ul>
+    </xsl:template>
 
-        <xsl:template match="topics">
-            <ul>
-                <xsl:apply-templates select="topic" />
-            </ul>
-        </xsl:template>
+    <xsl:template match="topic">
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="initiator/picture">/profileImage/<xsl:value-of select="initiator/picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
 
-        <xsl:template match="topic">
-            <xsl:variable name="vSelector" select="created"/>
-            <!--<xsl:variable name="prettyCreated" select="exslt:node-set($timestamps)/*[@id=$vSelector]"/> -->
-            <xsl:variable name="prettyCreated">
-                <xsl:call-template name="string-replace-all">
-                    <xsl:with-param name="text" select="exslt:node-set($timestamps)/*[@id=$vSelector]" />
-                    <xsl:with-param name="replace" select="'#'" />
-                    <xsl:with-param name="by" select="created/@value" />
-                </xsl:call-template>
-            </xsl:variable>
+        <li class="topic">
+            <a class="title-link" href="/topics/{topic_id}">
+                <!-- xsl:if test="slug">
+                    <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
+                </xsl:if-->
+                <h3 class="title"><xsl:value-of select="title" /></h3>
+            </a>
 
-            <li class="topic">
-                <a href="{url}" class="title"><xsl:value-of select="title" /></a>
-                <a class="inititiator"><xsl:value-of select="user/display_name" /></a>
-                <time class="created" datetime="{created/@timestamp}" title="{created/@formatted}"><xsl:value-of select="$prettyCreated" /></time>
-                <div class="tags">
-                    <xsl:for-each select="tags/tag">
-                        <div class="tag">
-                            <span class="tag-color" style="background-color:{@color}">&nbsp;</span>
-                            <a href="/#{current()}"><xsl:apply-templates select="current()" /></a>
-                            <xsl:if test="@count &gt; 0">
-                                <span class="tag-count"><xsl:apply-templates select="@count" /></span>
-                            </xsl:if>
-                        </div>
+            <span class="hidden"> · </span>
+
+            <div class="tags">
+                <ul class="tag-list">
+                    <xsl:for-each select="tags/tag[position() &lt;= 10]">
+                        <li class="tag">
+                            <span class="tag-label"><xsl:value-of select="tag" /></span>
+                            <span class="tag-count"><xsl:value-of select="count" /></span>
+                        </li>
                     </xsl:for-each>
-                </div>
-                <div class="actions">
-                    <a class="button-action" href="{url}/endorse">
-                        <xsl:if test="endorse/@me = 'true'">
-                            <xsl:attribute name="href">/<xsl:value-of select="url"/>/unendorse</xsl:attribute>
-                            <xsl:attribute name="class">button-action pressed</xsl:attribute>
-                        </xsl:if>
-                        <xsl:value-of select="$btn_endorse" />
-                        <span class="count"><xsl:value-of select="endorse" /></span>
+                </ul>
+            </div>
+            <span class="hidden"> · </span>
 
-                    </a>
-                    <a class="button-action" href="{url}/follow">
-                        <xsl:if test="follow/@me = 'true'">
-                            <xsl:attribute name="href">/<xsl:value-of select="url"/>/unfollow</xsl:attribute>
-                            <xsl:attribute name="class">button-action pressed</xsl:attribute>
-                        </xsl:if>
-                        <xsl:value-of select="$btn_follow" />
-                        <span class="count"><xsl:value-of select="follow" /></span>
-                    </a>
-                    <a class="button-action" href="{url}/report">
-                    <xsl:if test="report/@me = 'true'">
-                        <xsl:attribute name="href">/<xsl:value-of select="url"/>/unreport</xsl:attribute>
-                        <xsl:attribute name="class">button-action pressed</xsl:attribute>
-                    </xsl:if>
-                    <xsl:value-of select="$btn_report" />
-                    <span class="count"><xsl:value-of select="report" /></span>
+            <a class="initiator"><img src="{$profileImage}" class="profile-image-mini" /><xsl:value-of select="initiator/display_name" /></a>
+            <span class="hidden"> · </span>
+
+            <xslt:call-template name="datetime-render">
+                <xsl:with-param name="value" select="created" />
+            </xslt:call-template>
+
+            <span class="hidden"> · </span>
+
+            <div class="actions">
+                <a class="statistics-item stat-opinion statistics-item-{opinion}" title="{comment} {$stat_comment}">
+                    <span class="count"><xsl:value-of select="opinion" /></span>
+                    <span class="hidden"> · </span>
+                    <span class="item-label"><xsl:value-of select="$stat_opinion" /></span>
                 </a>
-                </div>
-            </li>
-        </xsl:template>
-    </xsl:stylesheet>
+
+                <span class="hidden"> · </span>
+
+                <xsl:choose>
+                    <xsl:when test="initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
+                        <a class="statistics-item stat-endorse statistics-item-{endorse}">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                        <a class="button-action" href="/topics/{topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                    </xsl:when>
+                    <xsl:when test="initiator/user_id != //user/user_id">
+                        <a class="button-action button-endorse" href="/topics/{topic_id}/endorse">
+                            <xsl:if test="user_endorse = '1'">
+                                <xsl:attribute name="href">/topics/<xsl:value-of select="topic_id"/>/unendorse</xsl:attribute>
+                                <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                            </xsl:if>
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                        </a>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <a class="statistics-item stat-endorse statistics-item-{endorse}">
+                            <span class="count"><xsl:value-of select="endorse" /></span>
+                            <span class="hidden"> · </span>
+                            <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                        </a>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+
+        </li>
+    </xsl:template>
+</xsl:stylesheet>
