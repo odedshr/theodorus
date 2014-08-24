@@ -2,226 +2,233 @@
  *  MySQLDb
  *  1. This file should be generic, meaning it should not have any hints regarding the schema its working with
  * */
-var mysql      = require('mysql'),
-    pool = null,
-    prefix     = "",
-    _          = require('underscore');
+(function MySQLDbClosure (){
+    var mysql      = require('mysql'),
+        pool = null,
+        schema     ="",
+        prefix     = "",
+        vars        = function(){ return false;},
+        log        = console.log,
+        _          = require('underscore');
 
-exports.init = function (config) {
-    pool  = mysql.createPool({
-        host     : process.env.THEODORUS_MYSQL_HOST,
-        port     : process.env.THEODORUS_MYSQL_PORT,
-        user     : process.env.THEODORUS_MYSQL_USER,
-        password : process.env.THEODORUS_MYSQL_PASSWORD
-    });
-    prefix = process.env.THEODORUS_MYSQL_SCHEMA+"."+config.table_prefix;
-};
-
-function update (connection, item, callback) {
-    var parameters = [],
-        filters = [],
-        key = null;
-    if (item.key) {
-        var jsonized = sanitizeJSONObject(item),
-            itemKey = item.get(item.key);
-            delete jsonized[item.key];
-        for (key in jsonized) {
-            parameters.push(key + " = '"+jsonized[key]+"'");
+    exports.init = function (varsGetter,consoleLog) {
+        if (varsGetter) { vars = varsGetter; }
+        if (consoleLog) {
+            log = consoleLog;
         }
-        filters.push (item.key+" = '"+itemKey+"'");
-    } else {
-        var dataSet = item.set,
-            whereSet = item.where;
-        for (key in dataSet) {
-            parameters.push(key + " = '"+dataSet[key]+"'");
-        }
-        for (key in whereSet) {
-            filters.push("("+key + " = '"+whereSet[key]+"')");
-        }
-    }
-    if (parameters.length==0) {
-        insert (connection, item, callback);
-    } else {
-        var query = "UPDATE "+prefix+item.collection+" SET "+parameters.join(", ") + " WHERE ("+filters.join(" AND ") +");";
-        connection.query(query, function(err, result) {
-            if (err) {
-                console.error("UPDATE failed: \n"+query+"\n"+err);
-                throw err;
-            } else if (result.affectedRows==0 && !item.autoId) {
-                insert (connection, item, callback);
-            } else {
-                callback(item);
-            }
+        var appName = vars("application_name", true);
+        pool  = mysql.createPool({
+            host     : vars(appName+"_MYSQL_HOST", true),
+            port     : vars(appName+"_MYSQL_PORT", true),
+            user     : vars(appName+"_MYSQL_USER", true),
+            password : vars(appName+"_MYSQL_PASSWORD", true)
         });
-    }
-}
+        schema = vars(appName+"_MYSQL_SCHEMA", true);
+        prefix = schema +"."+vars("table_prefix", true);
+    };
 
-function insert (connection, item, callback) {
-    var keys = [], values = [], dataSet = null;
-    if (item.key) {
-        dataSet = sanitizeJSONObject(item);
-        keys = _.keys(dataSet);
-        values = _.values(dataSet);
-    } else {
-        keys = _.keys(item.set);
-        keys = keys.concat(_.keys(item.where));
-        values = _.values(item.set);
-        values = values.concat(_.values(item.where));
-    }
-    var query = "INSERT INTO "+prefix+item.collection + " ("+keys.join(",")+") VALUES ('"+values.join("','")+"');";
-    connection.query(query , function(err, result) {
-        if (err) {
-            console.error("INSERT failed: \n"+query+"\n"+err);
-            throw err;
-        } else if (item.autoId) {
-            item.set(item.key,result.insertId);
-        }
-        callback(item);
-    });
-}
 
-exports.save = function (item, callback) {
-    var query = null;
-    try {
-        pool.getConnection(function(error, connection) {
-            if (error) {
-                console.error("save/getConnection error:" + error);
-                callback (false, error);
-            } else {
-                    if (!item.key || (typeof item.get(item.key) !== "undefined")) {
-                        update(connection,item,callback);
-                    } else {
-                        insert (connection, item, callback);
-                    }
-                    connection.end();
+    exports.getSchema = function () { return schema; }
+    exports.getPrefix = function () { return prefix; }
+
+    function update (connection, item, callback) {
+        var parameters = [],
+            filters = [],
+            key = null;
+        if (item.key) {
+            var jsonized = sanitizeJSONObject(item),
+                itemKey = item.get(item.key);
+                delete jsonized[item.key];
+            for (key in jsonized) {
+                parameters.push(key + " = '"+jsonized[key]+"'");
             }
-        });
-    } catch (error) {
-        console.error("save error:" + error +"\n"+query);
-        callback (false, error);
-    }
-};
-
-function sanitizeJSONObject (item) {
-    var json = item.toJSON();
-    for (var key in json) {
-        var value = json[key]; //TODO: convert ' and " => something else
-        json[key] = (typeof value === "object" ? JSON.stringify(value) : value);
-    }
-    return json;
-}
-
-function parseJSONbyKey (value, key) {
-    switch (key) {
-        case "array":
-        case "object":
-            return JSON.parse(value);
-        default:
-            return value;
-    }
-}
-
-function parseJSON (JSONData, schema) {
-    var newData = {};
-    for (var key in schema) {
-        if (JSONData[key]) {
-            try {
-                newData[key] = parseJSONbyKey(JSONData[key],schema[key]);
-            } catch (error) {
-                newData[key] = (JSONData[key]); //TODO: convert back' and ";
+            filters.push (item.key+" = '"+itemKey+"'");
+        } else {
+            var dataSet = item.set,
+                whereSet = item.where;
+            for (key in dataSet) {
+                parameters.push(key + " = '"+dataSet[key]+"'");
+            }
+            for (key in whereSet) {
+                filters.push("("+key + " = '"+whereSet[key]+"')");
             }
         }
-    }
-    return newData;
-}
-
-exports.getItem = function (sampleModel,key,callback) {
-    var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'"),
-        query = "SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1";
-    try {
-        exports.query (query, function(rows) {
-            callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
-        });
-    } catch (error) {
-        console.error("getItem ("+query+") : " + error);
-        callback(false);
-    }
-};
-
-exports.getItems = function (sampleModel,queryOptions,callback) {
-    //TODO: parse queryOptions to get SORTBY and WHERE filters
-    exports.query ("SELECT * FROM "+prefix+sampleModel.collection, function(rows) {
-        var schema =sampleModel.schema;
-        if (rows) {
-            rows.forEach(function(value,key,array) {
-                array[key] = parseJSON(value, schema);
+        if (parameters.length==0) {
+            insert (connection, item, callback);
+        } else {
+            var query = "UPDATE "+prefix+item.collection+" SET "+parameters.join(", ") + " WHERE ("+filters.join(" AND ") +");";
+            connection.query(query, function(err, result) {
+                if (err) {
+                    console.error("UPDATE failed: \n"+query+"\n"+err);
+                    throw err;
+                } else if (result.affectedRows==0 && !item.autoId) {
+                    insert (connection, item, callback);
+                } else {
+                    callback(item);
+                }
             });
         }
-        callback(rows);
-    });
-};
+    }
 
-exports.query = function (query,callback) {
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            console.error("query/getConnection error:" + err);
-            callback (false);
+    function insert (connection, item, callback) {
+        var keys = [], values = [], dataSet = null;
+        if (item.key) {
+            dataSet = sanitizeJSONObject(item);
+            keys = _.keys(dataSet);
+            values = _.values(dataSet);
         } else {
-            try {
-                connection.query(query , function(err, rows) {
-                    if (err) {
-                        throw err;
-                    }
-                    try {
-                        callback(rows);
-                    } catch (error) {
-                        console.error("query callback error:" + error);
-                        throw error;
-                    }
-                });
-                connection.end();
-            } catch (error) {
-                console.error("error occurred for this query: "+ query);
-                dumpError(error);
-                callback (false);
-            }
+            keys = _.keys(item.set);
+            keys = keys.concat(_.keys(item.where));
+            values = _.values(item.set);
+            values = values.concat(_.values(item.where));
         }
-    });
-};
-
-exports.executeMultipleUpdates = function executeMultipleUpdates (queryArray, callback) {
-    var results = []
-    var internal = function (queries) {
-        exports.query (queries.pop(), function (result) {
-            results.push(result);
-            if (queries.length) {
-                internal( queries, callback);
-            } else {
-                callback(results);
+        var query = "INSERT INTO "+prefix+item.collection + " ("+keys.join(",")+") VALUES ('"+values.join("','")+"');";
+        connection.query(query , function(err, result) {
+            if (err) {
+                console.error("INSERT failed: \n"+query+"\n"+err);
+                throw err;
+            } else if (item.autoId) {
+                item.set(item.key,result.insertId);
             }
+            callback(item);
         });
     }
-    internal(queryArray.reverse());
-}
 
-exports.nullifyField = function (sampleModel,key,field, callback) {
-    var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'");
-    exports.query ("UPDATE "+prefix+sampleModel.collection + " SET "+field+" = NULL "+where, function(rows) {
-        callback({});
-    });
-};
+    exports.save = function (item, callback) {
+        var query = null;
+        try {
+            pool.getConnection(function(error, connection) {
+                if (error) {
+                    console.error("save/getConnection error:" + error);
+                    callback (false, error);
+                } else {
+                        if (!item.key || (typeof item.get(item.key) !== "undefined")) {
+                            update(connection,item,callback);
+                        } else {
+                            insert (connection, item, callback);
+                        }
+                        connection.release();
+                }
+            });
+        } catch (error) {
+            console.error("save error:" + error +"\n"+query);
+            callback (false, error);
+        }
+    };
 
-function dumpError(err) {
-    if (typeof err === 'object') {
-        if (err.message) {
-            console.error('\nMessage: ' + err.message)
+    function sanitizeJSONObject (item) {
+        var json = item.toJSON();
+        for (var key in json) {
+            var value = json[key]; //TODO: convert ' and " => something else
+            json[key] = (typeof value === "object" ? JSON.stringify(value) : value);
         }
-        if (err.stack) {
-            console.error('\nStacktrace:')
-            console.error('====================')
-            console.error(err.stack);
-        }
-    } else {
-        console.error('dumpError :: argument is not an object');
+        return json;
     }
-}
+
+    function parseJSONbyKey (value, key) {
+        switch (key) {
+            case "array":
+            case "object":
+                return JSON.parse(value);
+            default:
+                return value;
+        }
+    }
+
+    function parseJSON (JSONData, schema) {
+        var newData = {};
+        for (var key in schema) {
+            if (JSONData[key]) {
+                try {
+                    newData[key] = parseJSONbyKey(JSONData[key],schema[key]);
+                } catch (error) {
+                    newData[key] = (JSONData[key]); //TODO: convert back' and ";
+                }
+            }
+        }
+        return newData;
+    }
+
+    exports.getItem = function (sampleModel,key,callback) {
+        var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'"),
+            query = "SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1";
+        try {
+            exports.query (query, function(rows) {
+                callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
+            });
+        } catch (error) {
+            console.error("getItem ("+query+") : " + error);
+            callback(false);
+        }
+    };
+
+    exports.getItems = function (sampleModel,queryOptions,callback) {
+        //TODO: parse queryOptions to get SORTBY and WHERE filters
+        exports.query ("SELECT * FROM "+prefix+sampleModel.collection, function(rows) {
+            var schema =sampleModel.schema;
+            if (rows) {
+                rows.forEach(function(value,key,array) {
+                    array[key] = parseJSON(value, schema);
+                });
+            }
+            callback(rows);
+        });
+    };
+
+    exports.query = function (query,callback,logQuery) {
+        if (logQuery) {
+            log (query);
+        }
+        try {
+            pool.getConnection(function(err, connection) {
+                if (err) {
+                    console.error("query/getConnection error:" + err);
+                    callback (false);
+                    throw err;
+                } else {
+                    connection.query(query , function(err, rows) {
+                        if (err) {
+                            switch (err.errno) {
+                                case 1044 : log("Access denied error for query: "+query,"error"); break;
+                                default:
+                                    log ( "Query failed: "+query,"error");
+                                    log (err, "error");
+                            }
+                            callback(err);
+                        } else {
+                            callback(rows);
+                        }
+                    });
+                    connection.release();
+                }
+            });
+        } catch (error) {
+            console.error("error occurred for this query: "+ query);
+            callback (false);
+            throw error;
+        }
+    };
+
+    exports.executeMultipleUpdates = function executeMultipleUpdates (queryArray, callback, logQuery) {
+        var results = []
+        var internal = function (queries) {
+            exports.query (queries.pop(), function (result) {
+                results.push(result);
+                if (queries.length) {
+                    internal( queries);
+                } else {
+                    callback(results);
+                }
+            }, logQuery);
+        }
+        internal(queryArray.reverse());
+    }
+
+    exports.nullifyField = function (sampleModel,key,field, callback) {
+        var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'");
+        exports.query ("UPDATE "+prefix+sampleModel.collection + " SET "+field+" = NULL "+where, function(rows) {
+            callback({});
+        });
+    };
+
+})();

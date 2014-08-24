@@ -13,56 +13,95 @@
         ]>
 <xsl:stylesheet id="sheet" version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:exslt="http://exslt.org/common">
-    <xsl:import href="account.xsl" />
-    <xsl:import href="feed.xsl" />
-    <xsl:import href="moderator.xsl" />
-    <xsl:import href="tools.xsl" />
-    <xsl:import href="topic.xsl" />
+                xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
+    <xsl:include href="account.xsl" />
+    <xsl:include href="feed.xsl" />
+    <xsl:include href="topic.xsl" />
+    <xsl:include href="../../../plugins/include.xsl" />
+    <!--<xsl:import href="moderator.xsl" />
+    <xsl:import href="tools.xsl" />-->
     <xsl:output method="html" encoding="UTF-8"/>
 
-    <xsl:template match="/">
-        <xsl:apply-templates />
-    </xsl:template>
-
-    <xsl:template match="app"  name="app">
+    <xsl:template match="app" name="app">
         <html xmlns="http://www.w3.org/1999/xhtml">
             <head>
-                <meta charset='utf-8' />
                 <title><xsl:value-of select="$window_title" /></title>
 
-                <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
-                <style>
-                    html { direction: rtl; }
-                </style>
+                <meta charset='utf-8' />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+                <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
+
+                <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
+                <xsl:if test="@version != 'false'">
+                    <script>
+                        theodorusUIVersion = "<xsl:value-of select="@version"/>";
+                    </script>
+                </xsl:if>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/jquery.transform.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
-                <script language="javascript" type="text/javascript" src="/lib/inheritance.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
                 <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
-                <script language="javascript" type="text/javascript" src="/node_modules/backbone/backbone.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
-                <script language="javascript" type="text/javascript" src="/js/utilities.js"></script>
-                <xsl:apply-templates select="script" />
+                <script language="javascript" type="text/javascript" src="/js/theodorus.utils.min.js"></script>
+                <xsl:choose>
+                    <xsl:when test="//app/mode = 'dev'">
+                        <script language="javascript" type="text/javascript" src="/lib/json.js"></script>
+                    </xsl:when>
+                </xsl:choose>
             </head>
 
             <body>
-                <div id="main">
-                    <xsl:apply-templates />
+                <span class="force-web-font-preload">Loading fonts...</span>
+                <header class="page-header">
+                   <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
+                   <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
+                </header>
+                <div id="main" class="page-content">
+                    <xsl:apply-templates select="page" />
+                </div>
+                <div id="sidebar" class="page-sidebar">
+                    <div id="account" class="account_menu">
+                        <xsl:apply-templates select="//user" />
+                    </div>
+                    <nav class="nav_buttons">
+                        <ul class="nav_buttons-list">
+                            <li class="nav_button nav_blog"><a href="http://theodev.wordpress.com" accesskey="b" target="_blank"><xsl:value-of select="$nav_blog" /></a></li>
+                            <li class="nav_button nav_features"><a href="https://trello.com/b/gtJnohoz/features" accesskey="t" target="_blank"><xsl:value-of select="$nav_features" /></a></li>
+                            <li class="nav_button nav_sourcecode"><a href="https://github.com/odedshr/theodorus" accesskey="g" target="_blank"><xsl:value-of select="$nav_sourcecode" /></a></li>
+                            <!-- li><a href="donations" accesskey="t"><xsl:value-of select="$nav_donations" /></a></li -->
+                        </ul>
+                    </nav>
                 </div>
                 <div id="popup_placeholder" />
-                <div id="messages">
-                    <xsl:apply-templates select="message"/>
-                </div>
+                <ul id="messages" class="messages">
+                    <xsl:for-each select="message">
+                        <li><xsl:apply-templates select="."/></li>
+                    </xsl:for-each>
+                </ul>
                 <div id="report-bugs" />
+                <div id="plugins">
+                    <xsl:apply-templates select="plugins" />
+                </div>
             </body>
         </html>
     </xsl:template>
 
-    <xsl:template match="script">
-        <script language="javascript" type="text/javascript" src="{.}"></script>
+    <!-- page without type. how did this happen? (maybe because of plugin)-->
+    <xsl:template match="page[not(@type)]"></xsl:template>
+
+    <xsl:template match="count">
+        <span class="count"><xsl:value-of select="." /></span>
+    </xsl:template>
+
+    <xsl:template match="page[@type='message']">
+        <div class="error-message">
+            <h2><xsl:value-of select="$error_has_occoured" />: <xsl:apply-templates select="message" /></h2>
+            <xsl:choose>
+                <xsl:when test="referer"><a href="{referer}"><xsl:value-of select="$previous_page" /></a></xsl:when>
+                <xsl:otherwise><a href="/"><xsl:value-of select="$link_to_main_page" /></a></xsl:otherwise>
+            </xsl:choose>
+        </div>
     </xsl:template>
 
     <xsl:template match="message[@type='error']">
@@ -73,7 +112,7 @@
                 <xsl:value-of select="$errorMessage"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="$err_unknown_error" /> (<xsl:value-of select="@message" />)
+                <xsl:value-of select="$error_unknown" /> (<xsl:value-of select="@message" />)
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -86,7 +125,7 @@
                 <xsl:value-of select="$infoMessage"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="$err_unknown_error" /> (<xsl:value-of select="@message" />)
+                <xsl:value-of select="$error_unknown" /> (<xsl:value-of select="@message" />)
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -107,6 +146,18 @@
             </div>
         </div>
     </xsl:template>
+
+    <xsl:template match="mail-subject"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailSubjects)/*[@key=$vSelector]"/></xsl:template>
+    <xsl:template match="mail-body"><xsl:variable name="vSelector" select="@label"/><xsl:value-of select="exslt:node-set($mailBody)/*[@key=$vSelector]"/></xsl:template>
+    <xsl:template match="mail[@type='logged-action']">
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="$app_name"/></h1>
+            <div><label><xsl:value-of select="$logged_action_server" /></label><div><xsl:value-of select="data/server" /></div></div>
+            <div><label><xsl:value-of select="$logged_action_type" /></label><div><xsl:value-of select="data/type" /></div></div>
+            <div><label><xsl:value-of select="$logged_action_content" /></label><div><xsl:value-of select="data/content" /></div></div>
+        </div>
+    </xsl:template>
+
 
     <xsl:template match="testUnits">
        <h1>Theodorus Unit Tests</h1>
@@ -157,6 +208,33 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$text" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="datetime">
+        <xsl:call-template name="datetime-render">
+            <xsl:with-param name="value" select="." />
+        </xsl:call-template>
+    </xsl:template>
+
+    <xsl:template name="datetime-render">
+        <xsl:param name="value" />
+        <xsl:choose>
+            <xsl:when test="$value/pattern">
+                <xsl:variable name="vSelector" select="$value/pattern"/>
+                <!--<xsl:variable name="prettyCreated" select="exslt:node-set($timestamps)/*[@id=$vSelector]"/> -->
+                <xsl:variable name="prettyCreated">
+                    <xsl:call-template name="string-replace-all">
+                        <xsl:with-param name="text" select="exslt:node-set($timestamps)/*[@id=$vSelector]" />
+                        <xsl:with-param name="replace" select="'#'" />
+                        <xsl:with-param name="by" select="$value/patternValue" />
+                    </xsl:call-template>
+                </xsl:variable>
+                <time class="created" datetime="{$value/timestamp}" title="{$value/formatted}"><xsl:value-of select="$prettyCreated" /></time>
+            </xsl:when>
+            <xsl:otherwise>
+                <time class="created" datetime="{$value/timestamp}" title="{$value/formatted}"><xsl:value-of select="$value/formatted" /></time>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

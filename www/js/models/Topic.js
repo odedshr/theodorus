@@ -50,39 +50,6 @@ var Topic = AbstractModel.extend({
         "report_status":"number",
         "score":"number",
         "extra":"object"
-    },
-    /* extra objects:
-     delimiter $$
-     user_endorse
-     user_follow
-     user_report
-     */
-    xml: function () {
-        var This = this,
-            statAttribute = function (attribute) {
-                var value = This.get(attribute);
-                var user_value = This.get("user_"+attribute);
-                return (value>0) ? ("<"+attribute+" me='"+(user_value?"true":"false")+"'>"+(value?value:0)+"</"+attribute+">") : "";
-            },
-
-            url = this.get("slug");
-        return '<topic id="'+this.get("topic_id")+'">' +
-            "\n\t"+this.xmlAttribute("title")+
-            "\n\t"+this.xmlAttribute("created")+
-            "\n\t"+this.xmlAttribute("modified")+
-            "\n\t"+"<url>"+(((typeof url == "string") && url.length>0) ? "*"+url : "/topics/"+this.get("topic_id")) + "</url>"+
-            "\n\t"+this.xmlAttribute("tags")+
-            "\n\t"+this.xmlAttribute("initiator")+
-            "\n\t"+this.xmlAttribute("status")+
-            "\n\t"+this.xmlAttribute("report_status")+
-            "\n\t"+this.xmlAttribute("score")+
-            "\n\t"+this.xmlAttribute("extra")+
-            "\n\t"+this.xmlAttribute("comment")+
-            "\n\t"+statAttribute("seen")+
-            "\n\t"+statAttribute("follow")+
-            "\n\t"+statAttribute("endorse")+
-            "\n\t"+statAttribute("report")+
-            '</topic>';
     }
 });
 
@@ -113,12 +80,12 @@ Topic.Alternative = AbstractModel.extend({
 });
 
 ///////////////////////////////
-
-var Topics = AbstractCollection.extend({
-    name: "topics",
-    url: "/topics",
-    model: Topic
-});
+/*
+ var Topics = AbstractCollection.extend({
+ name: "topics",
+ url: "/topics",
+ model: Topic
+ });*/
 
 ///////////////////////////////
 if (typeof exports !== "undefined") {

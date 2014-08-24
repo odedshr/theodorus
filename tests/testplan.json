@@ -1,0 +1,23 @@
+{ "include": [
+    "AbstractModelTestSuite",
+    "AccountProcessTestSuite",
+    "CommentTestSuite",
+    "CredentialTestSuite",
+    "TopicTestSuite",
+    "UserTestSuite",
+    "MailProcessTestSuite",
+    "MySQLDbAPITestSuite",
+    "MySQLDbTestSuite",
+    "NotificationTestSuite",
+    "PrettyDateTestSuite",
+    "TagProcessTestSuite",
+    "TopicProcessTestSuite",
+    "UserProcessTestSuite",
+    "WebApplicationAppAPITestSuite",
+    "WebApplicationTestSuite",
+    "XSLTGeneratorTestSuite",
+    "EncryptionTestSuite"
+    ],
+  "exclude": [
+  ]
+}
