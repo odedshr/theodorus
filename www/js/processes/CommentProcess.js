@@ -8,11 +8,8 @@
         return {
             init: function (ioFunctions) {
                 io = ioFunctions;
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return this.methods; },
-            getPlugins: function getPlugins () { return this.plugins; },
 
             getTopicIndexByUrl: function (url) {
                 var regexMatch;
@@ -166,15 +163,11 @@
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.getComment.bind(CommentProcess)},
         {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.removeComment.bind(CommentProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":CommentProcess.removeComment.bind(CommentProcess)},
-    ];
 
-    CommentProcess.plugins = [
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": CommentProcess.pGetComments.bind(CommentProcess)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": CommentProcess.pGetComments.bind(CommentProcess)},
     ];
 
     if (typeof exports !== "undefined") {
         exports.init = CommentProcess.init.bind(CommentProcess);
-        exports.methods = CommentProcess.getMethods.bind(CommentProcess);
-        exports.plugins = CommentProcess.getPlugins.bind(CommentProcess);
     }
 })();

@@ -141,7 +141,12 @@ var XSLT = (function XSLTRendererClosure () {
             } else {
                 transformData.xsl = "/ui/xslt/default.xsl";
             }
-            (targetQuery ? $(targetQuery) : $).transform ();
+            try {
+                (targetQuery ? $(targetQuery) : $).transform ();
+            } catch (error) {
+                console.error ("failed to xslt: "+ error + "\n"+content);
+            }
+
         };
 
         XSLTRenderer.preloadXSLT = function preloadXSLT (callback) {

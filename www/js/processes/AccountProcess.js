@@ -24,13 +24,10 @@
                         }
                     });
                 } else {
-                    throw "profileImageFolder-not-defined"
+                    throw new Error("profileImageFolder-not-defined");
                 }
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return AccountProcess.methods; },
-            getPlugins: function getPlugins () { return AccountProcess.plugins; },
 
             getAccount: function (session, callback) {
                 session.useUserAccount(function (user) {
@@ -712,19 +709,15 @@
         {"method": "POST", "url": "/resetPassword", "handler": AccountProcess.sendResetPasswordEmail.bind(AccountProcess)},
         {"method": "GET", "url": /\/resetPassword\/[0-9a-zA-Z\.\-_@]+\/[0-9a-zA-Z]+\/?$/, "handler": AccountProcess.passwordResetConfirmation.bind(AccountProcess)},
         {"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)},
-        {"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)}
-    ];
+        {"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)},
 
-    AccountProcess.plugins = [
-        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)}
+        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/topics\/add\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)}
     ];
 
     if (typeof exports !== "undefined") {
         exports.init = AccountProcess.init.bind(AccountProcess);
-        exports.methods = AccountProcess.getMethods.bind(AccountProcess);
-        exports.plugins = AccountProcess.getPlugins.bind(AccountProcess);
     }
 })();
