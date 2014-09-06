@@ -20,11 +20,8 @@
                     }
                 });
                 this.defaultRecepient = io.vars(appName+"_MAIL_USER",true);
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return this.methods; },
-            getPlugins: function getPlugins () { return this.plugins; },
 
             mail : function mail (input,callback) {
                 if (!input.emailTo) {
@@ -58,13 +55,11 @@
         {"method":"PUT",   "url":"/mail", "handler":MailProcess.mailFromSession.bind(MailProcess)}
     ];
 
-    MailProcess.plugins = [];
+    MailProcess.pipes = [];
 
     if (typeof exports !== "undefined") {
         exports.mail = MailProcess.mail.bind(MailProcess);
         exports.init = MailProcess.init.bind(MailProcess);
-        exports.methods = MailProcess.getMethods.bind(MailProcess);
-        exports.plugins = MailProcess.getPlugins.bind(MailProcess);
     }
 
 })();

@@ -19,5 +19,6 @@
     "EncryptionTestSuite"
     ],
   "exclude": [
+      "ORMTestSuite"
   ]
 }

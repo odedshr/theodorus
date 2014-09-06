@@ -1,16 +1,15 @@
-var AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model();
+var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
+    Community = AbstractModelLibrary.model({
+        autoId: true,
 
-var Community = AbstractModel.extend({
-    autoId: true,
-
-    collection: "communities",
-    key:"community_id",
-    schema: {
-        "community_id":"number",
-        "name":"string",
-        "settings":"string"
-    }
-});
+        collection: "communities",
+        key:"community_id",
+        schema: {
+            "community_id":{ type: "serial", isNullOk:false },
+            "name":{ type: "text", size: 20,  key: true, isNullOk:false },
+            "settings":{ type: "text" }
+        }
+    });
 
 ///////////////////////////////
 if (typeof exports !== "undefined") {

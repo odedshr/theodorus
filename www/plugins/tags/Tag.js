@@ -1,32 +1,28 @@
-var AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./../../js/models/AbstractModel").model();
-    AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./../../js/models/AbstractModel").collection();
+var AbstractModelLibrary = (AbstractModelLibrary || require("./../../js/models/AbstractModel")),
+    Tag = AbstractModelLibrary.model({
+        autoId: true,
+        collection: "tags",
+        key: "tag_id",
+        schema: {
+            tag_id : { type: "serial", isNullOk: false, key:true },
+            tag               : { type: "text", size: 20,  isNullOk: false, isSecondaryKey: true },
+            topic_id          : { type: "integer", isNullOk: false, isSecondaryKey: true},
+            user_id           : { type: "integer", isNullOk: false, isSecondaryKey: true }
+        }
+    });
 
-var Tag = AbstractModel.extend({
-    autoId: false,
-    defaults: {
-        "count":0,
-        "color":"#FFFFFF"
-    },
-
-    collection: "tags",
-    key:"tag",
-    schema: {
-        "tag":"string",
-        "count":"number",
-        "color":"string"
-    }
-});
-
-///////////////////////////////
-
-var Tags = AbstractCollection.extend({
-    name: "tags",
-    url: "/tags",
-    model: Tag
-});
+Tag.TopicTags  = AbstractModelLibrary.model({
+        autoId: false,
+        collection: "topic_tags",
+        key: "topic_id",
+        schema: {
+            "topic_tag_json_id": {type: "serial", key: true },
+            topic_id          : { type: "number", isNullOk: false, isSecondaryKey:true },
+            tags           : { type: "object" }
+        }
+    });
 
 ///////////////////////////////
 if (typeof exports !== "undefined") {
     exports.model = function () { return Tag; };
-    exports.collection = function () { return Tags; };
 }

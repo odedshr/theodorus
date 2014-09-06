@@ -5,11 +5,8 @@
         return {
             init: function init (ioFunctions) {
                 io = ioFunctions;
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return this.methods; },
-            getPlugins: function getPlugins () { return this.plugins; },
 
             getUser : function (session,callback) { callback({"error":"method-not-implemented"}) },
             getUserTopics: function (session,callback) { callback({"error":"method-not-implemented"}) },
@@ -25,11 +22,7 @@
         {"method":"DELETE","url":/^\/@[a-zA-Z0-9_-]{3,15}\/follow\/?$/,"handler":UserProcess.unfollow.bind(UserProcess)},
     ];
 
-    UserProcess.plugins = [];
-    
     if (typeof exports !== "undefined") {
         exports.init = UserProcess.init.bind(UserProcess);
-        exports.methods = UserProcess.getMethods.bind(UserProcess);
-        exports.plugins = UserProcess.getPlugins.bind(UserProcess);
     }
 })();

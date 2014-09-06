@@ -11,11 +11,8 @@
                 io = ioFunctions;
                 var topicPageSize = io.config["topic_page_size"];
                 TOPIC_PAGE_SIZE  = (topicPageSize) ? topicPageSize : TOPIC_PAGE_SIZE;
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return this.methods; },
-            getPlugins: function getPlugins () { return this.plugins; },
 
             getTopicCount: function getTopicCount (session,callback) {
                 io.db.getTopicCount(function(count){
@@ -306,11 +303,7 @@
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)},
     ];
 
-    TopicProcess.plugins = [];
-
     if (typeof exports !== "undefined") {
         exports.init = TopicProcess.init.bind(TopicProcess);
-        exports.methods = TopicProcess.getMethods.bind(TopicProcess);
-        exports.plugins = TopicProcess.getPlugins.bind(TopicProcess);
     }
 })();

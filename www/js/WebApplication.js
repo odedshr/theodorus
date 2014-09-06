@@ -211,7 +211,7 @@
             "delete":[],
             "put":[]
         };
-        self.plugins = {};
+        self.pipes = {};
 
         // getHandler(method,url) function is used for internal invocations
         self.getHandler = function(method,url) {
@@ -226,20 +226,21 @@
             return function(){}; // if no method found, return a zombie function
         };
 
-        self.executePlugins = function (pattern,session,mainFunc,callback) {
+        self.executePipes = function (pattern,session,mainFunc,callback) {
             try {
-                var plugins = self.plugins[pattern],
-                    nextHandler = function(session, nextHandler, callback) {
-                        if (plugins.length) {
-                            (plugins.pop())(session, nextHandler, callback);
+                var pipes = self.pipes[pattern],
+                    nextPipe = function(session, nextPipe, callback) {
+                        if (pipes.length) {
+                            (pipes.pop())(session, nextPipe, callback);
                         } else {
                             mainFunc(session,function(output) {
                                 callback(output);
                             });
                         }
-                    }
-                plugins = (typeof plugins == "undefined") ? [] : plugins.slice(0), // slice(0) clones the array
-                    nextHandler (session, nextHandler, callback);
+                    };
+
+                pipes = (typeof pipes == "undefined") ? [] : pipes.slice(0), // slice(0) clones the array
+                    nextPipe (session, nextPipe, callback);
             } catch (err) {
                 self.log(err,"exception");
                 callback(session.get501());
@@ -249,27 +250,25 @@
         self.executeHandler = function executeHandler(res, session, handlerDef) {
             var method = session.req.method.toLocaleLowerCase(),
                 handler = handlerDef.handler;
-            self.executePlugins(method + ":" + handlerDef.url, session, handler, function (output) {
-                if (session.isJSON) {
-                    res.end(JSON.stringify(output));
-                } else {
-                    if (output.directive) {
-                        switch (output.directive) {
-                            case "redirect":
-                                var location = output.location;
-                                location = (location!="referer") ? location : session.req.headers['referer'];
-                                res.writeHead(301,{"location" : location} );
-                                res.end();
-                                break;
-                            case "default": res.end(session.get404());
-                        }
-                    } else {
-                        var app = output.app;
-                        app.mode = self.getApplicationMode();
-                        app.server = "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host;
-                        app.referer = session.req.headers.referer;
-                        res.end(self.xslt(output));
+            self.executePipes(method + ":" + handlerDef.url, session, handler, function (output) {
+                if (!session.isJSON && output.directive) {
+                    switch (output.directive) {
+                        case "redirect":
+                            var location = output.location;
+                            location = (location!="referer") ? location : session.req.headers['referer'];
+                            res.writeHead(301,{"location" : location} );
+                            res.end();
+                            break;
+                        case "default": res.end(session.get404());
                     }
+                } else if (!session.isJSON && output.app) {
+                    var app = output.app;
+                    app.mode = self.getApplicationMode();
+                    app.server = "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host;
+                    app.referer = session.req.headers.referer;
+                    res.end(self.xslt(output));
+                } else {
+                    res.end(JSON.stringify(output));
                 }
             });
         };
@@ -294,14 +293,24 @@
             }); // external invocation
         };
 
-        self.addPlugin = function addPlugin (handlerDef) {
-            var pattern = handlerDef.method.toLowerCase()+":"+handlerDef.url,
-                repo = self.plugins[pattern];
+        self.addPipe = function addPlugin (pipeDef) {
+            var pattern = pipeDef.method.toLowerCase()+":"+pipeDef.url,
+                repo = self.pipes[pattern];
             if (typeof repo == "undefined") {
                 repo = [];
-                self.plugins[pattern] = repo;
+                self.pipes[pattern] = repo;
             }
-            self.plugins[pattern].push (handlerDef.handler);
+            self.pipes[pattern].push (pipeDef.pipe);
+        };
+
+        self.addhandler = function addPlugin (handlerDef) {
+            var pattern = handlerDef.method.toLowerCase()+":"+handlerDef.url,
+                repo = self.pipes[pattern];
+            if (typeof repo == "undefined") {
+                repo = [];
+                self.pipes[pattern] = repo;
+            }
+            self.pipes[pattern].push (handlerDef.handler);
         };
 
         self.initProcesses =  function () {
@@ -315,9 +324,18 @@
             libs.forEach( function(libraryFileName) {
                 try {
                     var library = require(libraryFileName);
-                    library.init(self);
-                    library.methods().forEach(self.addHandler.bind(self));
-                    library.plugins().forEach(self.addPlugin.bind(self));
+                    var methods = library.init(self);
+                    if (Array.isArray(methods)) {
+                        methods.forEach(function (method) {
+                            if (method.handler) {
+                                self.addHandler(method);
+                            } else {
+                                self.addPipe(method);
+                            }
+                        })
+                    }
+                    if (library.methods) { library.methods().forEach(self.addHandler.bind(self)); }
+                    if (library.pipes) { library.pipes().forEach(self.addhandler.bind(self)); }
                 } catch (error) {
                     self.log("failed to init "+libraryFileName + " ("+error+")","error");
                 }
@@ -407,7 +425,7 @@
  app.get(/^\/![a-zA-Z0-9_-]{3,140}\/?$/, getMethodNotImplementedMessage ); // case "post/error/": // {message, screenshot}
 
 
-a word on plugins
+a word on pipes
 up until now I had a single function needed to be run
 it got a input in session.input and its output was sent to callback
 
