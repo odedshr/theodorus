@@ -1,7 +1,7 @@
 {
     "application_name":"THEODORUS",
     "port":8080,
-    "theme":"default",
+    "theme":"default.rtl",
     "table_prefix":"",
     "db_type":"mysql",
     "cookie_token":"tdrs::token",

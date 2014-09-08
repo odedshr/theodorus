@@ -154,7 +154,7 @@
             query = "SELECT * FROM "+prefix+model.collection + " "+where+" LIMIT 1";
         try {
             exports.query (query, function(rows) {
-                callback((rows.length>0) ? new model(parseJSON(rows[0]), model.schema) : false);
+                callback((rows.length>0) ? new model(rows[0], model.schema) : false);
             });
         } catch (error) {
             console.error("getItem ("+query+") : " + error);

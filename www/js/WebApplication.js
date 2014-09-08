@@ -215,15 +215,15 @@
 
         // getHandler(method,url) function is used for internal invocations
         self.getHandler = function(method,url) {
-            var i, handler, handlers = self.handlers[method];
+            var i, handlers = self.handlers[method.toLowerCase()];
             for (i in handlers) {
-                handler = handlers[i];
+                var handler = handlers[i];
                 if ((typeof handler.pattern == "string") ? (url == handler.pattern):  handler.pattern.test(url)) {
-                    return handler.method;
+                    return handler.handlerDef;
                 }
             }
-            console.error ("getHandler failed to match url " + url);
-            return function(){}; // if no method found, return a zombie function
+            self.log("getHandler failed to match url " + url,"error")
+            throw new Error ("failed-to-match-url");
         };
 
         self.executePipes = function (pattern,session,mainFunc,callback) {
@@ -247,10 +247,15 @@
             }
         };
 
-        self.executeHandler = function executeHandler(res, session, handlerDef) {
+        self.executeHandler = function executeHandler(res, session, handlerDef, callback) {
+            console.log("==>"+JSON.stringify(handlerDef));
             var method = session.req.method.toLocaleLowerCase(),
                 handler = handlerDef.handler;
-            self.executePipes(method + ":" + handlerDef.url, session, handler, function (output) {
+            self.executePipes(method + ":" + handlerDef.url, session, handler, callback);
+        };
+
+        self.processRequest = function (res, session, handlerDef) {
+            self.executeHandler(res, session, handlerDef , function writeOutput (output) {
                 if (!session.isJSON && output.directive) {
                     switch (output.directive) {
                         case "redirect":
@@ -278,16 +283,15 @@
                 method = handlerDef.method.toLowerCase();
 
             self.handlers[method].push ({   "pattern":url,
-                                            "method":handlerDef.handler}); // store func for internal invocation // handlerDef.url
+                                            "handlerDef":handlerDef }); // store func for internal invocation // handlerDef.url
             self.app[method](url, function (req, res) { // external invocation
                 var session = self.getAppAPI(req, res);
                 res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
-                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
                 if (req.method == "GET" || req.method == "DELETE") {
-                    self.executeHandler(res, session, handlerDef);
+                    self.processRequest(res, session, handlerDef);
                 } else {
                     session.useInput(function () {
-                        self.executeHandler(res, session, handlerDef);
+                        self.processRequest(res, session, handlerDef);
                     });
                 }
             }); // external invocation

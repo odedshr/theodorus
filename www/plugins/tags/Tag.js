@@ -14,9 +14,9 @@ var AbstractModelLibrary = (AbstractModelLibrary || require("./../../js/models/A
 Tag.TopicTags  = AbstractModelLibrary.model({
         autoId: false,
         collection: "topic_tags",
-        key: "topic_id",
+        key: "topic_tag_id",
         schema: {
-            "topic_tag_json_id": {type: "serial", key: true },
+            "topic_tag_id": {type: "serial", key: true },
             topic_id          : { type: "number", isNullOk: false, isSecondaryKey:true },
             tags           : { type: "object" }
         }
