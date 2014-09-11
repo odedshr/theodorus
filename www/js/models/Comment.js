@@ -6,7 +6,6 @@ var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? Abstr
         schema: {
             "comment_id":{ type: "serial", isNullOk:false },
             "topic_id":{ type: "number", isNullOk:false },
-            "opinion_id":{ type: "number", isNullOk:false },
             "parent_id":{ type: "number", isNullOk:false },
             "user_id":{ type: "number", isNullOk:false },
             "created": { type: "date", time: true, isNullOk:false },

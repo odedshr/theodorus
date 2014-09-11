@@ -137,31 +137,30 @@
             },
 
             getTopic: function (session,callback) {
-                var referer = session.req.headers["referer"],
-                    topicKey = this.getTopicIndexByUrl(session.url);
-
-                if (topicKey.error) {
-                    callback(session.getErrorHandler(topicKey.error));
-                } else {
-                    io.db.getTopic(topicKey, function (topic){
-                        if (topic) {
-                            var topicId = topic.get("topic_id");
-                            io.db.getTopicRead(topicId, function(topicRead){
-                                topic.set("content",topicRead ? topicRead : "");
-                                callback(session.isJSON ? topic.toJSON() : {
-                                    "app":{
-                                        "page": {
-                                            "@type":"topicView",
-                                            "topic": topic.toJSON()
+                var referer = session.req.headers["referer"];
+                io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
+                    if (!topicId) {
+                        callback(session.getErrorHandler(topicKey.error));
+                    } else {
+                        io.db.getTopic(topicId, function (topic){
+                            if (topic) {
+                                io.db.getTopicRead(topicId, function(topicRead){
+                                    topic.set("content",topicRead ? topicRead : "");
+                                    callback(session.isJSON ? topic.toJSON() : {
+                                        "app":{
+                                            "page": {
+                                                "@type":"topicView",
+                                                "topic": topic.toJSON()
+                                            }
                                         }
-                                    }
+                                    });
                                 });
-                            });
-                        } else {
-                            callback(session.get404());
-                        }
-                    });
-                }
+                            } else {
+                                callback(session.get404());
+                            }
+                        });
+                    }
+                });
             },
 
             getTopicIndexByUrl: function (url) {

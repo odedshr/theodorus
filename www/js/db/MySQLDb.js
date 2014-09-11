@@ -68,6 +68,7 @@
                 }
             });
         }
+        return query;
     }
 
     function insert (connection, item, callback) {
@@ -76,7 +77,7 @@
             dataSet = sanitizeJSONObject(item);
             keys = _.keys(dataSet);
             values = _.values(dataSet);
-        } else {
+        } else { // item with no primary key (I don't think I have any of these)
             keys = _.keys(item.set);
             keys = keys.concat(_.keys(item.where));
             values = _.values(item.set);
@@ -92,6 +93,7 @@
             }
             callback(item);
         });
+        return query;
     }
 
     exports.save = function (item, callback) {
@@ -102,12 +104,10 @@
                     console.error("save/getConnection error:" + error);
                     callback (false, error);
                 } else {
-                        if (!item.key || (typeof item.get(item.key) !== "undefined")) {
-                            update(connection,item,callback);
-                        } else {
-                            insert (connection, item, callback);
-                        }
-                        connection.release();
+                    var key = item.key ? item.get(item.key) : false,
+                        query = ((key && (typeof item.get(item.key) !== "undefined") && key != "null") ? update : insert)(connection,item,callback);
+                    console.log(">>>"+query);
+                    connection.release();
                 }
             });
         } catch (error) {
@@ -117,10 +117,13 @@
     };
 
     function sanitizeJSONObject (item) {
-        var json = item.toJSON();
+        var json = item.toJSON(),
+            output = {};
         for (var key in json) {
             var value = json[key]; //TODO: convert ' and " => something else
-            json[key] = (typeof value === "object" ? JSON.stringify(value) : value);
+            if (value!=="null") {
+                output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
+            }
         }
         return json;
     }
@@ -150,14 +153,20 @@
     }
 
     exports.getItem = function (model,key,callback) {
-        var where = "WHERE "+((typeof key == "object") ? (_.keys(key)[0] +" = '"+_.values(key)[0]+"'") : model.key +" = '"+key+"'"),
-            query = "SELECT * FROM "+prefix+model.collection + " "+where+" LIMIT 1";
+        if (!model || !key) {
+            log("getItem:missing parameter for"+(model? model.collection : JSON.stringify(key)), "error");
+            callback(false);
+        }
         try {
+            var query = "SELECT * FROM "+prefix+model.collection,
+                where = "WHERE "+((typeof key == "object") ? (_.keys(key)[0] +" = '"+_.values(key)[0]+"'") : model.key +" = '"+key+"'");
+                query += " "+where+" LIMIT 1";
+
             exports.query (query, function(rows) {
                 callback((rows.length>0) ? new model(rows[0], model.schema) : false);
             });
         } catch (error) {
-            console.error("getItem ("+query+") : " + error);
+            log("getItem ("+query+") : " + error, "error");
             callback(false);
         }
     };

@@ -128,7 +128,7 @@
                         case "object": queryString += "TEXT";break; //json
                         case "point": queryString += "POINT"; break;
                         case "binary": queryString += "BINARY";break;
-                        case "serial": queryString += "INT AUTO_INCREMENT"; break;
+                        case "serial": queryString += "INT" + (modelClass.autoId ? " AUTO_INCREMENT" : ""); break;
                     }
                     if (columnData.defaultValue) {
                         queryString += "DEFAULT '"+columnData.defaultValue+"'";
@@ -140,7 +140,7 @@
                         keys += ", UNIQUE KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)"
                     }
                 }
-                queryString = "CREATE TABLE "+this.schema+"."+this.prefix +model.collection+" (" + queryString+", PRIMARY KEY (`"+model.key+"`)"+ keys +")";
+                queryString = "CREATE TABLE "+this.schema+"."+this.prefix +model.collection+" (" + queryString+", PRIMARY KEY (`"+model.key+"`)"+ keys +") ENGINE=InnoDB DEFAULT CHARSET=utf8";
                 this.db.query ( queryString , function (output) {
                     if (output.errno) {
                         throw new Error ("FAILED TO CREATE "+this.prefix+model.collection+":" + JSON.stringify(output));

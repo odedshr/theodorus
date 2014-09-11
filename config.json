@@ -17,7 +17,6 @@
     "sql_instructions": "../../../extra/sql_instructions.json",
     "default_community": "../../../../../extra/default_community.json",
     "processes": [
-        "MailProcess",
         "AccountProcess",
         "UserProcess",
         "TopicProcess",

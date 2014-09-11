@@ -40,7 +40,8 @@
 
     <xsl:template match="page[@type='topicView']">
         <div id="topic" class="topic-view">
-            <a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>
+            <!--<a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>-->
+            <a href="/" class="button-back"><xsl:value-of select="$back" /></a>
             <h2><xsl:value-of select="topic/title" /></h2>
             <div id="content"><xsl:value-of select="topic/content" /></div>
             <!--<xsl:choose>

@@ -20,7 +20,7 @@
             return variable
         };
         self.getApplicationMode = function getApplicationMode () { return self.vars(self.appName+"_MODE"); }
-        self.mail = require(__dirname+"/processes/MailProcess").init(this).mail;
+        self.mail = require(__dirname+"/utils/Mailer").init(this).mail;
         self.log = function log (content, type) {
             var date = new Date(),
                 target;
@@ -248,7 +248,6 @@
         };
 
         self.executeHandler = function executeHandler(res, session, handlerDef, callback) {
-            console.log("==>"+JSON.stringify(handlerDef));
             var method = session.req.method.toLocaleLowerCase(),
                 handler = handlerDef.handler;
             self.executePipes(method + ":" + handlerDef.url, session, handler, callback);
@@ -350,8 +349,6 @@
             var app = self.app = express(),
                 profilesFolder = self.config.profile_images_folders;
 
-            //app.use(require('cookie-parser'));
-            //app.use(express.bodyParser({ keepExtensions: true }));
             app.use(express.static( rootFolder ));
             // the client doesn't need to know the name of the current theme to work by redirect current-theme calls to it:
             app.get("/ui/version", function (req, res) {
@@ -369,16 +366,22 @@
                 }
             });
             // profile-images are stored outside the project
-            app.get(/^[\/]{1,2}profileImage\/.*$/, function(req, res){
+            app.get(/^[\/]{1,2}profileImage\/.+$/, function(req, res){
                 res.setHeader('Cache-Control', 'public, max-age=' + (YEAR / 1000));
                 //TODO: move this function to accountProcess (problem that process output must be json/text)
                 var image = req.url.replace(/[\/]{1,2}profileImage\//,profilesFolder+"/");
                 fileSystem.exists(image, function (exists) {
                     if (exists) {
-                        res.writeHead(200, {'Content-Type': 'image/'+image.substring(image.lastIndexOf(".")+1) });
-                        res.end(fileSystem.readFileSync(image), 'binary');
+                        try {
+                            var readFile = fileSystem.readFileSync(image);
+                            res.writeHead(200, {'Content-Type': 'image/'+image.substring(image.lastIndexOf(".")+1) });
+                            res.end(readFile, 'binary');
+                        } catch (error) {
+                            self.log("failed to load profile image "+req.url,"error");
+                            res.redirect("/ui/img/anonymous.png");
+                        }
                     } else {
-                        res.redirect("ui/img/anonymous.png");
+                        res.redirect("/ui/img/anonymous.png");
                     }
                 });
             });

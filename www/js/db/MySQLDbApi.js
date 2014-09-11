@@ -159,7 +159,7 @@
                                 "display_name":topicData.display_name,
                                 "slug":topicData.user_slug
                             })
-                        })
+                        });
                         if (topicData.picture) { // if not exists, it shouldn't be an empty value
                             topic.get("initiator").set("picture",topicData.picture);
                         }
