@@ -19,7 +19,7 @@
                 if (regexMatch = url.match(/topics\/(\d+)/)) {
                     return {"topic_id":regexMatch[1]};
                 }
-                return {"error":"url-parse-failed"}
+                throw new Error("url-parse-failed");
             },
 
             getComment: function getComment (session,callback) {
@@ -32,11 +32,15 @@
                         callback(comment);
                     });
                 } else {
-                    CommentProcess.getTopic(session, function topicLoaded(pageInfo) {
-                        pageInfo.app.page.commentId = commentId;
-                        pageInfo.app.page.referer = session.req.headers["referer"];
-                        callback(pageInfo);
-                    });
+                    try{
+                        io.executeHandler(session.res,session,io.getHandler("GET","/topics/"+CommentProcess.getTopicIndexByUrl(session.url).topic_id),function (pageInfo) {
+                            pageInfo.app.page.commentId = commentId;
+                            pageInfo.app.page.referer = session.req.headers["referer"];
+                            callback(pageInfo);
+                        });
+                    } catch (error){
+                        callback(session.getErrorHandler(error));
+                    }
                 }
             },
 

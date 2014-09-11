@@ -16,8 +16,7 @@ Tag.TopicTags  = AbstractModelLibrary.model({
         collection: "topic_tags",
         key: "topic_id",
         schema: {
-            "topic_tag_json_id": {type: "serial", key: true },
-            topic_id          : { type: "number", isNullOk: false, isSecondaryKey:true },
+            topic_id       : { type: "serial", isNullOk: false, key:true },
             tags           : { type: "object" }
         }
     });

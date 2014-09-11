@@ -264,37 +264,52 @@ header h1 sub {
 }
 .page-sidebar .account_menu {
   margin: 1rem 0.5rem 0.5rem 0;
-  text-align: left;
+  /*text-align: left;*/
+
+}
+.page-sidebar .account_menu .btn_signup,
+.page-sidebar .account_menu .btn_signin,
+.page-sidebar .account_menu .button-signout {
+  margin-top: 0.35rem;
+  margin-right: 1.4rem;
+  padding-right: 1.7rem;
+}
+.page-sidebar .account_menu .btn_signin {
+  text-align: right;
+  vertical-align: middle;
+  display: block;
+  clear: both;
+  float: none;
+  width: 6rem;
+}
+.page-sidebar .account_menu .profile-image-mini {
+  margin-right: 1rem;
+}
+.page-sidebar .account_menu .separator {
+  display: none;
 }
 .page-sidebar .account_menu .user_name {
   display: inline-block;
+  font-size: 1.3rem;
   position: relative;
   margin-right: 0.5rem;
-  text-align: left;
-  max-width: 4rem;
+  max-width: 10rem;
   overflow: hidden;
   height: 1rem;
   vertical-align: middle;
 }
-.page-sidebar .account_menu .btn_signup {
-  text-align: left;
-}
 .page-sidebar .account_menu .button-signout {
-  margin-top: 0.35rem;
-  float: left;
-  width: 6rem;
   text-align: right;
-  padding-right: 0.2rem;
   vertical-align: middle;
-}
-.page-sidebar .account_menu .btn_signin {
-  float: left;
+  display: block;
+  clear: both;
+  float: none;
   width: 6rem;
-  text-align: right;
-  padding-right: 0.2rem;
 }
 .page-sidebar .nav_buttons {
-  direction: ltr;
+  /*direction: ltr;*/
+
+  padding-right: 2.1rem;
 }
 .page-sidebar .nav_buttons .nav_buttons-list {
   direction: rtl;
@@ -310,9 +325,10 @@ header h1 sub {
 .page-sidebar .nav_buttons .nav_button:before {
   background: url('/ui/img/all.png') no-repeat transparent;
   content: " ";
-  display: inline-block;
+  display: block;
+  float: right;
   height: 1rem;
-  margin-left: 0.5rem;
+  margin: -0.1rem 0 0 0.5rem;
   width: 1rem;
 }
 .page-sidebar .nav_buttons .nav_features:before {
@@ -458,7 +474,7 @@ h3 {
   font-size: 1rem;
   height: 4rem;
   padding: 0.2rem 0.3rem;
-  width: 32rem;
+  width: 38.5rem;
 }
 .form_add_topic .topic_add_submit {
   color: #666;
@@ -542,7 +558,8 @@ h3 {
 .feed_wrapper .topic .initiator {
   display: inline;
   color: #33B;
-  font-size: 0.9rem;
+  /*font-size:0.9rem;*/
+
   margin-left: 1rem;
 }
 .feed_wrapper .topic .initiator .profile-image-mini {
@@ -622,15 +639,15 @@ h3 {
   margin: 0.5rem 0;
   padding: 0;
 }
+.topic-view .tags .tag-list .tag {
+  font-size: 0.9rem;
+}
 .topic-view .tags .tag {
   background: rgba(200, 200, 200, 0.1);
   border: 1px solid #aaaaaa;
   display: inline;
   margin: 0 0 0.5rem 0.5rem;
   padding: 0.3rem 0.3rem 0.1rem 0.3rem;
-}
-.topic-view .tags .tag .tag-label {
-  font-size: 1.1rem;
 }
 .topic-view .tags .tag .tag-count:before {
   content: " [";
@@ -756,6 +773,13 @@ h3 {
   float: right;
   margin-left: 0.5rem;
   width: 30rem;
+}
+.topic-view .comments .comment-box .comment-new:not(:empty) {
+  border-color: #eeeeee;
+}
+.topic-view .comments .comment-box .comment-new:not(:empty):hover,
+.topic-view .comments .comment-box .comment-new:not(:empty):focus {
+  border-color: #aaaaaa;
 }
 .topic-view .comments .comment-box .comment-submit {
   width: 7.5rem;

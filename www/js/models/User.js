@@ -36,7 +36,7 @@ User.Account = AbstractModelLibrary.model({
         "display_name":{ type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
         "score":{ type: "number", defaultValue: 0},
         "picture":{ type: "text", size: 250 },
-        "permission": { type: "object"}
+        "permissions": { type: "object"}
     }
 });
 

@@ -278,11 +278,10 @@
                 } else {
                     io.db.getCredentials(email, function (result) {
                         var sendMail = function sendMail() {
-                            (io.getHandler("put","/mail"))({    input: { emailTo: email,
-                                emailTemplate: "email-confirm",
-                                emailData: {    server: session.server,
-                                    link:   "/confirm/" + email + "/" + io.encrypt("confirm" + email)
-                                }
+                            io.mail ({  emailTo: email,
+                                        emailTemplate: "email-confirm",
+                                        emailData: {    server: session.server,
+                                        link:   "/confirm/" + email + "/" + io.encrypt("confirm" + email)
                             }}, function (){
                                 onFinish("confirm-email-sent");
                             });
@@ -518,17 +517,17 @@
 
                 io.db.getCredentials(email, function (credential) {
                     if (credential) {
-                        (io.getHandler("put","/mail"))({    input: { emailTo: email,
-                            emailTemplate: "reset-password",
-                            emailData: {    server: session.server,
-                                link:   "/resetPassword/" + email + "/" + io.encrypt("reset" + email)
+                        io.mail({ emailTo: email,
+                                  emailTemplate: "reset-password",
+                                  emailData: {    server: session.server,
+                                  link:   "/resetPassword/" + email + "/" + io.encrypt("reset" + email)
                             }
-                        }}, function (){
+                        }, function (){
                             var message = "reset-email-sent";
                             if (session.isJSON) {
                                 callback({"result":message});
                             } else {
-                                (io.getHandler("get","/signin"))( session, function (signInPage) {
+                                io.executeHandler(session.res,session,io.getHandler("get","/signin"),function (signInPage) {
                                     signInPage.app = signInPage.app || {};
                                     signInPage.app.message = {
                                         "@type": "info",
@@ -600,7 +599,7 @@
                         });
                     } else {
                         io.log("updatePassword : no user-id found", "error");
-                        (io.getHandler("get", "/signin" ))( session, function (nextPage) {
+                        io.executeHandler(session.res,session,io.getHandler("get","/signin"),function (nextPage) {
                             nextPage.app = nextPage.app || {};
                             nextPage.app.message = {
                                 "@type": "error",
@@ -666,7 +665,7 @@
                         if (session.isJSON) {
                             callback({"result":message});
                         } else {
-                            (io.getHandler("get", hash ? "/signin" : "/me"))( session, function (nextPage) {
+                            io.executeHandler(session.res,session,io.getHandler("get", hash ? "/signin" : "/me"),function (nextPage) {
                                 nextPage.app = nextPage.app || {};
                                 nextPage.app.message = {
                                     "@type": "info",

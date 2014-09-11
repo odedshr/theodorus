@@ -206,41 +206,42 @@
                 io.db.orm([Tag],function processUserTopicTags (models) {
                     models.tags.aggregate(["topic_id"],{ "tag": tag }).count("topic_id").groupBy("topic_id").get(function(err,userTopicTags){
                         if (err) {
-                            console.log(err);
-                        }
-                        var topicCount = userTopicTags.length,
-                            stats = {},
-                            topicIds = [];
-                        topicIds.sort(function(a,b) {
-                            var aCount = a.count_topic_id,
-                                bCount = b.count_topic_id;
-                            return (aCount > bCount) ? -1 : ((aCount < bCount) ? 1 : ((a.tag < b.tag) ? -1 : 1));
-                        });
-                        for (var i=firstItem; i<Math.min(topicCount, lastItem);i++) {
-                            var topicIdInfo = userTopicTags[i],
-                                topicId = topicIdInfo.topic_id;
-                            stats[topicId] = topicIdInfo.count_topic_id;
-                            topicIds.push (topicId)
-                        }
-                        io.db.getTopics({"whitelist":topicIds}, function (topics) {
-                            var data = {
-                                "topics": { "topic": topics },
-                                "pageIndex": page,
-                                "pageCount": Math.ceil(topicCount / TOPIC_PAGE_SIZE)
-                            };
-                            callback(session.isJSON ? _.extend(data, { "tag": tag }) : {
-                                "app":{
-                                    "page": {},
-                                    "plugins": {
-                                        "tagTopics": {
-                                            "tag": tag,
-                                            "page" : _.extend(data,{
-                                                "@type":"feed"
-                                            })
+                            callback(session.getErrorHandler(error));
+                        } else {
+                            var topicCount = userTopicTags.length,
+                                stats = {},
+                                topicIds = [];
+                            topicIds.sort(function(a,b) {
+                                var aCount = a.count_topic_id,
+                                    bCount = b.count_topic_id;
+                                return (aCount > bCount) ? -1 : ((aCount < bCount) ? 1 : ((a.tag < b.tag) ? -1 : 1));
+                            });
+                            for (var i=firstItem; i<Math.min(topicCount, lastItem);i++) {
+                                var topicIdInfo = userTopicTags[i],
+                                    topicId = topicIdInfo.topic_id;
+                                stats[topicId] = topicIdInfo.count_topic_id;
+                                topicIds.push (topicId)
+                            }
+                            io.db.getTopics({"whitelist":topicIds}, function (topics) {
+                                var data = {
+                                    "topics": { "topic": topics },
+                                    "pageIndex": page,
+                                    "pageCount": Math.ceil(topicCount / TOPIC_PAGE_SIZE)
+                                };
+                                callback(session.isJSON ? _.extend(data, { "tag": tag }) : {
+                                    "app":{
+                                        "page": {},
+                                        "plugins": {
+                                            "tagTopics": {
+                                                "tag": tag,
+                                                "page" : _.extend(data,{
+                                                    "@type":"feed"
+                                                })
+                                            }
                                         }
-                                    }
-                                }});
-                        });
+                                    }});
+                            });
+                        }
                     });
                 });
             },

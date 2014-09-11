@@ -1,24 +1,24 @@
 { "include": [
-    "AbstractModelTestSuite",
-    "AccountProcessTestSuite",
-    "CommentTestSuite",
-    "CredentialTestSuite",
-    "TopicTestSuite",
-    "UserTestSuite",
-    "MailProcessTestSuite",
-    "MySQLDbAPITestSuite",
-    "MySQLDbTestSuite",
-    "NotificationTestSuite",
-    "PrettyDateTestSuite",
-    "TagProcessTestSuite",
-    "TopicProcessTestSuite",
-    "UserProcessTestSuite",
-    "WebApplicationAppAPITestSuite",
-    "WebApplicationTestSuite",
-    "XSLTGeneratorTestSuite",
-    "EncryptionTestSuite"
+    "MailerTestSuite"
     ],
   "exclude": [
-      "ORMTestSuite"
+      "ORMTestSuite",
+      "AbstractModelTestSuite",
+      "AccountProcessTestSuite",
+      "CommentTestSuite",
+      "CredentialTestSuite",
+      "TopicTestSuite",
+      "UserTestSuite",
+      "MySQLDbAPITestSuite",
+      "MySQLDbTestSuite",
+      "NotificationTestSuite",
+      "PrettyDateTestSuite",
+      "TagProcessTestSuite",
+      "TopicProcessTestSuite",
+      "UserProcessTestSuite",
+      "WebApplicationAppAPITestSuite",
+      "WebApplicationTestSuite",
+      "XSLTGeneratorTestSuite",
+      "EncryptionTestSuite"
   ]
 }

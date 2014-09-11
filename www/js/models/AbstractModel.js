@@ -8,20 +8,22 @@ var _ =  (_ || require("underscore")),
             }
             var schema = this.schema;
             for (var key in schema) {
-                if (data && data.hasOwnProperty(key)) {
-                    this.set(key, data[key]);
-                } else {
-                    if (schema[key].defaultValue) {
-                        this[key] = schema[key].defaultValue;
-                    } else {
-                        switch (schema[key].type) {
-                            case "number" :
-                            case "integer" : this[key] = 0; break;
-                            case "boolean" : this[key]  = false; break;
-                            case "array" : this[key]  = []; break;
-                            default: this[key] = null;
-                        }
+                var hasValue = (data && data.hasOwnProperty(key));
+                if (!hasValue && schema[key].defaultValue) {
+                    this.set(key, schema[key].defaultValue);
+                } else if (schema[key].type != "serial" || hasValue) { // serial with no value, I would like to keep empty
+                    var value = null,
+                        newValue = hasValue ? data[key] : null;
+                    switch (schema[key].type) {
+                        case "number" :
+                        case "integer" : value = hasValue ? newValue : 0; break;
+                        case "boolean" : value = hasValue ? !!newValue : false; break;
+                        case "array" : value = hasValue ? (typeof newValue == "object" ? newValue : JSON.parse(newValue) ) : []; break;
+                        case "object" : value = hasValue ? (typeof newValue == "object" ? newValue : JSON.parse(newValue)) : {}; break;
+                        case "text": value = newValue; break;
+                        default: value = newValue;
                     }
+                    this.set(key, value);
                 }
             }
         }
