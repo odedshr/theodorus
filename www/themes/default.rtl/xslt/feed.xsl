@@ -132,7 +132,7 @@
             <div class="tags">
                 <ul class="tag-list">
                     <xsl:for-each select="tags/tag[position() &lt;= 10]">
-                        <li class="tag">
+                        <li class="tag tag-color-{color}">
                             <span class="tag-label"><xsl:value-of select="tag" /></span>
                             <span class="tag-count"><xsl:value-of select="count" /></span>
                         </li>

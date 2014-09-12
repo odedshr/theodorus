@@ -9,8 +9,8 @@
 
             var self = this,
                 reRender = function reRender () {
-                    self.fixTimeReferences();
-                    self.colorTags();
+                    //self.fixTimeReferences();
+                    //self.colorTags();
                 };
 
             if ((typeof theodorusUIVersion !== "undefined") && (typeof(Storage) !== "undefined") && (theodorusUIVersion != localStorage.getItem("theodorus_version"))) {
@@ -45,8 +45,9 @@
                 timeRefs = []; // Will hold the array of Node's
             for(var i = 0, ll = timeRefsList.length; i != ll; timeRefs.push(timeRefsList[i++]));
 
-            timeRefs.forEach(function(ref) {
-                XSLT.transform(ref,{"datetime":PrettyDate.render(ref.getAttribute("datetime"))},function(output){});
+            timeRefs.forEach(function transformTimeRefs(ref) {
+                XSLT.transform(ref,{"datetime":PrettyDate.render(ref.getAttribute("datetime"))},function xsltCallback (output){});
+
             });
             //var refs = document.getElementsByTagName("time");
             //alert (refs[0].getAttribute("datetime")+","+refs[0].innerHTML);
