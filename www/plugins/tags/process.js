@@ -68,7 +68,7 @@
                                 bCount = b.count;
                             return (aCount > bCount) ? -1 : ((aCount < bCount) ? 1 : ((a.tag < b.tag) ? -1 : 1));
                         });
-                        callback(tags);
+                        callback(TagPlugin.getColoredTags(tags));
                     });
                 });
             },
@@ -260,12 +260,28 @@
                             io.log("processTopicTags:" + JSON.stringify(err), "error");
                         } else {
                             output.forEach(function(record) {
-                                topicDictionary[record.topic_id].set("tags",{"tag":record.tags});
+                                topicDictionary[record.topic_id].set("tags",{"tag":TagPlugin.getColoredTags(record.tags)});
                             })
-                            callback(topics);
                         }
+                        callback(topics);
                     });
                 });
+            },
+
+            getColoredTags : function getColoredTags (tags) {
+                var colorDic = {};
+                tags.forEach(function (tag) {
+                    var text = tag.tag;
+                    if (!colorDic[text]) {
+                        var acc = 0;
+                        for (var i=0;i<text.length;i++) {
+                            acc += text.charCodeAt(i)
+                        }
+                        colorDic[text] = (acc % 10);
+                    }
+                    tag.color = colorDic[text];
+                });
+                return tags;
             }
         };
     }());

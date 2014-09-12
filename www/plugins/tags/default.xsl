@@ -21,7 +21,7 @@
             <a name="tags" class="tags-title"><xsl:value-of select="$lbl_tags"/></a>
             <ul class="tag-list">
                 <xsl:for-each select="tag">
-                    <li class="tag">
+                    <li class="tag tag-color-{color}">
                         <a href="/tags/{tag}" class="tag-label"><xsl:value-of select="tag" /></a>
                         <span class="tag-count"><xsl:value-of select="count" /></span>
                     </li>
@@ -38,7 +38,7 @@
 
             <ul class="tag-list">
                 <xsl:for-each select="tag[position() &lt;= 10]">
-                    <li class="tag">
+                    <li class="tag tag-color-{color}">
                         <span class="tag-label"><xsl:value-of select="tag" /></span>
                         <span class="tag-count"><xsl:value-of select="count" /></span>
                     </li>
