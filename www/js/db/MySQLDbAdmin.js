@@ -7,23 +7,28 @@
             vars : function () { return false; },
             log : console.log,
             schema: "",
+            prefix: "",
             modelUpdateTableFullName: "",
             sqlInstructions: {},
 
-            checkDB : function checkDB (db,vars, log) {
-                var self = this;
-                self.db = db;
-                self.vars = vars;
-                self.log = log;
+            init: function init (db,vars, log) {
+                this.db = db;
+                this.vars = vars;
+                this.log = log;
                 this.schema = db.getSchema();
-                this.modelUpdateTableFullName = this.db.getPrefix()+(new ModelUpdate()).collection;
+                this.prefix = vars("table_prefix", true);
+                this.modelUpdateTableFullName = this.schema+"."+this.prefix+(new ModelUpdate()).collection;
+            },
+
+            checkDB : function checkDB () {
+                var self = this;
+
                 try {
-                    self.sqlInstructions = require(vars("sql_instructions"));
+                    self.sqlInstructions = require(self.vars("sql_instructions"));
                 }
                 catch (err) {
                     self.log("Failed to load SQL-instructions ("+err.message+")","error");
                 }
-
 
                 self.isDbExists(function (output) {
                    if (output.result == false) {
@@ -81,31 +86,75 @@
             },
 
             isTableExists : function isTableExists (tableName, callback) {
-                this.db.query ( "SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = '"+this.schema+"' AND TABLE_NAME = '"+tableName+"'" , function (rows) {
+                this.db.query ( "SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = '"+this.schema+"' AND TABLE_NAME = '"+this.prefix+tableName+"'" , function (rows) {
                     callback({"result":(rows.length>0)});
                 });
             },
 
-            createTable : function createTable (tableName, callback) {
-                this.db.query(this.sqlInstructions[tableName]["create-sql"].replace(/#PREFIX\./g,this.db.getPrefix()),function (output) {
+            createTable : function createTable (modelClass, callback) {
+                var model = new modelClass(),
+                    modelSchema = model.schema,
+                    queryString = "",
+                    keys = "";
+
+                for (var columnName in modelSchema) {
+                    var columnData = modelSchema[columnName];
+                    queryString += (queryString.length?", ":"")+"`"+columnName+"` ";
+                    switch (columnData.type) {
+                        case "text":
+                            queryString += columnData.size ? ("VARCHAR("+columnData.size+")") : "TEXT";
+                            break;
+                        case "number":
+                            switch (columnData.size) {
+                                case 2: queryString += "DECIMAL"; break;
+                                case 4: queryString += "FLOAT"; break;
+                                case 8: queryString += "DOUBLE"; break;
+                                default: queryString += "FLOAT"; break;
+                            }
+                            break;
+                        case "integer":
+                            switch (columnData.size) {
+                                case 2: queryString += "TINYINT"; break;
+                                case 4: queryString += "SMALLINT"; break;
+                                case 8: queryString += "BIGINT"; break;
+                                default: queryString += "INT"; break;
+                            }
+                            break;
+                        case "boolean": queryString += "BOOL"; break;
+                        case "date": queryString += columnData.time ? "DATE" : "DATETIME"; break;
+                        case "enum":
+                            queryString += "ENUM('"+columnData.values.join("','")+"')";
+                            break;
+                        case "object": queryString += "TEXT";break; //json
+                        case "point": queryString += "POINT"; break;
+                        case "binary": queryString += "BINARY";break;
+                        case "serial": queryString += "INT" + (modelClass.autoId ? " AUTO_INCREMENT" : ""); break;
+                    }
+                    if (columnData.defaultValue) {
+                        queryString += "DEFAULT '"+columnData.defaultValue+"'";
+                    }
+                    queryString += (columnData.isNull?"":" NOT") + " NULL";
+                    if (columnData.isSecondaryKey) {
+                        keys += ", KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)"
+                    } else if (columnData.isUnique) {
+                        keys += ", UNIQUE KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)"
+                    }
+                }
+                queryString = "CREATE TABLE "+this.schema+"."+this.prefix +model.collection+" (" + queryString+", PRIMARY KEY (`"+model.key+"`)"+ keys +") ENGINE=InnoDB DEFAULT CHARSET=utf8";
+                this.db.query ( queryString , function (output) {
                     if (output.errno) {
-                        throw new Error ("FAILED TO CREATE "+tableName+":" + JSON.stringify(output));
+                        throw new Error ("FAILED TO CREATE "+this.prefix+model.collection+":" + JSON.stringify(output));
                     }
                     callback(output);
                 });
             },
 
-            /* isTableContainsAllColumns
-            * not is use
-            * */
-            isTableContainsAllColumns : function isTableContainsAllColumns (model, callback) {
-                this.db.query ( "SELECT COLUMN_NAME AS column_name FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '"+this.schema+"' AND TABLE_NAME = '"+model.collection+"'" , function (rows) {
-                    var count = 0,
-                        schema = model.schema;
-                    rows.forEach(function(row) {
-                        count += (schema[row.column_name]) ? 1 : 0 ;
-                    });
-                    callback({"result": count== Object.keys(model.schema).length });
+            createTableFromInstructions : function createTableFromInstructions (tableName, callback) {
+                this.db.query(this.sqlInstructions[tableName]["create-sql"].replace(/#PREFIX\./g,this.db.getPrefix()),function (output) {
+                    if (output.errno) {
+                        throw new Error ("FAILED TO CREATE "+tableName+":" + JSON.stringify(output));
+                    }
+                    callback(output);
                 });
             },
 
@@ -173,7 +222,7 @@
                 Object.keys(instructions).forEach(function(tableName){
                     self.isTableExists(tableName, function (output) {
                         if (output.result != true) {
-                            self.createTable(tableName,function () {
+                            self.createTableFromInstructions(tableName,function () {
                                 self.checkTableIsUpToDate (tableName, checkTableIsUpToDateCallback);
                             })
                         } else {
@@ -189,7 +238,7 @@
                     queries = [],
                     prefix = self.db.getPrefix();
 
-                this.db.query("SELECT modified FROM "+this.modelUpdateTableFullName + " WHERE model='"+tableName+"'", function (output){
+                this.db.query("SELECT modified FROM "+this.modelUpdateTableFullName + " WHERE model='"+this.prefix+tableName+"'", function (output){
                     var lastUpdate = output.length ? new Date(output[0].modified) : false;
 
                         self.sqlInstructions[tableName].updates.forEach(function(update) {
@@ -210,5 +259,8 @@
     };
     })()
 
+    exports.init = MySQLDbAdmin.init.bind(MySQLDbAdmin);
     exports.checkDB = MySQLDbAdmin.checkDB.bind(MySQLDbAdmin);
+    exports.isTableExists = MySQLDbAdmin.isTableExists.bind(MySQLDbAdmin);
+    exports.createTable = MySQLDbAdmin.createTable.bind(MySQLDbAdmin);
 })();

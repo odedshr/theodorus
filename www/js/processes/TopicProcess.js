@@ -11,11 +11,8 @@
                 io = ioFunctions;
                 var topicPageSize = io.config["topic_page_size"];
                 TOPIC_PAGE_SIZE  = (topicPageSize) ? topicPageSize : TOPIC_PAGE_SIZE;
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return this.methods; },
-            getPlugins: function getPlugins () { return this.plugins; },
 
             getTopicCount: function getTopicCount (session,callback) {
                 io.db.getTopicCount(function(count){
@@ -140,31 +137,30 @@
             },
 
             getTopic: function (session,callback) {
-                var referer = session.req.headers["referer"],
-                    topicKey = this.getTopicIndexByUrl(session.url);
-
-                if (topicKey.error) {
-                    callback(session.getErrorHandler(topicKey.error));
-                } else {
-                    io.db.getTopic(topicKey, function (topic){
-                        if (topic) {
-                            var topicId = topic.get("topic_id");
-                            io.db.getTopicRead(topicId, function(topicRead){
-                                topic.set("content",topicRead ? topicRead : "");
-                                callback(session.isJSON ? topic.toJSON() : {
-                                    "app":{
-                                        "page": {
-                                            "@type":"topicView",
-                                            "topic": topic.toJSON()
+                var referer = session.req.headers["referer"];
+                io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
+                    if (!topicId) {
+                        callback(session.getErrorHandler(topicKey.error));
+                    } else {
+                        io.db.getTopic(topicId, function (topic){
+                            if (topic) {
+                                io.db.getTopicRead(topicId, function(topicRead){
+                                    topic.set("content",topicRead ? topicRead : "");
+                                    callback(session.isJSON ? topic.toJSON() : {
+                                        "app":{
+                                            "page": {
+                                                "@type":"topicView",
+                                                "topic": topic.toJSON()
+                                            }
                                         }
-                                    }
+                                    });
                                 });
-                            });
-                        } else {
-                            callback(session.get404());
-                        }
-                    });
-                }
+                            } else {
+                                callback(session.get404());
+                            }
+                        });
+                    }
+                });
             },
 
             getTopicIndexByUrl: function (url) {
@@ -306,11 +302,7 @@
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/invite\/@[a-zA-Z0-9_-]{3,15}\/?$/,    "handler":TopicProcess.invite.bind(TopicProcess)},
     ];
 
-    TopicProcess.plugins = [];
-
     if (typeof exports !== "undefined") {
         exports.init = TopicProcess.init.bind(TopicProcess);
-        exports.methods = TopicProcess.getMethods.bind(TopicProcess);
-        exports.plugins = TopicProcess.getPlugins.bind(TopicProcess);
     }
 })();

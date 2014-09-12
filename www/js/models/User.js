@@ -1,13 +1,24 @@
-var DEFAULT_LANGUAGE = "he",
-    AbstractModel = ((typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel")).model();
+var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
+    User = AbstractModelLibrary.model({
+        autoId: true,
 
-var User = AbstractModel.extend({
+        collection: "users",
+        key:"user_id",
+        // this is the public information of the account, that anyone can see
+        schema: {
+            "user_id":{ type: "serial", isNullOk:false },
+            "slug":{ type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
+            "display_name":{ type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
+            "score":{ type: "number", defaultValue: 0},
+            "picture":{ type: "text", size: 250 }
+        }
+    });
+User.initialPermissions = {"suggest":true,"feedback":true,"comment":true};
+User.Account = AbstractModelLibrary.model({
     autoId: true,
-    defaults: {
-        "score": 0,
-        "language": DEFAULT_LANGUAGE,
-        permissions: {} // user with default might be anonymous who doesn't have any permissions
-    },
+
+    collection: "users",
+    key:"user_id",
 
     can: function (action) {
         var permissions = this.get("permissions");
@@ -19,79 +30,60 @@ var User = AbstractModel.extend({
         return ((typeof permission != "undefined") && permission);
     },
 
-    collection: "users",
-    key:"user_id",
-    // this is the public information of the account, that anyone can see
     schema: {
-        "user_id":"number",
-        "slug":"string",
-        "display_name":"string",
-        "score":"number",
-        "badges":"array",
-        "isPolitician":"boolean",
-        "bio":"string"
+        "user_id":{ type: "serial", isNullOk:false },
+        "slug":{ type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
+        "display_name":{ type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
+        "score":{ type: "number", defaultValue: 0},
+        "picture":{ type: "text", size: 250 },
+        "permissions": { type: "object"}
     }
 });
 
-User.initialPermissions = {"suggest":true,"feedback":true,"comment":true};
 
-User.Account = User.extend({
-    schema: { // This is all the information
-        "user_id":"number",
-        "slug":"string",
-        "display_name":"string",
-        "SN":"string",
-        "isSNVerified":"boolean",
-        "isModerator":"boolean",
-        "isPolitician":"boolean",
-        "picture":"string",
-        "birthday":"string",
-        "language":"string",
-        "score":"number",
-        "penalties":"number",
-        "permissions":"array",
-        "revoked":"array",
-        "badges":"array"
-    }
-});
+/* attribtues I removed:
+    language
+    SN
+    isSNVerified
+    isModerator
+    isPolitician
+    birthday
+    penalties
+    permissions
+    revoked
+    badges
+*
+* */
 
-User.Topic = {
+User.Topic = AbstractModelLibrary.model({
     collection: "user_topic",
-    key:["user_id","topic_id"],
+    key:"user_topic_id",
     schema: {
-        "user_id":"number",
-        "topic_id":"number",
-        "seen":"boolean",
-        "follow":"boolean",
-        "endorse":"boolean",
-        "report":"boolean",
-        "score":"number"
+        "user_topic_id": { type: "serial", isNullOk:false },
+        "user_id": { type: "number", isNullOk:false, isSecondaryKey:true },
+        "topic_id": { type: "number", isNullOk:false, isSecondaryKey:true },
+        "seen": { type: "boolean", defaultValue: false},
+        "follow": { type: "boolean", defaultValue: false},
+        "endorse": { type: "boolean", defaultValue: false},
+        "report": { type: "boolean", defaultValue: false},
+        "score": { type: "number", defaultValue: 0 }
     }
-};
+});
 
-User.Comment = {
+User.Comment = AbstractModelLibrary.model({
     collection: "user_comment",
     key:["user_id","comment_id"],
     schema: {
-        "user_id":"number",
-        "comment_id":"number",
-        "seen":"boolean",
-        "follow":"boolean",
-        "endorse":"boolean",
-        "report":"boolean",
-        "score":"number"
+        "user_id": { type: "number", isNullOk:false },
+        "comment_id": { type: "number", isNullOk:false, isSecondaryKey:true },
+        "seen":{ type: "boolean", defaultValue: false},
+        "follow":{ type: "boolean", defaultValue: false},
+        "endorse":{ type: "boolean", defaultValue: false},
+        "report":{ type: "boolean", defaultValue: false},
+        "score":{ type: "number", defaultValue: 0 }
     }
-};
+});
 
-User.Tag = {
-    collection: "user_topic_tags",
-    key:["user_id","topic_id"],
-    schema: {
-        "user_id":"number",
-        "topic_id":"number",
-        "tag":"string"
-    }
-};
 
 if (typeof exports !== "undefined") {
     exports.model = function () { return User; };

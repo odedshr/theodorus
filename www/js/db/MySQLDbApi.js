@@ -7,6 +7,9 @@
 (function MySQLDbAPIClosure() {
      //TODO: move TOPIC_PAGE_SIZE and RELEVANCY_PERIOD to config.json
     var db = require('./MySQLDb'),
+        dbAdmin = require("./MySQLDbAdmin"),
+        ORM = require("orm"),
+        ormConnectionString = "",
         RELEVANCY_PERIOD = 14,
         User = require("../models/User").model(),
         Credentials = require("../models/Credentials").model(),
@@ -18,77 +21,86 @@
         log = console.log,
         prefix;
 
-
-    function renderWhereString (filters) {
-        if (filters) {
-            var where = [];
-            filters.forEach(function(value) {
-                where.push(value.key + " "+ value.operator + " " + (isNaN(value.value) ? "'"+value.value+"'" : value.value));
-            });
-            return "\n\t"+ "WHERE " + where.join(" AND ");
-        }
-        return "";
-    }
-
     exports.init = function init (varsGetter,consoleLog) {
         if (varsGetter) { vars = varsGetter;}
         if (consoleLog) {
             log = consoleLog;
         }
         db.init(vars, log);
+        dbAdmin.init(db,vars,log);
+
         prefix = db.getPrefix();
+        {
+            var appName = vars("application_name", true);
+            /*var opts = {
+                host     : host,
+                database : database,
+                protocol : 'mysql',
+                port     : '3306',
+                query    : { pool: true }
+            };*/
+            ormConnectionString = "mysql://"+vars(appName+"_MYSQL_USER", true)+":"+vars(appName+"_MYSQL_PASSWORD", true)+"@"+vars(appName+"_MYSQL_HOST", true)+":"+vars(appName+"_MYSQL_PORT", true)+"/"+vars(appName+"_MYSQL_SCHEMA", true);
+        }
 
-        require("./MySQLDbAdmin").checkDB(db,vars,log);
+        dbAdmin.checkDB();
     };
 
-    exports.load = function load (itemClass, itemId, callback) {
-        var item = new itemClass();
-        db.getItem(item, itemId, function (itemData){
-            if (itemData) {
-                item.set(itemData);
-                callback(item);
+    exports.orm = function orm (modelClassArray, callback) {
+        ORM.connect(ormConnectionString, function (err,db) {
+            if (err) throw err;
+            var models = {};
+            modelClassArray.forEach(function(modelClass) {
+                var model = new modelClass(),
+                    tableName = model.collection;
+                models[tableName] = db.define(tableName, model.schema);
+            });
+            callback(models);
+        });
+    },
+
+    exports.verifyExistance = function verifyExistance (model, callback) {
+        dbAdmin.isTableExists(model.collection, function (output) {
+            if (output.result) {
+                callback(output);
             } else {
-                callback(false);
+                dbAdmin.createTable(model, callback);
             }
         });
+    }
+
+    exports.load = function load (model, itemId, callback) {
+        db.getItem(model, itemId, callback);
     };
 
-    exports.loads = function loads (itemClass, queryOptions, callback) {
-        var item = new itemClass();
-        db.getItems(item, queryOptions, function (items){
-            if (items) {
-                callback(items);
-            } else {
-                callback(false);
-            }
-        });
+    exports.loads = function loads (model, queryOptions, callback) {
+        db.getItems(model, queryOptions, callback);
     };
 
-    exports.count = function count (tableName, filters, callback) {
-        var whereString = renderWhereString(filters);
-        //TODO: parse filters to get WHERE filters
-        var query = "SELECT count(1) as count FROM "+prefix+tableName + whereString;
+    exports.count = function count (model, filters, callback) {
+        var whereString = db.renderWhereString(filters);
+        var query = "SELECT count(1) as count FROM "+prefix+((typeof model == "object") ? model.collection : model) + whereString;
         db.query (query, function(result) {
-            if (result) {
-                callback(result[0].count);
-            } else {
-                callback(result);
-            }
+            callback((result && result[0]) ? result[0].count : false);
         });
 
     }
 
-    exports.getCredentials = function(authKey,callback) { exports.load(Credentials, authKey, callback); };
-    exports.getCredentialsByUserId = function(userId,callback) { exports.load(Credentials, {"user_id": userId}, callback); };
-    exports.getUser = function(userId,callback) { exports.load(User, userId, callback); };
-    exports.getUserByName = function(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
-    exports.getAccount = function(userId,callback) { exports.load(User.Account, userId, callback); };
-    exports.getTopicCount = function(callback) {
-        exports.count((new Topic()).collection,[{"key":"status","operator":"<>","value":"removed"}], callback);
+    exports.useTopicIdFromURL = function useTopicIdFromURL (url, callback) {
+        //TODO: allow accepting TopicSlug as input
+        callback (url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,""));
+    }
+
+    exports.getCredentials = function getCredentials (authKey,callback) { exports.load(Credentials, authKey, callback); };
+    exports.getCredentialsByUserId = function getCredentialsByUserId (userId,callback) { exports.load(Credentials, {"user_id": userId}, callback); };
+    exports.getUser = function getUser (userId,callback) { exports.load(User, userId, callback); };
+    exports.getUserByName = function getUserByName(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
+    exports.getAccount = function getAccount(userId,callback) { exports.load(User.Account, userId, callback); };
+    exports.getTopicCount = function getTopicCount (callback) {
+        exports.count(Topic.collection,[{"key":"status","operator":"<>","value":"removed"}], callback);
     };
-    exports.getTopic = function(topicId,callback) { exports.load(Topic, topicId, callback); };
-    exports.getTopicRead = function(topicId,callback) { exports.load(Topic.Read, topicId, callback); };
-    exports.getTopics = function (parameters, callback) {
+    exports.getTopic = function getTopic (topicId,callback) { exports.load(Topic, topicId, callback); };
+    exports.getTopicRead = function getTopicRead (topicId,callback) { exports.load(Topic.Read, topicId, callback); };
+    exports.getTopics = function getTopics (parameters, callback) {
         var userId = parameters.user,
             pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
             page =  (parameters.page) ? parameters.page : 1,
@@ -97,10 +109,10 @@
             if (!parameters.where) {
                 parameters.where = [];
             }
-            parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
-            if (parameters.tag) {
-                parameters.where.push ({"key":"tag.tag","operator":"=","value":parameters.tag});
+            if (parameters.whitelist) {
+                parameters.where.push ({"key":"t.topic_id","operator":"IN","value":parameters.whitelist});
             }
+            parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
 
         /*  Score is based on predefined score + up to RELEVANCY_PERIOD points per day (i.e. a post from today will get
          RELEVANCY_PERIOD points) + number of follows, endorsements and reports
@@ -108,7 +120,7 @@
         var query = "SELECT u.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
             "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-datediff(now(),t.modified)) +"+
             "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
-            "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, tags,"+
+            "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, "+
             "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.comment AS comment, t.opinion AS opinion,"+
             "\n\t"+"t.report AS report, t.status AS status, report_status,"+
             "\n\t"+"ut.follow AS user_follow, ut.endorse AS user_endorse, ut.report AS user_report"+
@@ -116,7 +128,7 @@
             "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON t.initiator=u.user_id"+
             "\n\t"+"LEFT JOIN "+prefix+User.Topic.collection + " ut ON ut.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND t.topic_id = ut.topic_id"+
             (parameters.tag ? "\n\t"+"LEFT JOIN "+prefix+User.Tag.collection + " tag ON t.topic_id = tag.topic_id" : "")+
-            renderWhereString(parameters.where)+
+            db.renderWhereString(parameters.where)+
             "\n\t"+"GROUP BY topic_id"+
             "\n\t"+"ORDER BY score DESC, t.modified DESC" +
             "\n\t"+limit + ";";
@@ -131,7 +143,6 @@
                             "created":prettyDate(topicData.created),
                             "modified":prettyDate(topicData.modified),
                             "title":topicData.title,
-                            "tags":{"tag":topicData.tags ? JSON.parse(topicData.tags) : []},
                             "endorse":topicData.endorse,
                             "follow":topicData.follow,
                             "opinion":topicData.opinion,
@@ -148,7 +159,7 @@
                                 "display_name":topicData.display_name,
                                 "slug":topicData.user_slug
                             })
-                        })
+                        });
                         if (topicData.picture) { // if not exists, it shouldn't be an empty value
                             topic.get("initiator").set("picture",topicData.picture);
                         }
@@ -170,8 +181,8 @@
     };
 
     exports.updateTopicCommentCount = function (topicId, callback) {
-        var commentTable = prefix+ (new Comment()).collection,
-            query = "UPDATE "+prefix+(new Topic()).collection +
+        var commentTable = prefix+ Comment.collection,
+            query = "UPDATE "+prefix+ Topic.collection +
                 "\n\t"+ "SET opinion = (SELECT COUNT(DISTINCT user_id) FROM "+commentTable + " where topic_id='"+topicId+"' AND parent_id=0),"+
                 "\n\t\t"+   "comment= (select count(distinct user_id) FROM "+commentTable + " where topic_id='"+topicId+"' AND NOT(parent_id=0))"+
                 "\n\t"+"WHERE topic_id='"+topicId+"'";
@@ -203,8 +214,8 @@
             "\n\t"+"c.comment_id AS comment_id, c.parent_id AS parent_id, created, content,"+
             "\n\t"+"c.follow AS follow, c.endorse AS endorse, c.report AS report, report_status,"+
             "\n\t"+"uc.follow AS user_follow, uc.endorse AS user_endorse, uc.report AS user_report"+
-            "\n\t"+"FROM "+prefix+(new Comment()).collection + " c"+
-            "\n\t"+"JOIN "+prefix+(new User()).collection + " u ON c.user_id=u.user_id"+
+            "\n\t"+"FROM "+prefix+ Comment.collection + " c"+
+            "\n\t"+"JOIN "+prefix+ User.collection + " u ON c.user_id=u.user_id"+
             "\n\t"+"LEFT JOIN "+prefix+User.Comment.collection + " uc ON uc.user_id='"+(typeof userId == "undefined" ? "": userId)+"' AND c.comment_id = uc.comment_id"+
             "\n\t"+"WHERE c.report_status IN ('na','questioned', 'ok')"+
             "\n\t"+"AND c.topic_id = "+topicId +
@@ -280,7 +291,7 @@
         )
     };
 
-    exports.save = function(dataObject, callback) {
+    exports.save = function save (dataObject, callback) {
         try {
             db.save(dataObject, callback);
         }catch (error) {
@@ -292,71 +303,10 @@
     exports.nullify = function nullify (dataObject, field, callback) {
         try {
             db.nullifyField(dataObject,dataObject.get(dataObject.key),field,callback);
-        }catch (error) {
+        } catch (error) {
             console.error("error nullyfing "+field+" " + error);
             callback(false);
         }
     }
 
-    exports.replaceUserTopicTags = function replaceUserTopicTags (topicId, userId,tags, callback) {
-        try {
-            var queries = []
-            queries.push ("DELETE FROM "+prefix+ User.Tag.collection +" WHERE user_id='"+userId+"' AND topic_id='"+topicId+"';");
-            tags.forEach(function(tag) {
-                if (tag.replace(/\s/g,"").length>0) {
-                    queries.push ("INSERT INTO "+prefix+ User.Tag.collection +" (user_id, topic_id, tag) VALUES ('"+userId+"','"+topicId+"','"+tag+"');");
-                }
-            })
-            queries.push (exports.getTopicTagsQuery(topicId));
-            db.executeMultipleUpdates(queries, function (results) {
-                db.query ("UPDATE "+ prefix+(new Topic()).collection +" "+
-                    "\n\t"+"SET tags = '"+JSON.stringify(results.pop())+"'"+
-                    "\n\t"+"WHERE topic_id='"+topicId+"';", function () {
-                    callback(results);
-                });
-            });
-        }catch (error) {
-            console.error("error replacing User-topic-tags "+userId+", "+topicId+", "+JSON.stringify(tags) +":\n"+ error);
-            callback(false);
-        }
-    };
-
-    exports.getTags = function(callback) { exports.getTopicTags(false, callback) };
-    exports.getTopicTagsQuery = function getTopicTagsQuery (topicId) {
-        return "SELECT tag, COUNT(tag) as count " +
-            "\n\t"+"FROM "+prefix+ User.Tag.collection +" " +
-            (topicId ? ("\n\t"+"WHERE topic_id = '"+topicId+"'" ):"")+
-            "\n\t"+"GROUP by tag"+
-            "\n\t"+"ORDER by count DESC, tag";
-    };
-    exports.getTopicTags = function getTopicTags (topicId, callback) {
-        db.query( exports.getTopicTagsQuery(topicId)  , function (results) {
-            callback(results);
-        });
-    };
-
-    exports.getUserTopicTagStringQuery = function getUserTopicTagStringQuery (topicId, userId) {
-        return "SELECT GROUP_CONCAT(tag SEPARATOR ', ') AS tags " +
-            "\n\t"+"FROM "+prefix+ User.Tag.collection +" " +
-            "\n\t"+"WHERE topic_id = '"+topicId+"'" +
-            (userId ? ("\n\t"+"AND user_id = '"+userId+"'") : "" )+
-            "\n\t"+"ORDER by tag";
-    }
-    exports.getUserTopicTagString = function getTopicTags (topicId, userId, callback) {
-        db.query( exports.getUserTopicTagStringQuery (topicId, userId)  , function (results) {
-            callback(results);
-        });
-    };
-
-    exports.getTagTopicCount = function(tag, callback) {
-        exports.count(User.Tag.collection,[{"key":"tag","operator":"=","value":tag}], callback);
-    };
-
-    exports.isTopicTableExists = function isTopicTableExists (callback) {
-        db.isTableExists(new Topic(), callback);
-    };
-
-    exports.isTopicTableContainsAllColumns = function isTopicTableContainsAllColumns (callback) {
-        db.isTableContainsAllColumns(new Topic(), callback);
-    };
 })();

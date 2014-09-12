@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rhc set-env ./environment_variables -a theo

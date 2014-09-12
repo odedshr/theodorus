@@ -107,37 +107,48 @@ header {
 
   .account_menu {
     margin: 1rem 0.5rem 0.5rem 0;
-    text-align: left;
+    /*text-align: left;*/
 
-
+    .btn_signup,
+    .btn_signin,
+    .button-signout {
+      margin-top: 0.35rem;
+      margin-right: 1.4rem;
+      padding-right: 1.7rem;
+    }
+    .btn_signup {}
+    .btn_signin {
+      text-align: right;
+      vertical-align: middle;
+      display: block;
+      clear: both;
+      float: none;
+      width: 6rem;
+    }
+    .profile-image-mini { margin-right: 1rem; }
+    .separator { display: none; }
     .user_name {
       display: inline-block;
+      font-size:1.3rem;
       position: relative;
       margin-right: 0.5rem;
-      text-align: left;
-      max-width: 4rem;
+      max-width: 10rem;
       overflow: hidden;
       height: 1rem;
       vertical-align: middle;
     }
-    .btn_signup { text-align:left; }
     .button-signout {
-      margin-top: 0.35rem;
-      float: left;
-      width: 6rem;
       text-align: right;
-      padding-right: 0.2rem;
       vertical-align: middle;
-    }
-    .btn_signin {
-      float: left;
+      display: block;
+      clear: both;
+      float: none;
       width: 6rem;
-      text-align: right;
-      padding-right: 0.2rem;
     }
   }
   .nav_buttons {
-    direction: ltr;
+    /*direction: ltr;*/
+    padding-right: 2.1rem;
 
     .nav_buttons-list {
       direction: rtl;
@@ -150,9 +161,10 @@ header {
     .nav_button:before {
       background: url('/ui/img/all.png') no-repeat transparent;
       content: " ";
-      display: inline-block;
+      display: block;
+      float: right;
       height: 1rem;
-      margin-left:0.5rem;
+      margin: -0.1rem 0 0 0.5rem;
       width: 1rem;
     }
     .nav_features:before { background-position: 0 -3.45rem; }
@@ -279,7 +291,7 @@ h3 {
     font-size: 1rem;
     height: 4rem;
     padding: 0.2rem 0.3rem;
-    width: 32rem;
+    width: 38.5rem;
   }
   .topic_add_submit {
     color: #666;
@@ -354,7 +366,7 @@ h3 {
     .initiator {
       display: inline;
       color: #33B;
-      font-size:0.9rem;
+      /*font-size:0.9rem;*/
       margin-left:1rem;
       .profile-image-mini { margin-left: 0.5rem; }
     }
@@ -424,7 +436,15 @@ h3 {
     padding: 1rem 0 0.5rem;
 
     .tags-title { display: none; }
-    .tag-list { margin:0.5rem 0; padding: 0;}
+    .tag-list {
+      margin:0.5rem 0;
+      padding: 0;
+
+      .tag {
+        font-size:0.9rem;
+      }
+    }
+
     .tag {
       background: @darkeningBackground;
       border: 1px solid @elementBorder;
@@ -432,7 +452,7 @@ h3 {
       margin: 0 0 0.5rem 0.5rem;
       padding: 0.3rem 0.3rem 0.1rem 0.3rem;
 
-      .tag-label { font-size:1.1rem;}
+      .tag-label {}
       .tag-count:before { content: " ["; }
       .tag-count:after { content: "]"; }
     }
@@ -543,6 +563,9 @@ h3 {
         margin-left:0.5rem;
         width: 30rem;
       }
+      .comment-new:not(:empty) { border-color: @hoverColor; }
+      .comment-new:not(:empty):hover,
+      .comment-new:not(:empty):focus { border-color: @elementBorder; }
       .comment-submit {
           width: 7.5rem;
       }

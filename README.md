@@ -1,4 +1,9 @@
+[![Build Status](https://travis-ci.org/odedshr/theodorus.svg?branch=master)](https://travis-ci.org/odedshr/theodorus) [![Dependency Status](https://david-dm.org/odedshr/theodorus.svg?theme=shields.io)](https://david-dm.org/odedshr/theodorus) [![license](http://img.shields.io/badge/license-GNU-brightgreen.svg)](https://github.com/odedshr/theodorus/blob/master/LICENSE)
+
 # Theodorus - A Stub to Democracy
+
+![Theodorus](https://raw.githubusercontent.com/odedshr/theodorus/master/www/themes/default/img/theodorus_logo_small.png "Theodorus")
+
 Theodorus is a decision-making system, allowing users to collabirately craft a law proposal.
 Any user may raise an `idea` for a law and if there are enough people voting for the idea,
 it will become a `discussion`. Users then may propose their own version for each of the law's section and vote for
@@ -79,4 +84,4 @@ cd /runtime/theodorus-profile-images
 - 0.16 - db is built if not exists + encapsulate encryption
 - 0.17 - xslt-plugin
 - 0.18 - English (added theme) + added missing cheerio DOM manipulation
-- 0.19 - multi-communities
+- 0.19 - ORM

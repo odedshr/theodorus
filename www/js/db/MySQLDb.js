@@ -68,6 +68,7 @@
                 }
             });
         }
+        return query;
     }
 
     function insert (connection, item, callback) {
@@ -76,7 +77,7 @@
             dataSet = sanitizeJSONObject(item);
             keys = _.keys(dataSet);
             values = _.values(dataSet);
-        } else {
+        } else { // item with no primary key (I don't think I have any of these)
             keys = _.keys(item.set);
             keys = keys.concat(_.keys(item.where));
             values = _.values(item.set);
@@ -92,6 +93,7 @@
             }
             callback(item);
         });
+        return query;
     }
 
     exports.save = function (item, callback) {
@@ -102,12 +104,10 @@
                     console.error("save/getConnection error:" + error);
                     callback (false, error);
                 } else {
-                        if (!item.key || (typeof item.get(item.key) !== "undefined")) {
-                            update(connection,item,callback);
-                        } else {
-                            insert (connection, item, callback);
-                        }
-                        connection.release();
+                    var key = item.key ? item.get(item.key) : false,
+                        query = ((key && (typeof item.get(item.key) !== "undefined") && key != "null") ? update : insert)(connection,item,callback);
+                    console.log(">>>"+query);
+                    connection.release();
                 }
             });
         } catch (error) {
@@ -117,10 +117,13 @@
     };
 
     function sanitizeJSONObject (item) {
-        var json = item.toJSON();
+        var json = item.toJSON(),
+            output = {};
         for (var key in json) {
             var value = json[key]; //TODO: convert ' and " => something else
-            json[key] = (typeof value === "object" ? JSON.stringify(value) : value);
+            if (value!=="null") {
+                output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
+            }
         }
         return json;
     }
@@ -149,26 +152,48 @@
         return newData;
     }
 
-    exports.getItem = function (sampleModel,key,callback) {
-        var where = "WHERE "+((typeof key == "object") ? _.keys(key)[0] +" = '"+_.values(key)[0]+"'" : sampleModel.key +" = '"+key+"'"),
-            query = "SELECT * FROM "+prefix+sampleModel.collection + " "+where+" LIMIT 1";
+    exports.getItem = function (model,key,callback) {
+        if (!model || !key) {
+            log("getItem:missing parameter for"+(model? model.collection : JSON.stringify(key)), "error");
+            callback(false);
+        }
         try {
+            var query = "SELECT * FROM "+prefix+model.collection,
+                where = "WHERE "+((typeof key == "object") ? (_.keys(key)[0] +" = '"+_.values(key)[0]+"'") : model.key +" = '"+key+"'");
+                query += " "+where+" LIMIT 1";
+
             exports.query (query, function(rows) {
-                callback((rows.length>0) ? parseJSON(rows[0], sampleModel.schema) : false);
+                callback((rows.length>0) ? new model(rows[0], model.schema) : false);
             });
         } catch (error) {
-            console.error("getItem ("+query+") : " + error);
+            log("getItem ("+query+") : " + error, "error");
             callback(false);
         }
     };
 
-    exports.getItems = function (sampleModel,queryOptions,callback) {
+    exports.getItems = function (model,parameters,callback) {
+        var pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
+            page =  (parameters.page) ? parameters.page : 1,
+            limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "";
+
+        if (!parameters.where) {
+            parameters.where = [];
+        }
+        if (parameters.whitelist) {
+            parameters.where.push ({"key":"t.topic_id","operator":"IN","value":parameters.whitelist});
+        }
+        parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
         //TODO: parse queryOptions to get SORTBY and WHERE filters
-        exports.query ("SELECT * FROM "+prefix+sampleModel.collection, function(rows) {
-            var schema =sampleModel.schema;
+        exports.query ("SELECT * "+
+            "\n\t"+"FROM "+prefix+model.collection +
+            renderWhereString(parameters.where)+
+            "\n\t"+"GROUP BY topic_id"+
+            "\n\t"+"ORDER BY score DESC, t.modified DESC" +
+            "\n\t"+limit + ";", function(rows) {
+            var schema =model.schema;
             if (rows) {
                 rows.forEach(function(value,key,array) {
-                    array[key] = parseJSON(value, schema);
+                    array[key] = new model(parseJSON(value, schema));
                 });
             }
             callback(rows);
@@ -231,4 +256,19 @@
         });
     };
 
+
+    exports.renderWhereString = function renderWhereString (filters) {
+        if (filters) {
+            var where = [];
+            filters.forEach(function(value) {
+                if (value.operator=="IN") {
+                    where.push(value.key + " IN ('"+value.value.join("','")+"')");
+                } else {
+                    where.push(value.key + " "+ value.operator + " " + (isNaN(value.value) ? "'"+value.value+"'" : value.value));
+                }
+            });
+            return "\n\t"+ "WHERE " + where.join(" AND ");
+        }
+        return "";
+    }
 })();

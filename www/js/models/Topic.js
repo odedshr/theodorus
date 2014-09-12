@@ -1,93 +1,57 @@
-var VALID_REPORT_STATUS = ["na","questioned", "ok", "irrelevant","offensive","spam","violent","selfcensor"],
-    VALID_STATUS  = ["idea", "discussion", "proposition", "decision","removed"],
-    AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("./AbstractModel").model();
-AbstractCollection = (typeof AbstractCollection !== "undefined") ? AbstractCollection : require("./AbstractModel").collection();
+var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
+    Topic = AbstractModelLibrary.model({
+        autoId: true,
 
-var Topic = AbstractModel.extend({
-    autoId: true,
-    defaults: {
-        "seen":0,
-        "tags":{"tag":[]},
-        "endorse":0,
-        "follow":0,
-        "report":0,
-        "opinion":0,
-        "comment":0,
-        "report_status":VALID_REPORT_STATUS[0],
-        "status": VALID_STATUS[0],
-        "score":0
-    },
+        isSlugValid : function isSlugValid (slug) {
+            return (/^[a-zA-Z0-9\-\.%_]{5,140}$/).test(slug);
+        },
 
-    extra: function (key,value) {
-        var dataObj = this.get("extra");
-        if (arguments.length==2) {
-            dataObj = dataObj ? dataObj : {};
-            dataObj[key]=value;
-            return this.set("extra",dataObj);
-        } else {
-            return dataObj ? dataObj[key] : null;
+        collection: "topics",
+        key:"topic_id",
+        schema: {
+            "topic_id":{ type: "serial", isNullOk:false },
+            "slug": { type: "text", size: 20,  isSecondaryKey: true, isNullOk:false },
+            "created": { type: "date", time: true, isNullOk:false },
+            "modified": { type: "date", time: true, isNullOk:false },
+            "initiator": { type: "integer", isNullOk: false, isSecondaryKey: true },
+            "title": { type: "text", size: 140,  isNullOk:false },
+            "seen": { type:"integer", defaultValue: 0},
+            "follow": { type:"integer", defaultValue: 0},
+            "endorse": { type:"integer", defaultValue: 0},
+            "report": { type:"integer", defaultValue: 0},
+            "opinion": { type:"integer", defaultValue: 0},
+            "comment": { type:"integer", defaultValue: 0},
+            "votes_required": { type:"integer", defaultValue: 0},
+            "status": { type: "enum", values:["na","questioned", "ok", "irrelevant","offensive","spam","violent","selfcensor"], defaultValue: "na", isNullOk:true},
+            "report_status": { type: "enum", values:["idea", "discussion", "proposition", "decision","removed"], defaultValue: "idea", isNullOk:true},
+            "score": { type: "number", isNullOk: false, isSecondaryKey: true }
         }
-    },
+    });
 
-    collection: "topics",
-    key:"topic_id",
-    schema: {
-        "topic_id":"number",
-        "slug":"string",
-        "created":"date",
-        "modified":"date",
-        "initiator":"number",
-        "title":"string",
-        "tags":"array",
-        "seen":"number",
-        "follow":"number",
-        "endorse":"number",
-        "report":"number",
-        "opinion":"number",
-        "comment":"number",
-        "votes_required":"number",
-        "status":"number",
-        "report_status":"number",
-        "score":"number",
-        "extra":"object"
-    }
-});
-
-Topic.isSlugValid = function (slug) {
-    return (/^[a-zA-Z0-9\-\.%_]{5,140}$/).test(slug);
-};
-
-Topic.Read = AbstractModel.extend({
+Topic.Read = AbstractModelLibrary.model({
     collection: "topic_read",
     key:"topic_id",
     schema: {
-        "topic_id":"number",
-        "content":"string"
+        "topic_id": { type:"integer", isNullOk: false },
+        "content": { type:"text"}
     }
 });
 
-Topic.Alternative = AbstractModel.extend({
+Topic.Alternative = AbstractModelLibrary.model({
     collection: "topic_write",
     key:"alt_id",
     schema: {
-        "alt_id":"number",
-        "topic_id":"number",
-        "section":"number",
-        "content":"string",
-        "votes":"number",
-        "opposition":"number"
+        "alt_id": { type: "serial", isNullOk:false },
+        "topic_id": { type:"integer", isNullOk: false },
+        "created": { type: "date", time: true, isNullOk:false },
+        "author": { type: "integer", isNullOk: false, key: true, isSecondaryKey: true },
+        "section": { type:"integer" },
+        "content": { type:"text" },
+        "votes": { type:"integer", defaultValue:0 },
+        "opposition":{ type:"integer", defaultValue:0 }
     }
 });
 
-///////////////////////////////
-/*
- var Topics = AbstractCollection.extend({
- name: "topics",
- url: "/topics",
- model: Topic
- });*/
-
-///////////////////////////////
 if (typeof exports !== "undefined") {
     exports.model = function () { return Topic; };
 }

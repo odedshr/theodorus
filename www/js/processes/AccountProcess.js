@@ -24,13 +24,10 @@
                         }
                     });
                 } else {
-                    throw "profileImageFolder-not-defined"
+                    throw new Error("profileImageFolder-not-defined");
                 }
-                return this;
+                return this.methods;
             },
-
-            getMethods: function getMethods () { return AccountProcess.methods; },
-            getPlugins: function getPlugins () { return AccountProcess.plugins; },
 
             getAccount: function (session, callback) {
                 session.useUserAccount(function (user) {
@@ -281,11 +278,10 @@
                 } else {
                     io.db.getCredentials(email, function (result) {
                         var sendMail = function sendMail() {
-                            (io.getHandler("put","/mail"))({    input: { emailTo: email,
-                                emailTemplate: "email-confirm",
-                                emailData: {    server: session.server,
-                                    link:   "/confirm/" + email + "/" + io.encrypt("confirm" + email)
-                                }
+                            io.mail ({  emailTo: email,
+                                        emailTemplate: "email-confirm",
+                                        emailData: {    server: session.server,
+                                        link:   "/confirm/" + email + "/" + io.encrypt("confirm" + email)
                             }}, function (){
                                 onFinish("confirm-email-sent");
                             });
@@ -521,17 +517,17 @@
 
                 io.db.getCredentials(email, function (credential) {
                     if (credential) {
-                        (io.getHandler("put","/mail"))({    input: { emailTo: email,
-                            emailTemplate: "reset-password",
-                            emailData: {    server: session.server,
-                                link:   "/resetPassword/" + email + "/" + io.encrypt("reset" + email)
+                        io.mail({ emailTo: email,
+                                  emailTemplate: "reset-password",
+                                  emailData: {    server: session.server,
+                                  link:   "/resetPassword/" + email + "/" + io.encrypt("reset" + email)
                             }
-                        }}, function (){
+                        }, function (){
                             var message = "reset-email-sent";
                             if (session.isJSON) {
                                 callback({"result":message});
                             } else {
-                                (io.getHandler("get","/signin"))( session, function (signInPage) {
+                                io.executeHandler(session.res,session,io.getHandler("get","/signin"),function (signInPage) {
                                     signInPage.app = signInPage.app || {};
                                     signInPage.app.message = {
                                         "@type": "info",
@@ -603,7 +599,7 @@
                         });
                     } else {
                         io.log("updatePassword : no user-id found", "error");
-                        (io.getHandler("get", "/signin" ))( session, function (nextPage) {
+                        io.executeHandler(session.res,session,io.getHandler("get","/signin"),function (nextPage) {
                             nextPage.app = nextPage.app || {};
                             nextPage.app.message = {
                                 "@type": "error",
@@ -669,7 +665,7 @@
                         if (session.isJSON) {
                             callback({"result":message});
                         } else {
-                            (io.getHandler("get", hash ? "/signin" : "/me"))( session, function (nextPage) {
+                            io.executeHandler(session.res,session,io.getHandler("get", hash ? "/signin" : "/me"),function (nextPage) {
                                 nextPage.app = nextPage.app || {};
                                 nextPage.app.message = {
                                     "@type": "info",
@@ -712,19 +708,15 @@
         {"method": "POST", "url": "/resetPassword", "handler": AccountProcess.sendResetPasswordEmail.bind(AccountProcess)},
         {"method": "GET", "url": /\/resetPassword\/[0-9a-zA-Z\.\-_@]+\/[0-9a-zA-Z]+\/?$/, "handler": AccountProcess.passwordResetConfirmation.bind(AccountProcess)},
         {"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)},
-        {"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)}
-    ];
+        {"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)},
 
-    AccountProcess.plugins = [
-        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/topics\/add\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "handler": AccountProcess.pGetAccount.bind(AccountProcess)}
+        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/topics\/add\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)}
     ];
 
     if (typeof exports !== "undefined") {
         exports.init = AccountProcess.init.bind(AccountProcess);
-        exports.methods = AccountProcess.getMethods.bind(AccountProcess);
-        exports.plugins = AccountProcess.getPlugins.bind(AccountProcess);
     }
 })();
