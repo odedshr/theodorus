@@ -12,14 +12,14 @@ exports.getAsyncTests = function MailerAsyncTests (QUnit) {
                         throw Error("The required variable "+varName + " was not found. Please fix problem and try again");
                     }
                 }
-                return variable
+                return variable;
             },
             xslt : function xslt(jsonObject) {
                 return JSON.stringify(jsonObject);
             }
-        }
+        };
 
-        lib = require ("../www/js/utils/Mailer.js");
+        lib = require ("./Mailer.js");
 
     lib.init(assets);
 
@@ -45,4 +45,4 @@ exports.getAsyncTests = function MailerAsyncTests (QUnit) {
             }
         }
     ];
-}
+};

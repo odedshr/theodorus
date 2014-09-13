@@ -85,3 +85,5 @@ cd /runtime/theodorus-profile-images
 - 0.17 - xslt-plugin
 - 0.18 - English (added theme) + added missing cheerio DOM manipulation
 - 0.19 - ORM
+- 0.19.1 - fixed some bugs caused by the plugin change
+- 0.20 - Grunt

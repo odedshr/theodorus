@@ -1,5 +1,5 @@
 exports.getTests = function CommentTestSuite () {
-    var Comment = require ("../www/js/models/Comment.js").model();
+    var Comment = require ("./Comment.js").model();
 
     return [
         function testCommentHasSchema(assert) {
@@ -12,4 +12,4 @@ exports.getTests = function CommentTestSuite () {
             assert.ok ((comment.collection && (comment.collection.length>0) ), "comment has collection");
         }
     ];
-}
+};

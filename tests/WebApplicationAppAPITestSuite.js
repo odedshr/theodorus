@@ -7,4 +7,4 @@ exports.getTests = function WebApplicationAppAPI () {
         function testGettingErrorHandler() { return false; },
         function testWritingToLog() { return false; }
     ];*/
-}
+};

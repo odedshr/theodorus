@@ -30,4 +30,4 @@ exports.getTests = function WebApplication () {
             return false;
         }
     ];*/
-}
+};

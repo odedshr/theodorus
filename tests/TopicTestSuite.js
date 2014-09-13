@@ -1,5 +1,5 @@
 exports.getTests = function TopicTestSuite () {
-    var Topic = (require ("../www/js/models/Topic.js")).model();
+    var Topic = (require ("./Topic.js")).model();
 
     function expectException (expectedError,test) {
         try {
@@ -44,4 +44,4 @@ exports.getTests = function TopicTestSuite () {
             assert.ok (!Topic.isSlugValid("!? ##"), "slug is invalid" );
         },
     ];
-}
+};

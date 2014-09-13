@@ -1,17 +1,19 @@
 exports.getTests = function AccountProcess () {
     var config = config || require("../config.json"), // required because of the profile_image_folders
-        User = User || require("../www/js/models/User").model(),
-        lib = require ("../www/js/processes/AccountProcess.js"),
+        User = User || require("./User").model(),
+        lib = require ("./AccountProcess.js"),
         Timer = function (timeout) {
             var start = new Date(),
                 TIMEOUT = isNaN(timeout) ? 5000 : timeout,
-                isTimeout = function () { return ((new Date()) - this.start < this.TIMEOUT); }
-        }
+                isTimeout = function () {
+                    return ((new Date()) - this.start < this.TIMEOUT);
+                };
+        };
 
         lib.init({ config: {
             "profile_images_folders" : config.profile_images_folders
         } });
-        var functions = lib.methods();
+        var functions = lib.methods(),
         functionsByMethod = {
                         "GET": [],
                         "POST": [],
@@ -28,7 +30,7 @@ exports.getTests = function AccountProcess () {
             }
             console.error("failed to match handler for "+ method+":"+url);
             throw new Error("handler-not-defined");
-        }
+        };
 
     for (var f in functions) {
         var aFunction = functions[f];
@@ -69,10 +71,10 @@ exports.getTests = function AccountProcess () {
     },
         testGetProfilePicture = function testGetProfilePicture (assert, user, expectedImage) {
         var handler = getHandler("GET","/profileImage"),
-            actualImage = false;
-        calledBack = false,
-            timer = new Timer(),
-            io = {  isJSON:true,
+            actualImage = false,
+            calledBack = false,
+            timer = (new Timer()),
+            io = { isJSON:true,
                 useUserAccount: function (callback) { callback (user); }
             };
 
@@ -82,7 +84,7 @@ exports.getTests = function AccountProcess () {
         });
         while (!calledBack && timer.isTimeout()) {}
         assert.equal (actualImage,expectedImage,"profile image retrieved as exptected");
-    }
+    };
 
     return [
         function testSignOut (assert) {
@@ -95,12 +97,12 @@ exports.getTests = function AccountProcess () {
 
         function testGetMe (assert) {
             var handler = getHandler("GET","/me"),
-                actualObject = false;
+                actualObject = false,
                 calledBack = false,
                 timer = new Timer(),
                 io = {isJSON:true, useUserAccount: function (callback) {
                     callback (new User());
-                }}
+                }};
 
             handler(io, function (result) {
                 actualObject = result;
@@ -120,4 +122,4 @@ exports.getTests = function AccountProcess () {
             testGetProfilePicture(assert, user, "profileImage/"+expectedImage);
         }
     ];
-}
+};

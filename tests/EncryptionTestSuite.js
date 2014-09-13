@@ -8,9 +8,9 @@ exports.getTests = function EncryptionTestSuite () {
                     throw Error("The required variable "+varName + " was not found. Please fix problem and try again");
                 }
             }
-            return variable
+            return variable;
         },
-        lib = require ("../www/js/utils/Encryption.js");
+        lib = require ("./Encryption.js");
 
     lib.init(vars);
 
@@ -27,4 +27,4 @@ exports.getTests = function EncryptionTestSuite () {
             assert.ok (lib.rsaDecrypt("2944786a63fe051ed51a609d8eebc138")=="rsa","sting is rsa-decrypted");
         }
     ];
-}
+};
