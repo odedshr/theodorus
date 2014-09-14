@@ -1,6 +1,5 @@
-/*
-* server.js is for openshift environment expecting to find the main app in the root and call "server.js"
-* */
+/** @module theodorus.server */
+/* server.js is for openshift environment expecting to find the main app in the root and call "server.js" */
 
 (function WebApplicationClosure () {
     var config = config || require("../config.json"),

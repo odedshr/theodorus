@@ -1,3 +1,4 @@
+/** @module theodorus.WebApplication */
 (function () {
     var _ = require("underscore"),
         express = require('express'),
@@ -5,6 +6,7 @@
         YEAR = 31536000000,
         rootFolder = __dirname.substr(0,__dirname.lastIndexOf("/"))+ "/www",
 
+    /** @class theodorus.WebApplication */
     WebApplication = function (config) {
         var self = this;
         self.config = config;
@@ -424,6 +426,7 @@
         };
     };
 
+    /** @exports tag */
     if (typeof exports !== "undefined") {
         exports.newWebApplication = function newWebApplication(config) { return new WebApplication(config); };
     }

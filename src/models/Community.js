@@ -1,17 +1,25 @@
-var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
-    Community = AbstractModelLibrary.model({
-        autoId: true,
+/** @module theodorus.models.Community */
+(function CommunityClosure () {
+    var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
 
-        collection: "communities",
-        key:"community_id",
-        schema: {
-            "community_id":{ type: "serial", isNullOk:false },
-            "name":{ type: "text", size: 20,  key: true, isNullOk:false },
-            "settings":{ type: "text" }
-        }
-    });
+        /** @class theodorus.Community */
+        Community = AbstractModelLibrary.model({
+            autoId: true,
 
-///////////////////////////////
-if (typeof exports !== "undefined") {
-    exports.model = function () { return Community; };
-}
+            collection: "communities",
+            key: "community_id",
+            schema: {
+                "community_id": { type: "serial", isNullOk: false },
+                "name": { type: "text", size: 20, key: true, isNullOk: false },
+                "settings": { type: "text" }
+            }
+        });
+
+    ///////////////////////////////
+    /** @exports tag */
+    if (typeof exports !== "undefined") {
+        exports.model = function () {
+            return Community;
+        };
+    }
+})();

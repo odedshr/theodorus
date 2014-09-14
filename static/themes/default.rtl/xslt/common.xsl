@@ -32,7 +32,7 @@
 
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
 
-                <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
+                <link type="text/css" rel='stylesheet' href="/ui/core.css" />
                 <style>
                     html { direction: rtl; }
                 </style>

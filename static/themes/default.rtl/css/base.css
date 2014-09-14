@@ -1,4 +1,4 @@
-@import "reset.css";
+@import "reset.less";
 
 @import "../fonts/carmelit/stylesheet.css";
 /*---------------------------------------------------
@@ -839,8 +839,7 @@ h3 {
   cursor: default;
   display: inline-block;
   font-size: 0.7rem;
-  margin: 0 0 0rem 0.2rem;
-  padding: 0;
+  height: 1.1rem;
 }
 .tags .tag-list .tag .tag-label {
   padding: 0rem 0.2rem 0 0.2rem;

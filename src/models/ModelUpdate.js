@@ -1,5 +1,8 @@
+/** @module theodorus.models.ModelUpdate */
 (function ModelUpdatelosure () {
     var AbstractModelLibrary = (typeof AbstractModelLibrary !== "undefined") ? AbstractModelLibrary : require("./AbstractModel"),
+
+        /** @class theodorus.ModelUpdate */
         ModelUpdate = AbstractModelLibrary.model({
             autoId: false,
 
@@ -12,6 +15,7 @@
         });
 
     ///////////////////////////////
+    /** @exports tag */
     if (typeof exports !== "undefined") {
         exports.model = function () { return ModelUpdate; };
     }

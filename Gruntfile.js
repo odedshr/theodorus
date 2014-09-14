@@ -1,6 +1,23 @@
 module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        qunit: {
+            all: ['tests/main.js']
+        },
+
+        recess: {
+            test_and_minify_css: {
+                options: {
+                    compile: true,
+                    compress: true
+                },
+                files: {
+                    'build/www/themes/default/core.css': ['static/themes/default/css/*.less'],
+                    'build/www/themes/default.rtl/core.css': ['static/themes/default.rtl/css/*.less']
+                }
+            }
+        },
+
         jshint: {
             options : {
                 reporterOutput: "logs/jshint.log"
@@ -23,27 +40,47 @@ module.exports = function(grunt) {
             }
         },
 
-        copy: {
+        copyto: {
             copy_files_to_build: {
                 files: [
-                    {expand: true, src: ['package.json','LICENSE','README.md','config.json'], dest: 'build'},
-                    {expand: true, cwd: 'src/', src: ['server.js','app/**'], dest: 'build'},
-                    {expand: true, cwd: 'src/', src: ['themes/**'], dest: 'build/www/themes', filter:'isFile' },
-                    {expand: true, cwd: 'src/', src: ['processes/**'], dest: 'build/app', filter:'isFile' },
-                    {expand: true, cwd: 'src/', src: ['models/**'], dest: 'build/app', filter:'isFile' },
-                    {expand: true, cwd: 'src/', src: ['db/**'], dest: 'build/app', filter:'isFile' },
-                    {expand: true, cwd: 'src/', src: ['utils/**'], dest: 'build/app', filter:'isFile' },
-                    {expand: true, cwd: 'static/', src: ['**'], dest: 'build/www'},
-                    {expand: true, cwd: '', src: ['plugins/**'], dest: 'build/www'}
-                ]
+                    { cwd: '.', src: ['package.json','LICENSE','README.md','config.json'], dest: 'build/'},
+                    { cwd: 'src', src: ['server.js','app/**'], dest: 'build/'},
+                    { cwd: 'src', src: ['themes/**'], dest: 'build/www/themes/', filter:'isFile' },
+                    { cwd: 'src', src: ['processes/**'], dest: 'build/app/', filter:'isFile' },
+                    { cwd: 'src', src: ['models/**'], dest: 'build/app/', filter:'isFile' },
+                    { cwd: 'src', src: ['db/**'], dest: 'build/app/', filter:'isFile' },
+                    { cwd: 'src', src: ['utils/**'], dest: 'build/app/', filter:'isFile' },
+                    { cwd: 'static', src: ['**'], dest: 'build/www/'},
+                    { cwd: '.', src: ['plugins/**'], dest: 'build/www/'}
+                ],
+                options: {
+                    ignore: [
+                        'static/**/css{,/**/*}'
+                    ]
+                }
+            }
+        },
+
+        jsdoc : {
+            // http://usejsdoc.org/howto-commonjs-modules.html
+            dist : {
+                src: ['src/**/*.js', 'tests/**/*.js', 'plugins/**/*.js', 'static/themes/**/*.js'],
+                options: {
+                    destination: 'build/docs'
+                }
             }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-csslint');
+    grunt.loadNpmTasks('grunt-contrib-qunit');
+    grunt.loadNpmTasks('grunt-copy-to');
+    grunt.loadNpmTasks('grunt-jsdoc');
+    grunt.loadNpmTasks('grunt-recess');
 
+    //TODO: add qunit
     // Default task(s).
-    grunt.registerTask('default', ['jshint','copy','uglify']);
+    grunt.registerTask('default', ['jshint','copyto','recess','uglify','jsdoc']);
 };
