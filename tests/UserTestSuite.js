@@ -1,5 +1,5 @@
 exports.getTests = function UserTestSuite () {
-    var User = require ("../www/js/models/User.js").model();
+    var User = require ("./User.js").model();
 
     function expectException (expectedError,test) {
         try {
@@ -44,4 +44,4 @@ exports.getTests = function UserTestSuite () {
             assert.ok (!user.can("fly"),"user does not have permission to fly" );
         }
     ];
-}
+};

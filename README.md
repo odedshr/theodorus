@@ -65,23 +65,25 @@ cd /runtime/theodorus-profile-images
   ```
 
 ###  Release Notes
-- v0.1 - stub (nothing there really)
-- v0.2 - added topics (user may add a new topic)
-- v0.3 - added comments
-- v0.4 - added opinions (user can have a single opinion per topic, but may have a history of opinions)
-- v0.5 - user profile-image
-- v0.6 - tags
-- v0.7 - fixed bug of profile-images folder deleted whenever a new version is released
-- v0.8 - a basic verion of responsive css layout
-- v0.8.1 - escaping all input to safe-tify input, fixed bug in responsive layout, added warning for DB integrity errors
-- 0.9 - colored tags, much faster page loading and rendering
-- 0.10 - fixed bug in signin, added email capabilities, added email confirmation
-- 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
-- 0.12 - added "forgot password" + change password features
-- 0.13 - bug fixes ("change password" should verify used is logged on, topic-by-tag has css error, email onError)
-- 0.14 - add test-unit framework
-- 0.15 - refactored to support plugins (not including xslt)
-- 0.16 - db is built if not exists + encapsulate encryption
-- 0.17 - xslt-plugin
-- 0.18 - English (added theme) + added missing cheerio DOM manipulation
-- 0.19 - ORM
+- 2013/08/31 - v0.1 - stub (nothing there really)
+- 2014/01/24 - v0.2 - added topics (user may add a new topic)
+- 2014/02/03 - v0.3 - added comments
+- 2014/04/03 - v0.4 - added opinions (user can have a single opinion per topic, but may have a history of opinions)
+- 2014/05/18 - v0.5 - user profile-image
+- 2014/05/31 - v0.6 - tags
+- 2014/05/31 - v0.7 - fixed bug of profile-images folder deleted whenever a new version is released
+- 2014/06/03 - v0.8 - a basic verion of responsive css layout
+- 2014/06/03 - v0.8.1 - escaping all input to safe-tify input, fixed bug in responsive layout, added warning for DB integrity errors
+- 2014/06/03 - 0.9 - colored tags, much faster page loading and rendering
+- 2014/06/19 - 0.10 - fixed bug in signin, added email capabilities, added email confirmation
+- 2014/06/12 - 0.11 - use of localStorage to boost xslt and single-image to improve perfromance
+- 2014/06/13 - 0.12 - added "forgot password" + change password features
+- 2014/06/19 - 0.13 - bug fixes ("change password" should verify used is logged on, topic-by-tag has css error, email onError)
+- 2014/07/28 - 0.14 - add test-unit framework
+- 2014/07/29 - 0.15 - refactored to support plugins (not including xslt)
+- 2014/08/16 - 0.16 - db is built if not exists + encapsulate encryption
+- 2014/08/22 - 0.17 - xslt-plugin
+- 2014/08/24 - 0.18 - English (added theme) + added missing cheerio DOM manipulation
+- 2014/09/06 - 0.19 - ORM
+- 2014/09/12 - 0.19.1 - fixed some bugs caused by the plugin change
+- 2014/09/14 - 0.20 - Grunt

@@ -8,10 +8,10 @@ exports.getTests = function ORMTestSuite () {
                     throw Error("The required variable "+varName + " was not found. Please fix problem and try again");
                 }
             }
-            return variable
+            return variable;
         },
-        db = require("../www/js/db/DbApi.js").init(vars),
-        Tag = (typeof Tag !== "undefined") ? Tag : require("../www/plugins/tags/Tag").model();
+        db = require("./DbApi.js").init(vars),
+        Tag = (typeof Tag !== "undefined") ? Tag : require("./tags/Tag").model();
         //AbstractModel = (typeof AbstractModel !== "undefined") ? AbstractModel : require("../www/js/models/AbstractModel").model();
 
 
@@ -26,9 +26,9 @@ exports.getTests = function ORMTestSuite () {
         function testGet (assert) {
             db.orm([Tag], function (db,models) {
                 models.tags.get("בטחון",function(err,output){
-                    console.log("err"+JSON.stringify(err))
+                    console.log("err"+JSON.stringify(err));
                     console.log("output"+JSON.stringify(output));
-                })
+                });
             });
         }
         /*function testORM (assert) {
@@ -52,7 +52,7 @@ exports.getTests = function ORMTestSuite () {
             assert.ok (true,"just run");
         }*/
     ];
-}
+};
 
 /* 1. when plugin start, it should check if all of its table exists
 *  2.

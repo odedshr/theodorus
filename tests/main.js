@@ -5,14 +5,14 @@
         PLUGINS_FOLDER = "./www/plugins",
         totalTestsCount = 0,
         runTestSuite = function testSuite (filePath) {
-            var testSuite = require(filePath),
-                tests = testSuite.getTests ? testSuite.getTests() : [],
-                asyncTests = testSuite.getAsyncTests ? testSuite.getAsyncTests(QUnit) : [];
+            var testFile = require(filePath),
+                tests = testFile.getTests ? testFile.getTests() : [],
+                asyncTests = testFile.getAsyncTests ? testFile.getAsyncTests(QUnit) : [];
             if (tests.length) {
                 totalTestsCount += tests.length;
                 tests.forEach(function (test){
                     QUnit.test(filePath + ": "+ test.name, test);
-                })
+                });
             }
             if (asyncTests.length) {
                 totalTestsCount += asyncTests.length;
@@ -38,7 +38,7 @@
 
     testSuites.forEach(function (testSuite) {
         runTestSuite("./"+testSuite+".js");
-    })
+    });
 
     fileSystem.readdir(PLUGINS_FOLDER, function (err, files) {
         var fileCount = files.length;
@@ -52,9 +52,8 @@
                     QUnit.load();
                     console.log (totalTestsCount +" tests finished");
                 }
-            })
-        })
-
-    })
+            });
+        });
+    });
 
 })();
