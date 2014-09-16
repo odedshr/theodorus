@@ -77,10 +77,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     //TODO add: grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-copy-to');
-    grunt.loadNpmTasks('grunt-jsdoc');
+    //grunt.loadNpmTasks('grunt-jsdoc');
     grunt.loadNpmTasks('grunt-recess');
 
-    //TODO: add qunit
+    //TODO: add qunit, jsdoc
+
     // Default task(s).
-    grunt.registerTask('default', ['jshint','copyto','recess','uglify','jsdoc']);
+    grunt.registerTask('default', ['jshint','copyto','recess','uglify']);
 };
