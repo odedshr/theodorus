@@ -44,6 +44,7 @@ module.exports = function(grunt) {
             copy_files_to_build: {
                 files: [
                     { cwd: '.', src: ['package.json','LICENSE','README.md','config.json'], dest: 'build/'},
+                    { cwd: 'node_modules', src: ['cheerio/**', 'backbone/**', 'cookie-parser/**', 'express/**', 'formidable/**', 'imagemagick/**', 'mysql/**', 'node_xslt/**', 'nodemailer/**', 'orm/**', 'underscore/**'], dest: 'build/node_modules/'},
                     { cwd: 'src', src: ['server.js','app/**'], dest: 'build/'},
                     { cwd: 'src', src: ['themes/**'], dest: 'build/www/themes/', filter:'isFile' },
                     { cwd: 'src', src: ['processes/**'], dest: 'build/app/', filter:'isFile' },
