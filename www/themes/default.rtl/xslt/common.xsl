@@ -32,7 +32,7 @@
 
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
 
-                <link type="text/css" rel='stylesheet' href="/ui/css/base.css" />
+                <link type="text/css" rel='stylesheet' href="/ui/core.css" />
                 <style>
                     html { direction: rtl; }
                 </style>
@@ -43,9 +43,9 @@
                 </xsl:if>
                 <script language="javascript" type="text/javascript" src="/lib/jquery.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/date.format.js"></script>
-                <script language="javascript" type="text/javascript" src="/node_modules/underscore/underscore.js"></script>
+                <script language="javascript" type="text/javascript" src="/lib/underscore-min.js"></script>
                 <script language="javascript" type="text/javascript" src="/lib/modernizr.custom.98249.js"></script>
-                <script language="javascript" type="text/javascript" src="/js/theodorus.js"></script>
+                <script language="javascript" type="text/javascript" src="/js/theodorus.min.js"></script>
                 <script language="javascript" type="text/javascript" src="/js/theodorus.utils.min.js"></script>
                 <xsl:choose>
                     <xsl:when test="//app/mode = 'dev'">

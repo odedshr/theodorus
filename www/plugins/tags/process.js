@@ -3,7 +3,8 @@
         TagModels = (typeof TagModels !== "undefined") ? TagModels : require("./Tag");
         Tag = TagModels.model(),
         _ = (typeof _ !== "undefined") ? _ : require("underscore"),
-        TOPIC_PAGE_SIZE = 0;
+        TOPIC_PAGE_SIZE = 0,
+        NUMBER_OF_COLORS = 20;
 
     var TagPlugin = (function () {
         return {
@@ -277,7 +278,7 @@
                         for (var i=0;i<text.length;i++) {
                             acc += text.charCodeAt(i)
                         }
-                        colorDic[text] = (acc % 10);
+                        colorDic[text] = (acc % NUMBER_OF_COLORS);
                     }
                     tag.color = colorDic[text];
                 });

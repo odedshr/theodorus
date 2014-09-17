@@ -1,4 +1,4 @@
-var AbstractModelLibrary = (AbstractModelLibrary || require("./../../js/models/AbstractModel")),
+var AbstractModelLibrary = (AbstractModelLibrary || require("../../../app/models/AbstractModel")),
     Tag = AbstractModelLibrary.model({
         autoId: true,
         collection: "tags",
