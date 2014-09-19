@@ -12,8 +12,8 @@ module.exports = function(grunt) {
                     compress: true
                 },
                 files: {
-                    'build/www/themes/default/core.css': ['static/themes/default/css/*.less'],
-                    'build/www/themes/default.rtl/core.css': ['static/themes/default.rtl/css/*.less']
+                    'build/www/themes/default/core.css': ['static/themes/default/css/base.less'],
+                    'build/www/themes/default.rtl/core.css': ['static/themes/default.rtl/css/base.less']
                 }
             }
         },
