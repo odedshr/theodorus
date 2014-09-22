@@ -86,6 +86,7 @@
 
             <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
                 <input type="hidden" name="topic_id" value="{topic/topic_id}" />
+                <a name="opinions" class="opinions-title"><xsl:value-of select="$opinions" /></a>
 
                 <xsl:choose>
                     <!-- User have opinion-->
@@ -120,7 +121,6 @@
                         <xsl:choose>
                             <xsl:when test="comments/comment[commenter/user_id != //user/user_id]"> <!---->
                                 <div class="other-opinions">
-                                    <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$opinions" /></a>
                                     <xsl:call-template name="comments">
                                         <xsl:with-param name="comment" select="comments/comment[commenter/user_id != //user/user_id]" />
                                         <xsl:with-param name="is_root" select="true()" />
@@ -137,7 +137,6 @@
                         <xsl:choose>
                             <xsl:when test="comments/comment"> <!---->
                                 <div class="opinions">
-                                    <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$opinions" /></a>
                                     <xsl:call-template name="comments">
                                         <xsl:with-param name="comment" select="comments/comment" />
                                         <xsl:with-param name="is_root" select="true()" />

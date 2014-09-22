@@ -42,4 +42,4 @@ exports.getTests = function TagTestSuite () {
             assert.ok(methods.length>0,"methods loaded");
         },
     ];
-}
+};

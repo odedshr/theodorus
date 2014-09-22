@@ -6,7 +6,7 @@
         WebApplicationFactory = WebApplicationFactory || require("./app/WebApplication.js");
 
     try {
-        var instance = WebApplicationFactory.newWebApplication(config);
+        var instance = WebApplicationFactory.newWebApplication(config,__dirname + "/app");
         instance.run();
     } catch (err) {
         console.error((new Date()) + " | Failed to initialize app");

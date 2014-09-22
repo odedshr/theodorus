@@ -153,15 +153,17 @@
                             "user_report":topicData.user_report,
                             "status":topicData.status,
                             "report_status":topicData.report_status,
-                            "initiator": new User({
-                                "user_id":topicData.user_id,
-                                "display_name":topicData.display_name,
-                                "slug":topicData.user_slug
-                            })
+                            "initiator": topicData.user_id
+                        }),
+                        user = new User({
+                            "user_id":topicData.user_id,
+                            "display_name":topicData.display_name,
+                            "slug":topicData.user_slug
                         });
                         if (topicData.picture) { // if not exists, it shouldn't be an empty value
-                            topic.get("initiator").set("picture",topicData.picture);
+                            user.set("picture",topicData.picture);
                         }
+                        topic.set("initiator", user);
                         topics.push (topic);
                     });
                 }
