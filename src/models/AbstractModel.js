@@ -20,7 +20,7 @@
                         switch (schema[key].type) {
                             case "number" :
                             case "integer" :
-                                value = hasValue ? newValue : 0;
+                                value = (hasValue && !isNaN(newValue)) ? newValue : 0;
                                 break;
                             case "boolean" :
                                 value = hasValue ? !!newValue : false;

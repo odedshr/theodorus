@@ -272,6 +272,9 @@
             getColoredTags : function getColoredTags (tags) {
                 var colorDic = {};
                 tags.forEach(function (tag) {
+                    if (typeof tag === "string") {
+                        tag = { "tag": tag, "count": 1};
+                    }
                     var text = tag.tag;
                     if (!colorDic[text]) {
                         var acc = 0;

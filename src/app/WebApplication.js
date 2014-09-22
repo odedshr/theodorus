@@ -4,10 +4,12 @@
         express = require('express'),
         fileSystem = require("fs"),
         YEAR = 31536000000,
-        rootFolder = __dirname.substr(0,__dirname.lastIndexOf("/"))+ "/www",
+        rootFolder = false,
 
     /** @class theodorus.WebApplication */
-    WebApplication = function (config) {
+    WebApplication = function (config, folder) {
+        rootFolder = folder.substr(0,folder.lastIndexOf("/"))+ "/www";
+
         var self = this;
         self.config = config;
         self.vars = function vars(varName, isRequired) {
@@ -23,7 +25,7 @@
         self.getApplicationMode = function getApplicationMode () {
             return self.vars(self.appName+"_MODE");
         };
-        self.mail = require(__dirname+"/utils/Mailer").init(this).mail;
+        self.mail = require(folder+"/utils/Mailer").init(this).mail;
         self.log = function log (content, type) {
             var date = new Date(),
                 target;
@@ -52,12 +54,12 @@
         self.qs = require("querystring");
         self.formidable = require("formidable");
         self.uiVersion = (self.getApplicationMode()!="dev") ? (new Date()).toISOString() : false;
-        self.xslt = require(__dirname+"/utils/XSLTRenderer").init(rootFolder + "/themes/"+config.theme,self.uiVersion);
-        self.db = require (__dirname+'/db/DbApi').init(self.vars, self.log);
+        self.xslt = require(folder+"/utils/XSLTRenderer").init(rootFolder + "/themes/"+config.theme,self.uiVersion);
+        self.db = require (folder+'/db/DbApi').init(self.vars, self.log);
         self.appName = config.application_name;
         self.portListener = false; // will get results from app.listen() and used to shut down the server
         {
-            var encryption = require(__dirname+"/utils/Encryption");
+            var encryption = require(folder+"/utils/Encryption");
             encryption.init(self.vars);
             self.encrypt = encryption.encrypt.bind(encryption);
             self.rsaEncrypt = encryption.rsaEncrypt.bind(encryption);
@@ -323,7 +325,7 @@
         self.initProcesses =  function () {
             var libs = [];
             config.processes.forEach( function (processName) {
-                libs.push("./processes/"+processName);
+                libs.push(folder + "/processes/"+processName);
             });
             config.plugins.forEach( function (pluginName) {
                 libs.push("../www/plugins/"+pluginName+"/process");
@@ -428,7 +430,7 @@
 
     /** @exports tag */
     if (typeof exports !== "undefined") {
-        exports.newWebApplication = function newWebApplication(config) { return new WebApplication(config); };
+        exports.newWebApplication = function newWebApplication(config, folder) { return new WebApplication(config, folder); };
     }
 })();
 
