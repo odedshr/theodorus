@@ -94,7 +94,6 @@
     exports.getEmailByUserId = function getEmailByUserId (userId,callback) {
         var query = "SELECT auth_key AS email FROM "+prefix+(new Credentials()).collection +" WHERE user_id = " + (userId*1);
         db.query (query, function (result) {
-            console.log(JSON.stringify(result));
             callback (result[0].email);
         });
     };
