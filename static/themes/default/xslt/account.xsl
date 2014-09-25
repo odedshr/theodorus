@@ -246,18 +246,18 @@
                 text-align: center;
             }
         </style>
-        <div class="theodorus-mail">
-            <h1><span><xsl:value-of select="$app_name" /></span></h1>
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}"/></h1>
             <div>
                 <xsl:value-of select="$explain_email_confirmation_email" />
             </div>
-            <a class="link-confirm" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
+            <a style="color: #105cb6;" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
         </div>
     </xsl:template>
 
     <xsl:template match="mail[@type='reset-password']">
         <div class="theodorus-mail" style="direction:rtl;text-align:right;">
-            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="$app_name"/></h1>
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}"/></h1>
             <div><xsl:value-of select="$explain_reset_password_email" /></div>
             <div><xsl:value-of select="$explain_reset_password_email_warning" /></div>
             <a style="color: #105cb6;" href="{data/server}{data/link}"><xsl:value-of select="$btn_reset_password" /></a>

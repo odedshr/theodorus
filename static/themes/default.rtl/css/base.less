@@ -444,6 +444,18 @@ h3 {
     padding-left:0.2rem;
   }
 
+  .topic-info {
+    padding: 0 1rem;
+    .initiator,
+    .profile-image-mini,
+    .statistics-item,
+    .button-action, {
+      margin-left: .5rem;
+    }
+    .actions {
+      display:inline;
+    }
+  }
   .socialTools { height: 2rem; }
   .socialTool {
     float:right;
@@ -587,13 +599,13 @@ h3 {
       .comment-new {
         float: right;
         margin-left:0.5rem;
-        width: 30rem;
+        width: 78%;
       }
       .comment-new:not(:empty) { border-color: @hoverColor; }
       .comment-new:not(:empty):hover,
       .comment-new:not(:empty):focus { border-color: @elementBorder; }
       .comment-submit {
-          width: 7.5rem;
+          width: 20%;
       }
     }
   }
