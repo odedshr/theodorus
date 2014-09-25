@@ -1,5 +1,5 @@
 { "include": [
-    "WebApplicationTestSuite"
+    "XSLTGeneratorTestSuite"
     ],
   "exclude": [
       "ORMTestSuite",
@@ -16,7 +16,7 @@
       "UserProcessTestSuite",
       "WebApplicationAppAPITestSuite",
       "MailerTestSuite",
-      "XSLTGeneratorTestSuite",
+      "WebApplicationTestSuite",
       "EncryptionTestSuite"
   ]
 }

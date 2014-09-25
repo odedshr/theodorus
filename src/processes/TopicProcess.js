@@ -2,6 +2,7 @@
     var io = null,
         Topic = (typeof Topic !== "undefined") ? Topic : require("../models/Topic").model(),
         Comment = (typeof Comment !== "undefined") ? Comment : require("../models/Comment").model(),
+        User = (typeof User !== "undefined") ? User : require("../models/User").model(),
         _ = (typeof _ !== "undefined") ? _ : require("underscore"),
         TOPIC_PAGE_SIZE = 0;
 
@@ -137,7 +138,6 @@
             },
 
             getTopic: function (session,callback) {
-                var referer = session.req.headers.referer;
                 io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
                     if (!topicId) {
                         callback(session.getErrorHandler(topicKey.error));
@@ -146,6 +146,7 @@
                             if (topic) {
                                 io.db.getTopicRead(topicId, function(topicRead){
                                     topic.set("content",topicRead ? topicRead : "");
+
                                     callback(session.isJSON ? topic.toJSON() : {
                                         "app":{
                                             "page": {

@@ -79,7 +79,7 @@ var XSLT = (function XSLTRendererClosure () {
                     xmlDocument = this.engine.readXmlString("<xml>"+content+"</xml>"),
                     output = this.engine.transform( xsltDocument,xmlDocument, ["language","'hebrew'"]);
 
-                var $ = XSLTRenderer.cheerio.load(output);
+                var $ = XSLTRenderer.cheerio.load(output, {decodeEntities: false});
                 $("#plugins").children().each(function repositionPlugin(index,domElement) {
                     try {
                     var info = $(this).attr("class").match(/reposition-(\w*)-([\w\d\-_]*)/);

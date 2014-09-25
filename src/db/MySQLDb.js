@@ -48,7 +48,7 @@
             for (key in jsonized) {
                 var value = jsonized[key];
                 if (value) {
-                    parameters.push(key + " = " + (value.toLowerCase()=="null" ? "NULL" : ("'"+value+"'")) );
+                    parameters.push(key + " = " + (value == "null" ? "NULL" : ("'"+value+"'")) );
                 }
             }
         } else {
