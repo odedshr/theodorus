@@ -239,7 +239,11 @@
     <xsl:param name="failed_to_load_topic" select="'טעינת פריט נכשלה'"/>
     <xsl:param name="back" select="'חזרה'"/>
     <xsl:param name="opinions" select="'דעות'"/>
+    <xsl:param name="your_topic" select="'ההצעה שלך'"/>
     <xsl:param name="your_opinion" select="'הדעה שלך'"/>
+    <xsl:param name="his_opinion" select="'הדעה של'"/>
+    <xsl:param name="your_comment" select="'התגובה שלך'"/>
+    <xsl:param name="his_comment" select="'התגובה של'"/>
     <xsl:param name="other_opinions" select="'דעות נוספות'"/>
     <xsl:param name="no_other_opinions" select="'אין דעות נוספות כרגע'"/>
     <xsl:param name="no_opinions" select="'אין דעות כרגע'"/>
@@ -248,7 +252,7 @@
     <xsl:param name="btn_add_comment" select="'הוספת תגובה'"/>
     <xsl:param name="btn_update_comment" select="'עדכון תגובה'"/>
     <xsl:param name="tweet" select="'ציוץ'"/>
-
+    <xsl:param name="read_complete_discussion" select="'לקריאת הדיון המלא'"/>
 
     <xsl:param name="lbl_topic_tags" select="'תגיות'"/>
     <xsl:param name="example_topic_tags" select="'ממשל'"/>
@@ -274,6 +278,8 @@
         <label key="reset-password">תיאודורוס: איפוס סיסמא</label>
         <label key="invite-to-topic">קיבלת הזמנה לדיון בנושא #</label>
         <label key="daily-report">תיאודורוס: דיווח יומי</label>
+        <label key="got-comment">תיאודורס: מישהו הגיב על משהו שכתבת!</label>
+        <label key="got-opinion">תיאודורוס: מישהו הביא דעה על רעיון שהצעת</label>
     </xsl:variable>
 
     <xsl:template match="/">

@@ -230,34 +230,19 @@
     </xsl:template>
 
     <xsl:template match="mail[@type='email-confirm']">
-        <style>
-            .theodorus-mail h1 {
-                background-image: url('<xsl:value-of select="data/server"/>/ui/img/theodorus_logo_small.png');
-                background-repeat: no-repeat;
-                clear: both;
-                direction: ltr;
-                height: 55px;
-                margin: 0.5rem auto 0;
-                width: 173px;
-            }
-            .theodorus-mail h1 span { display: none; }
-            .theodorus-mail .link-confirm {
-                color: #105cb6;
-                text-align: center;
-            }
-        </style>
-        <div class="theodorus-mail">
-            <h1><span><xsl:value-of select="$app_name" /></span></h1>
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" title="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}" height="55" width="173"/></h1>
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}"/></h1>
             <div>
                 <xsl:value-of select="$explain_email_confirmation_email" />
             </div>
-            <a class="link-confirm" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
+            <a style="color: #105cb6;" href="{data/server}{data/link}"><xsl:value-of select="$btn_confirm_email" /></a>
         </div>
     </xsl:template>
 
     <xsl:template match="mail[@type='reset-password']">
         <div class="theodorus-mail" style="direction:rtl;text-align:right;">
-            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" alt="$app_name"/></h1>
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" title="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}" height="55" width="173"/></h1>
             <div><xsl:value-of select="$explain_reset_password_email" /></div>
             <div><xsl:value-of select="$explain_reset_password_email_warning" /></div>
             <a style="color: #105cb6;" href="{data/server}{data/link}"><xsl:value-of select="$btn_reset_password" /></a>

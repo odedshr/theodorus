@@ -16,29 +16,14 @@
                 xmlns:exslt="http://exslt.org/common" xmlns:xslt="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" encoding="UTF-8"/>
 
-    <xsl:template match="page[@type='addTopic']">
-        <form id="form_add_topic" action="/topics" method="POST" class="page-content">
-            <div>
-                <label><xsl:value-of select="$lbl_topic_title" /></label>
-                <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
-                <div><span id="topic_title_chars_left"/><span><xsl:value-of select="$characters_left" /></span></div>
-            </div>
-            <div>
-                <label><xsl:value-of select="$lbl_topic_slug" /></label>
-                <span id="topic_complete_slug">
-                    <span id="slug_prefix"><xsl:value-of select="@prefix" /></span>
-                    <input type="text" name="slug" id="slug" placeholder="{$example_topic_title_slug}" pattern="[a-zA-Z0-9\.\-_\$]{{0,140}}" />
-                    <div id="slug_result" />
-                </span>
-            </div>
-            <div>
-                <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
-                <button id="button_cancel" type="reset" accesskey="x"><xsl:value-of select="$btn_cancel" /></button>
-            </div>
-        </form>
-    </xsl:template>
-
     <xsl:template match="page[@type='topicView']">
+        <xsl:param name="profileImage">
+            <xsl:choose>
+                <xsl:when test="topic/initiator/picture">/profileImage/<xsl:value-of select="topic/initiator/picture"/></xsl:when>
+                <xsl:otherwise>/ui/img/anonymous.png</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+
         <div id="topic" class="topic-view">
             <!--<a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>-->
             <a href="/" class="button-back"><xsl:value-of select="$back" /></a>
@@ -50,6 +35,55 @@
                 <xsl:when test="topic[status='proposition']">proposition</xsl:when>
                 <xsl:when test="topic[status='decision']">decision</xsl:when>
             </xsl:choose>-->
+            <div class="topic-info">
+                <a class="initiator"><img src="{$profileImage}" class="profile-image-mini" /><xsl:value-of select="topic/initiator/display_name" /></a>
+                <span class="hidden"> · </span>
+
+                <xslt:call-template name="datetime-render">
+                    <xsl:with-param name="value" select="topic/created" />
+                </xslt:call-template>
+
+                <span class="hidden"> · </span>
+
+                <div class="actions">
+                    <a class="statistics-item stat-opinion statistics-item-{topic/opinion}" title="{topic/comment} {$stat_comment}">
+                        <span class="count"><xsl:value-of select="topic/opinion" /></span>
+                        <span class="hidden"> · </span>
+                        <span class="item-label"><xsl:value-of select="$stat_opinion" /></span>
+                    </a>
+
+                    <span class="hidden"> · </span>
+
+                    <xsl:choose>
+                        <xsl:when test="topic/initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
+                            <a class="statistics-item stat-endorse statistics-item-{topic/endorse}">
+                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                            </a>
+                            <a class="button-action" href="/topics/{topic/topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                        </xsl:when>
+                        <xsl:when test="topic/initiator/user_id != //user/user_id">
+                            <a class="button-action button-endorse" href="/topics/{topic/topic_id}/endorse">
+                                <xsl:if test="topic/user_endorse = '1'">
+                                    <xsl:attribute name="href">/topics/<xsl:value-of select="topic/topic_id"/>/unendorse</xsl:attribute>
+                                    <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                                </xsl:if>
+                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <a class="statistics-item stat-endorse statistics-item-{topic/endorse}">
+                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
+                                <span class="hidden"> · </span>
+                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                            </a>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </div>
             <ul id="socialTools" class="socialTools">
                 <li id="twitter-button" class="socialTool twitter">
                     <a href="https://twitter.com/share" class="twitter-share-button" data-text="{topic/title}"><xsl:value-of select="$tweet"/></a>
@@ -170,6 +204,7 @@
         <xsl:param name="comment"/>
         <xsl:param name="is_root"/>
         <xsl:param name="is_mine" select="$comment/commenter/user_id = //user/user_id"/>
+        <xsl:param name="is_leaf" select="count($comment/comments) = 0" />
         <xsl:param name="profileImage">
             <xsl:choose>
                 <xsl:when test="$comment/commenter/picture">/profileImage/<xsl:value-of select="$comment/commenter/picture"/></xsl:when>
@@ -187,7 +222,7 @@
                 <xsl:choose>
                     <xsl:when test="$is_mine = 'true' and $is_root = 'true'">
                         <xsl:value-of select="$your_opinion" />
-                        <span class="text-wrapper-from">
+                        <!--span class="text-wrapper-from">
                             <xslt:call-template name="datetime-render">
                                 <xsl:with-param name="value" select="created" />
                             </xslt:call-template>
@@ -195,7 +230,7 @@
                         <xslt:call-template name="endorse">
                             <xsl:with-param name="count" select="$comment/endorse" />
                             <xsl:with-param name="user_endorse" select="false()"/>
-                        </xslt:call-template>
+                        </xslt:call-template-->
                     </xsl:when>
                     <xsl:otherwise><xsl:value-of select="$comment/commenter/display_name" /></xsl:otherwise>
                 </xsl:choose>
@@ -211,12 +246,11 @@
                     <h3 class="comment-content"><xsl:value-of select="$comment/content" /></h3>
                 </xsl:otherwise>
             </xsl:choose>
-
             <span class="hidden"> · </span>
 
             <div class="actions">
                 <xsl:choose>
-                    <xsl:when test="$is_mine and $is_root and not(//commentId)">
+                    <xsl:when test="$is_mine and $is_leaf and not(//commentId)">
                         <xsl:if test="$comment/endorse = 0 and $comment/follow = 0 and count($comment/comments/comment[not(commenter/user_id = //user/user_id)]) = 0">
                             <a class="button-action" href="/topics/{//topic/topic_id}/comments/{$comment/comment_id}/remove"><xsl:value-of select="$btn_remove" /></a>
                         </xsl:if>
@@ -317,6 +351,54 @@
                     </xsl:choose>
                 </span>
             </button>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="page[@type='addTopic']">
+        <form id="form_add_topic" action="/topics" method="POST" class="page-content">
+            <div>
+                <label><xsl:value-of select="$lbl_topic_title" /></label>
+                <textarea name="title" id="topic_title" maxlength="140" required="required" pattern=".{{5,}}" placeholder="{$example_topic_title}" />
+                <div><span id="topic_title_chars_left"/><span><xsl:value-of select="$characters_left" /></span></div>
+            </div>
+            <div>
+                <label><xsl:value-of select="$lbl_topic_slug" /></label>
+                <span id="topic_complete_slug">
+                    <span id="slug_prefix"><xsl:value-of select="@prefix" /></span>
+                    <input type="text" name="slug" id="slug" placeholder="{$example_topic_title_slug}" pattern="[a-zA-Z0-9\.\-_\$]{{0,140}}" />
+                    <div id="slug_result" />
+                </span>
+            </div>
+            <div>
+                <button id="button_suggest" accesskey="s"><xsl:value-of select="$btn_suggest" /></button>
+                <button id="button_cancel" type="reset" accesskey="x"><xsl:value-of select="$btn_cancel" /></button>
+            </div>
+        </form>
+    </xsl:template>
+
+    <xsl:template match="mail[@type='got-opinion']">
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" title="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}" height="55" width="173"/></h1>
+            <div>
+                <label style="color: #a1876a;font-weight:bold"><xsl:value-of select="$your_topic" />:</label>&nbsp;<span><xsl:value-of select="data/your-content" /></span>
+            </div>
+            <div>
+                <label style="color: #a1876a;font-weight:bold"><xsl:value-of select="$his_opinion" />&nbsp;<xsl:value-of select="data/user" />:</label>&nbsp;<span><xsl:value-of select="data/user-content" /></span>
+            </div>
+            <a href="{data/server}{data/link}" style="color: #105cb6;text-align: center;"><xsl:value-of select="$read_complete_discussion" /></a>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="mail[@type='got-comment']">
+        <div class="theodorus-mail" style="direction:rtl;text-align:right;">
+            <h1><img src="{data/server}/ui/img/theodorus_logo_small.png" title="{data/server}/ui/img/theodorus_logo_small.png" alt="{$app_name}" height="55" width="173"/></h1>
+            <div>
+                <label style="color: #a1876a;font-weight:bold"><xsl:value-of select="$your_comment" />:</label>&nbsp;<span><xsl:value-of select="data/your-content" /></span>
+            </div>
+            <div>
+                <label style="color: #a1876a;font-weight:bold"><xsl:value-of select="$his_comment" />&nbsp;<xsl:value-of select="data/user" />:</label>&nbsp;<span><xsl:value-of select="data/user-content" /></span>
+            </div>
+            <a href="{data/server}{data/link}" style="color: #105cb6;text-align: center;"><xsl:value-of select="$read_complete_discussion" /></a>
         </div>
     </xsl:template>
 </xsl:stylesheet>

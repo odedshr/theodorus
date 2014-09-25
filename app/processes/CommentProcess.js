@@ -74,9 +74,34 @@
                                         "parent_id":parentId,
                                         "content":content
                                     });
-                                    io.db.save(comment,function (result,error){
-                                        if (result) {
+                                    io.db.save(comment,function (savedComment,error){
+                                        if (savedComment) {
                                             io.db.updateTopicCommentCount(topicId,function(){});
+
+                                            var notifyUser = function nortifyUser (userId, yourContent) {
+                                                io.db.getEmailByUserId(userId, function (email) {
+                                                    io.mail({
+                                                        "emailTo" : email,
+                                                        "emailTemplate": (1*parentId) ? "got-comment" : "got-opinion",
+                                                        "emailData" : { "topic": topicId,
+                                                                        "your-content" : yourContent,
+                                                                        "user": user.get("display_name"),
+                                                                        "user-content": content,
+                                                                        "server": session.server,
+                                                                        "link":   "/topics/" + topicId + "#comment:"+savedComment.get("comment_id")
+                                                        }
+                                                    });
+                                                });
+                                            };
+                                            if ( (1*parentId) ) {
+                                                io.db.load (Comment, parentId,function gotComment (comment) {
+                                                    notifyUser(comment.get("user_id"), comment.get("content"));
+                                                });
+                                            } else {
+                                                io.db.getTopic(topicId,function gotTopic (topic) {
+                                                    notifyUser(topic.get("initiator"), topic.get("title"));
+                                                });
+                                            }
 
                                             if (session.isJSON) {
                                                 callback(result.toJSON());
@@ -130,7 +155,9 @@
                     if (comment) {
                         session.useUserId(function(userId) {
                             if (userId == comment.get("user_id")) {
-                                if (comment.get("endorse") === 0 && comment.get("follow") === 0 ) {
+                                var endorse = comment.get("endorse"),
+                                    follow = comment.get("follow");
+                                if ( !endorse && !follow ) {
                                     comment.set("report_status","selfcensor");
                                     io.db.save(comment,function (result,error) {
                                         if (result) {

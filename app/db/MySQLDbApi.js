@@ -91,13 +91,35 @@
 
     exports.getCredentials = function getCredentials (authKey,callback) { exports.load(Credentials, authKey, callback); };
     exports.getCredentialsByUserId = function getCredentialsByUserId (userId,callback) { exports.load(Credentials, {"user_id": userId}, callback); };
+    exports.getEmailByUserId = function getEmailByUserId (userId,callback) {
+        var query = "SELECT auth_key AS email FROM "+prefix+(new Credentials()).collection +" WHERE user_id = " + (userId*1);
+        db.query (query, function (result) {
+            console.log(JSON.stringify(result));
+            callback (result[0].email);
+        });
+    };
+
     exports.getUser = function getUser (userId,callback) { exports.load(User, userId, callback); };
     exports.getUserByName = function getUserByName(display_name,callback) { exports.load(User, {"display_name":display_name}, callback); };
     exports.getAccount = function getAccount(userId,callback) { exports.load(User.Account, userId, callback); };
     exports.getTopicCount = function getTopicCount (callback) {
         exports.count(Topic.collection,[{"key":"status","operator":"<>","value":"removed"}], callback);
     };
-    exports.getTopic = function getTopic (topicId,callback) { exports.load(Topic, topicId, callback); };
+    exports.getTopic = function getTopic (topicId,callback) {
+        exports.load(Topic, topicId, function (topic) {
+            if (topic) {
+                topic.set("created",prettyDate(topic.get("created")));
+                topic.set("modified",prettyDate(topic.get("modified")));
+                exports.load(User, topic.get("initiator"), function gotUserForTopic (user) {
+                    topic.set("initiator",user);
+                    callback(topic);
+                });
+            } else {
+                callback(false);
+            }
+        });
+    };
+
     exports.getTopicRead = function getTopicRead (topicId,callback) { exports.load(Topic.Read, topicId, callback); };
     exports.getTopics = function getTopics (parameters, callback) {
         var userId = parameters.user,
