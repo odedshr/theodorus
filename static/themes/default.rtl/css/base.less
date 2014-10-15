@@ -209,8 +209,15 @@ header {
       width: 13rem;
     }
     .tag {
-      .tag-label { font-size:0.9rem;}
+      .tag-label {
+        color: @theodorusColor;
+        font-size:0.9rem;
+      }
       .tag-count { font-size:0.7rem;}
+    }
+
+    .tag:hover .tag-label {
+      color: @linkColor;
     }
   }
 }
@@ -259,6 +266,7 @@ h3 {
 }
 
 .intro_text {
+  font-size: 0.95rem;
   margin: 1rem auto;
   width: 12rem;
 }
