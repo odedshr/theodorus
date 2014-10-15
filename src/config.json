@@ -21,6 +21,7 @@
         "AccountProcess",
         "UserProcess",
         "TopicProcess",
+        "TopicDraftProcess",
         "CommentProcess"
     ],
     "plugins": [

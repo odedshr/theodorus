@@ -160,18 +160,6 @@
                 });
             },
 
-            getTopicIndexByUrl: function (url) {
-                var regexMatch = url.match(/\*([a-zA-Z0-9_-]{3,140})\/?/);
-                if (regexMatch) {
-                    return {"slug":regexMatch[1]};
-                }
-                regexMatch = url.match(/topics\/(\d+)/);
-                if (regexMatch) {
-                    return {"topic_id":regexMatch[1]};
-                }
-                return {"error":"url-parse-failed"};
-            },
-
             getTopicForRead: function getTopicForRead (session,callback) {
                 io.db.useTopicIdFromURL(session.url, function editEithTopicId (topicId) {
                     io.db.getTopicRead(topicId, function (topicRead) {
@@ -180,7 +168,7 @@
                 });
             },
 
-            getTopicDraft: function (session,callback) {
+            /*getTopicDraft: function (session,callback) {
                 var self = this;
                 session.useUserAccount(function withUser (user){
                    if (user.can("edit")) {
@@ -199,7 +187,6 @@
 
             topicDraftLoaded: function (session,callback,topicId, topicDraft) {
                 var correctOrder = [];
-                // console.log("sorting topic draft:)
                 topicDraft.section.forEach(function placeInRightPlace(section) {
                     var id = section.get("section_id"),
                         before =section.get("before_section_id"),
@@ -329,7 +316,6 @@
                         if (selections) {
                             var alternativeId = selections[sectionId];
                             if (alternativeId) {
-                                console.log(sectionId +":"+ alternativeId);
                                 redundantSection = redundantSection && ((alternativeId*1) === 0);
                                 if (alts[alternativeId]) {
                                     alts[alternativeId]++;
@@ -368,7 +354,6 @@
                 section.set("user_select",alternativeId);
                 io.db.load(User.TopicDraft,{"user_id":userId, "topic_id":topicId}, function userTopicDraftLoaded (userTopicDraft) {
                     if (!userTopicDraft) {
-                        console.log("userTopicDraft not found, creating new one");
                         userTopicDraft = new User.TopicDraft({"user_id":userId, "topic_id":topicId});
                     }
                     var selections = userTopicDraft.get("selections");
@@ -423,7 +408,7 @@
                         callback(topicDraft);
                     }
                 });
-            },
+            },*/
 
             setUserTopicAttribute :function setUserTopicAttribute (session,callback,attribute,value) {
                 io.db.useTopicIdFromURL(session.url, function editEithTopicId (topicId) {
@@ -476,38 +461,40 @@
             invite: function invite     (session,callback) { callback({"error":"method-not-implemented"});}, //  case "post/topic/##/invite/[person]": // {invite-message}
 
             removeTopic: function removeTopic (session, callback) {
-                io.db.getTopic(this.getTopicIndexByUrl(session.url), function (topic){
-                    if (topic) {
-                        session.useUserId(function(userId) {
-                            if (userId == topic.get("initiator")) {
-                                if (topic.get("endorse") === 0 && topic.get("follow") === 0 && topic.get("comment") === 0) {
-                                    topic.set("status","removed");
-                                    topic.set("report_status","selfcensor");
-                                    io.db.save(topic,function (result,error) {
-                                        if (result) {
-                                            if (session.isJSON) {
-                                                callback(result.toJSON());
+                io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
+                    io.db.getTopic(topicId, function (topic){
+                        if (topic) {
+                            session.useUserId(function(userId) {
+                                if (userId == topic.get("initiator")) {
+                                    if (topic.get("endorse") === 0 && topic.get("follow") === 0 && topic.get("comment") === 0) {
+                                        topic.set("status","removed");
+                                        topic.set("report_status","selfcensor");
+                                        io.db.save(topic,function (result,error) {
+                                            if (result) {
+                                                if (session.isJSON) {
+                                                    callback(result.toJSON());
+                                                } else {
+                                                    callback({  "directive":"redirect",
+                                                        "location":"referer"});
+                                                }
                                             } else {
-                                                callback({  "directive":"redirect",
-                                                            "location":"referer"});
+                                                session.log("error saving topic" + JSON.stringify(error) +"\n"+JSON.stringify(topic.toJSON()), error);
+                                                callback({"error":error});
                                             }
-                                        } else {
-                                            session.log("error saving topic" + JSON.stringify(error) +"\n"+JSON.stringify(topic.toJSON()), error);
-                                            callback({"error":error});
-                                        }
-                                    });
+                                        });
+                                    } else {
+                                        callback(session.getErrorHandler("cannot-remove-item"));
+                                    }
                                 } else {
+                                    session.log("removeTopic: " + userId + " !=" + JSON.stringify(topic.toJSON())+ ","+ topic.get("initiator"),"error");
                                     callback(session.getErrorHandler("cannot-remove-item"));
                                 }
-                            } else {
-                                session.log("removeTopic: " + userId + " !=" + JSON.stringify(topic.toJSON())+ ","+ topic.get("initiator"),"error");
-                                callback(session.getErrorHandler("cannot-remove-item"));
-                            }
-                            //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});
-                        });
-                    } else {
-                        callback(session.get404());
-                    }
+                                //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});
+                            });
+                        } else {
+                            callback(session.get404());
+                        }
+                    });
                 });
             }
         };
@@ -524,8 +511,6 @@
         {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,           "handler":TopicProcess.removeTopic.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/remove\/?$/,      "handler":TopicProcess.removeTopic.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/read\/?$/,        "handler":TopicProcess.getTopicForRead.bind(TopicProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicDraft.bind(TopicProcess)},
-        {"method":"POST", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopicDraft.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,         "handler":TopicProcess.follow.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,        "handler":TopicProcess.endorse.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,         "handler":TopicProcess.report.bind(TopicProcess)},
