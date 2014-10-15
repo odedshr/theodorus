@@ -18,7 +18,7 @@
                         if (!exists) {
                             fileSystem.mkdir(profileImageFolder, function (e) {
                                 if (e) {
-                                    io.error(e);
+                                    io.log(e,"exception");
                                 }
                             });
                         }
@@ -54,6 +54,7 @@
                 } else {
                     nextHandler(session, nextHandler, function (output) {
                         session.useUserAccount (function (user) {
+                            output.app = output.app || {} ;
                             output.app.page = output.app.page || {} ;
                             output.app.page.user = ((user ? user : new User.Account()).toJSON());
                             callback(output);
@@ -712,6 +713,8 @@
 
         {"method": "GET", "url": /^\/(:\d+\/?)?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
         {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
         {"method": "GET", "url": /^\/topics\/add\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
         {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)}
     ];

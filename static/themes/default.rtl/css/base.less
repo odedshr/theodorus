@@ -41,6 +41,7 @@ body {
   background-color: white;
   direction:rtl;
   font-family: 'arial','halvetica';
+  quotes: '\201d' '\201c';
 
   input[type="email"], input[type="password"] { direction: ltr; }
 }
@@ -208,8 +209,15 @@ header {
       width: 13rem;
     }
     .tag {
-      .tag-label { font-size:0.9rem;}
+      .tag-label {
+        color: @theodorusColor;
+        font-size:0.9rem;
+      }
       .tag-count { font-size:0.7rem;}
+    }
+
+    .tag:hover .tag-label {
+      color: @linkColor;
     }
   }
 }
@@ -233,6 +241,11 @@ h3 {
   padding-left: 4rem;
   line-height: 2rem;
 }
+
+.plugins {
+  display: none;
+}
+
 /* ================================================================================================================== */
 
 .messages:not(:empty) {
@@ -253,6 +266,7 @@ h3 {
 }
 
 .intro_text {
+  font-size: 0.95rem;
   margin: 1rem auto;
   width: 12rem;
 }
@@ -768,6 +782,54 @@ h3 {
     }
   }
 }
+
+/* ################################################################################################################## */
+.topic-content {
+  padding:1rem;
+}
+.topic-content-readonly {
+  background-color: @elementBackground;
+  padding:1rem;
+}
+.topic-content-readonly:before { content: open-quote; }
+.topic-content-readonly:after { content: close-quote; }
+
+.topic-draft{
+  border: 1px solid @elementBorder;
+  margin-right: 0.5rem;
+
+  .topic-add-alternative {
+    display: inline;
+    margin-right: 0.5rem;
+    width: 32.4rem;
+  }
+  .topic-add-section {
+    display: block;
+    width: 39.3rem;
+  }
+}
+
+.topic-section {
+  border-bottom: 1px solid @elementBorder;
+}
+
+.topic-section-alternative { font-size: 0.8rem}
+.topic-section-alternative-best { font-size:1rem;}
+
+.topic-add-alternative,
+.topic-add-section {
+  border: 1px solid @elementBorder;
+  height: 2rem;
+  margin: 0.1rem;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.topic-add-alternative:empty:not(:focus),
+.topic-add-section:empty:not(:focus) {
+  height:1.1rem;
+}
+/* ################################################################################################################## */
 
 @media only screen and (min-width: 481px) and (max-width: 700px) {
   .page-header {

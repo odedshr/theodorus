@@ -40,8 +40,6 @@
             };*/
             ormConnectionString = "mysql://"+vars(appName+"_MYSQL_USER", true)+":"+vars(appName+"_MYSQL_PASSWORD", true)+"@"+vars(appName+"_MYSQL_HOST", true)+":"+vars(appName+"_MYSQL_PORT", true)+"/"+vars(appName+"_MYSQL_SCHEMA", true);
         }
-
-        dbAdmin.checkDB();
     };
 
     exports.orm = function orm (modelClassArray, callback) {
@@ -57,12 +55,40 @@
         });
     };
 
+    exports.verifyDBIntegrity = function verifyDBIntegrity (callback) {
+        dbAdmin.checkDB(function () {
+            var models = [   Comment,
+                Credentials,
+                User.Account,
+                User.Comment,
+                User.Topic,
+                User.TopicDraft,
+                Topic,
+                Topic.Read,
+                Topic.Section,
+                Topic.Alternative ],
+                modelCount = models.length;
+
+            models.forEach(function (model) {
+                exports.verifyExistance(model, function(output){
+                    if (!output || output.result !== true) {
+                        console.log("verifyExistance("+model.collection+"):"+JSON.stringify(output));
+                    }
+                    if (--modelCount === 0 && callback) {
+                        callback ({"result":true});
+                    }
+                });
+            });
+        });
+    };
+
     exports.verifyExistance = function verifyExistance (model, callback) {
         dbAdmin.isTableExists(model.collection, function (output) {
             if (output.result) {
                 callback(output);
             } else {
                 dbAdmin.createTable(model, callback);
+                callback({"result":"created"});
             }
         });
     };
@@ -84,6 +110,17 @@
 
     };
 
+    exports.remove = function remove (item, callback) {
+        db.query ("DELETE FROM "+prefix + item.collection + " WHERE " + item.key + " = '"+item.get(item.key)+"'", callback );
+    };
+
+    exports.removes = function loads (model, queryOptions, callback) {
+        if (!queryOptions.where) {
+            throw new Error("removeS must have where parameter");
+        }
+        db.query ("DELETE FROM "+prefix + model.collection + db.renderWhereString(queryOptions.where), callback );
+    };
+
     exports.useTopicIdFromURL = function useTopicIdFromURL (url, callback) {
         //TODO: allow accepting TopicSlug as input
         callback (url.match(/topics(\/\d+)?\/?/)[0].replace(/\D/g,""));
@@ -94,7 +131,6 @@
     exports.getEmailByUserId = function getEmailByUserId (userId,callback) {
         var query = "SELECT auth_key AS email FROM "+prefix+(new Credentials()).collection +" WHERE user_id = " + (userId*1);
         db.query (query, function (result) {
-            console.log(JSON.stringify(result));
             callback (result[0].email);
         });
     };
@@ -121,6 +157,42 @@
     };
 
     exports.getTopicRead = function getTopicRead (topicId,callback) { exports.load(Topic.Read, topicId, callback); };
+    exports.getTopicDraft = function getTopicSections (topicId, userId, callback) {
+        exports.loads (Topic.Section, {"where":[{"key":"topic_id", "value":topicId }],"order":["before_section_id","section_id DESC"]}, function sectionsLoaded (sections) {
+            var sectionCount = sections.length; //+1 because of the userTopicDraft
+            if (sectionCount){
+                sections.forEach(function perSection(section) {
+                    exports.loads ( Topic.Alternative, {"where":[{"key":"section_id","value":section.get("section_id")}] }, function altsLoaded (alts) {
+                        section.set("alternative", alts);
+                        if (--sectionCount === 0 ){
+                            exports.load (User.TopicDraft, {"topic_id": topicId, "user_id": userId}, function userTopicDraftLoaded (userTopicDraft) {
+                                var userSelectsions = userTopicDraft ? userTopicDraft.get("selections") : {};
+                                if (Object.keys(userSelectsions).length ) {
+                                    sections.forEach(function addUserContribToSection (section) {
+                                        section.set("user_select",userSelectsions[section.get("section_id")]);
+                                    });
+                                }
+                                callback ({"section":sections});
+                            });
+                        }
+                    });
+                });
+            } else {
+                callback({"section":[]});
+            }
+        });
+    };
+    exports.removeSection = function removeSection (section, callback) {
+        var sectionId = section.get("section_id");
+        db.query ("UPDATE " +prefix+section.collection + " SET before_section_id = '"+section.get("before_section_id")+"' WHERE before_section_id='"+sectionId+"'", function (output) {
+            exports.removes (Topic.Alternative,{where:[{key:"section_id",value:sectionId}]}, function alternativesRemoved(output) {
+                exports.remove(section,function (output) {
+                    callback({result:"removed"});
+                });
+            });
+        });
+    };
+
     exports.getTopics = function getTopics (parameters, callback) {
         var userId = parameters.user,
             pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
