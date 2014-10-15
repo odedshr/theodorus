@@ -195,6 +195,12 @@
     <xsl:param name="link_to_main_page" select="'לעמוד הראשי'"/>
     <xsl:param name="back_to_main_page" select="'בחזרה לעמוד הראשי'"/>
     <xsl:param name="back_to_main_list" select="'בחזרה לרשימה הראשית'"/>
+    <xsl:param name="link_edit" select="'עריכה'"/>
+    <xsl:param name="draft_is_empty" select="'ההצעה חסרת תוכן כרגע'"/>
+    <xsl:param name="write_topic_content_here" select="'ניתן להוסיף תוכן להצעה כאן'"/>
+    <xsl:param name="lbl_push_new_section" select="'הוספת פיסקה נוספת כאן'"/>
+    <xsl:param name="lbl_new_alternative" select="'אלטרנטיבה חדשה'"/>
+    <xsl:param name="lbl_remove_section" select="'עדיף להוריד את הפיסקה'"/>
 
     <xsl:param name="lbl_topic_title" select="'כותרת'"/>
     <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופולריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>

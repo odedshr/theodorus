@@ -2,7 +2,7 @@
 
 # Theodorus - A Stub to Democracy
 
-![Theodorus](https://raw.githubusercontent.com/odedshr/theodorus/master/www/themes/default/img/theodorus_logo_small.png "Theodorus")
+![Theodorus](https://raw.githubusercontent.com/odedshr/theodorus/master/static/themes/default.rtl/img/theodorus_logo_small.png "Theodorus")
 
 Theodorus is a decision-making system, allowing users to collabirately craft a law proposal.
 Any user may raise an `idea` for a law and if there are enough people voting for the idea,

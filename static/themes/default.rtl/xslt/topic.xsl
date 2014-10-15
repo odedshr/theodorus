@@ -118,6 +118,63 @@
                 </li>
             </ul>
 
+            <span class="hidden"> · </span>
+
+            <xsl:choose>
+            <xsl:when test="topic/draft">
+                <form id="topic-content" class="topic-content topic-draft" action="{//url}" method="post">
+                    <xsl:for-each select="topic/draft/section">
+                        <div class="topic-section">
+                            <textarea class="topic-add-section" placeholder="{$lbl_push_new_section}" name="prependBefore{section_id}" />
+                            <input type="hidden" name="origAltSelected{section_id}" value="{user_select}" />
+                            <xsl:for-each select="alternative">
+                                <div class="topic-section-alternative">
+                                    <xsl:if test="../best_alternative_id = alt_id">
+                                        <xsl:attribute name="class">topic-section-alternative topic-section-alternative-best</xsl:attribute>
+                                    </xsl:if>
+                                    <input type="radio" name="selectAlt{../section_id}" value="{alt_id}">
+                                        <xsl:if test="../user_select = alt_id">
+                                            <xsl:attribute name="checked">checked</xsl:attribute>
+                                        </xsl:if>
+                                    </input>
+                                    <label><xsl:value-of select="content"/></label>
+                                </div>
+                            </xsl:for-each>
+                            <div class="topic-section-alternative">
+                                <input type="radio" name="selectAlt{section_id}" value="add" />
+                                <label><xsl:value-of select="$lbl_new_alternative"/></label>
+                                <textarea class="topic-add-alternative" name="addAlternative{section_id}" />
+                            </div>
+                            <div class="topic-section-alternative">
+                                <input type="radio" name="selectAlt{section_id}" value="0">
+                                    <xsl:if test="user_select = '0'">
+                                        <xsl:attribute name="checked">checked</xsl:attribute>
+                                    </xsl:if>
+                                </input>
+                                <label><xsl:value-of select="$lbl_remove_section"/></label>
+                            </div>
+                        </div>
+                    </xsl:for-each>
+                    <textarea name="appendSection" maxlength="140" placeholder="{$write_topic_content_here}" class="topic-add-section topic-append-section"/>
+
+                    <button><xsl:value-of select="$btn_ok"/></button>
+                </form>
+            </xsl:when>
+            <xsl:otherwise>
+                <div id="topic-content" class="topic-content topic-read">
+                    <div class="topic-content-readonly">
+                        <xsl:value-of select="//topic/read"/>
+                        <xsl:if test="//topic/read = ''">
+                            <xsl:value-of select="$draft_is_empty"/>
+                        </xsl:if>
+                    </div>
+                    <xsl:if test="//topic/status = 'draft' and //user/permissions/edit">
+                        <a href="/topics/{//topic/topic_id}/edit"><xsl:value-of select="$link_edit"/></a>
+                    </xsl:if>
+                </div>
+            </xsl:otherwise>
+        </xsl:choose>
+
             <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
                 <input type="hidden" name="topic_id" value="{topic/topic_id}" />
                 <a name="opinions" class="opinions-title"><xsl:value-of select="$opinions" /></a>
@@ -303,6 +360,7 @@
                     <xsl:with-param name="is_root" select="false()" />
                 </xsl:call-template>
             </xsl:if>
+
         </li>
     </xsl:template>
 

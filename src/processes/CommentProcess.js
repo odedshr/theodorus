@@ -190,13 +190,15 @@
     }());
 
     CommentProcess.methods =  [
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,            "handler":CommentProcess.getComments.bind(CommentProcess)},
-        {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(\d+\/)?comment\/?$/,    "handler":CommentProcess.addComment.bind(CommentProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.getComment.bind(CommentProcess)},
-        {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.removeComment.bind(CommentProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":CommentProcess.removeComment.bind(CommentProcess)},
+        {"method":"GET",    "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/?$/,            "handler":CommentProcess.getComments.bind(CommentProcess)},
+        {"method":"POST",   "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(\d+\/)?comment\/?$/,    "handler":CommentProcess.addComment.bind(CommentProcess)},
+        {"method":"GET",    "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.getComment.bind(CommentProcess)},
+        {"method":"DELETE", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/?$/,         "handler":CommentProcess.removeComment.bind(CommentProcess)},
+        {"method":"GET",    "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/comments\/(\d+)\/remove\/?$/,    "handler":CommentProcess.removeComment.bind(CommentProcess)},
 
         {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": CommentProcess.pGetComments.bind(CommentProcess)},
+        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": CommentProcess.pGetComments.bind(CommentProcess)},
+        {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": CommentProcess.pGetComments.bind(CommentProcess)},
     ];
 
     if (typeof exports !== "undefined") {

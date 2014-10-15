@@ -26,7 +26,7 @@
                 "comment": { type: "integer", defaultValue: 0},
                 "votes_required": { type: "integer", defaultValue: 0},
                 "status": { type: "enum", values: ["na", "questioned", "ok", "irrelevant", "offensive", "spam", "violent", "selfcensor"], defaultValue: "na", isNullOk: true},
-                "report_status": { type: "enum", values: ["idea", "discussion", "proposition", "decision", "removed"], defaultValue: "idea", isNullOk: true},
+                "report_status": { type: "enum", values: ["idea", "discussion", "draft", "decision", "removed"], defaultValue: "idea", isNullOk: true},
                 "score": { type: "number", isNullOk: false, isSecondaryKey: true }
             }
         });
@@ -41,19 +41,34 @@
         }
     });
 
+    /** @class theodorus.Topic.Section */
+    Topic.Section = AbstractModelLibrary.model({
+        autoId: true,
+
+        collection: "topic_section",
+        key: "section_id",
+        schema: {
+            "section_id": { type: "serial", isNullOk: false },
+            "topic_id": { type: "integer", isNullOk: false },
+            "before_section_id": { type: "integer", defaultValue: 0 },
+            "best_alternative_id": { type: "integer", defaultValue: 0 },
+            "opposed": { type: "integer", defaultValue: 0 }
+        }
+    });
+
     /** @class theodorus.Topic.Alternative */
     Topic.Alternative = AbstractModelLibrary.model({
-        collection: "topic_write",
+        autoId: true,
+
+        collection: "topic_section_alternative",
         key: "alt_id",
         schema: {
             "alt_id": { type: "serial", isNullOk: false },
-            "topic_id": { type: "integer", isNullOk: false },
+            "section_id": { type: "integer", isNullOk: false },
+            "user_id": { type: "integer", isNullOk: false, key: true, isSecondaryKey: true },
             "created": { type: "date", time: true, isNullOk: false },
-            "author": { type: "integer", isNullOk: false, key: true, isSecondaryKey: true },
-            "section": { type: "integer" },
             "content": { type: "text" },
-            "votes": { type: "integer", defaultValue: 0 },
-            "opposition": { type: "integer", defaultValue: 0 }
+            "votes": { type: "integer", defaultValue: 0 }
         }
     });
 

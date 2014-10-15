@@ -1,6 +1,7 @@
 {
     "application_name":"THEODORUS",
-    "port":8080,
+    "IP":"127.0.0.1",
+    "PORT":5000,
     "theme":"default.rtl",
     "table_prefix":"",
     "db_type":"mysql",
@@ -11,11 +12,11 @@
     "maximum_topic_title_length":140,
     "minimum_comment_length":5,
     "maximum_comment_length":140,
+    "minimum_topic_section_length":5,
+    "maximum_topic_section_length":140,
     "maximum_slug_length":140,
     "topic_page_size":10,
-    "profile_images_folders":"../theodorus-profile-images",
-    "sql_instructions": "../../../extra/sql_instructions.json",
-    "default_community": "../../../../../extra/default_community.json",
+    "profile_images_folders":"theodorus-profile-images",
     "processes": [
         "AccountProcess",
         "UserProcess",

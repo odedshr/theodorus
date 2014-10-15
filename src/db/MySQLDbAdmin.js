@@ -9,7 +9,6 @@
             schema: "",
             prefix: "",
             modelUpdateTableFullName: "",
-            sqlInstructions: {},
 
             init: function init (db,vars, log) {
                 this.db = db;
@@ -20,24 +19,21 @@
                 this.modelUpdateTableFullName = this.schema+"."+this.prefix+(new ModelUpdate()).collection;
             },
 
-            checkDB : function checkDB () {
+            checkDB : function checkDB (callback) {
                 var self = this;
-
-                try {
-                    self.sqlInstructions = require(self.vars("sql_instructions"));
-                }
-                catch (err) {
-                    self.log("Failed to load SQL-instructions ("+err.message+")","error");
-                }
+                callback = callback || function(){};
 
                 self.isDbExists(function (output) {
                    if (output.result === false) {
                        self.log("Creating Database ...");
-                       self.createDb(self.createDbCallback.bind(self));
+                       self.createDb(callback);
                    } else {
+                       callback({"result":true});
+                   }/*else {
                        self.isTableExists((new ModelUpdate()).collection, function(output) {
                            var checkAllTablesExceptModelUpdateCallback = function checkAllTablesExceptModelUpdateCallback(output) {
                                self.log((output && output.updated) ? "Database had "+output.updated+" updates" : "Database is up to date");
+                               callback();
                            };
                            if (output.result === false) {
                                self.createModelUpdateTable(function () {
@@ -48,7 +44,7 @@
                            }
 
                        });
-                   }
+                   }*/
                 });
             },
 
@@ -91,11 +87,32 @@
                 });
             },
 
+            executeCreateTableQuery : function executeCreateTableQuery (queryString, callback) {
+                var self = this;
+                callback = callback || function (){};
+
+                self.db.query ( queryString , function (output) {
+                    if (output.errno) {
+                        throw new Error ("FAILED TO CREATE "+ self.prefix+model.collection+":" + JSON.stringify(output));
+                    }
+                    callback(output);
+                });
+            },
+
+            /*createTableFromInstructions : function createTableFromInstructions (tableName, callback) {
+                this.executeCreateTableQuery(this.sqlInstructions[tableName]["create-sql"].replace(/#PREFIX\./g,this.db.getPrefix()), callback);
+            },*/
+
             createTable : function createTable (modelClass, callback) {
-                var model = new modelClass(),
+                var self = this,
+                    model = new modelClass(),
                     modelSchema = model.schema,
                     queryString = "",
-                    keys = "";
+                    keys = [];
+
+                if (!Array.isArray(model.key)) {
+                    keys.push("PRIMARY KEY (`"+model.key+"`)");
+                }
 
                 for (var columnName in modelSchema) {
                     var columnData = modelSchema[columnName];
@@ -135,27 +152,12 @@
                     }
                     queryString += (columnData.isNull?"":" NOT") + " NULL";
                     if (columnData.isSecondaryKey) {
-                        keys += ", KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)";
+                        keys.push("KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)");
                     } else if (columnData.isUnique) {
-                        keys += ", UNIQUE KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)";
+                        keys.push("UNIQUE KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)");
                     }
                 }
-                queryString = "CREATE TABLE "+this.schema+"."+this.prefix +model.collection+" (" + queryString+", PRIMARY KEY (`"+model.key+"`)"+ keys +") ENGINE=InnoDB DEFAULT CHARSET=utf8";
-                this.db.query ( queryString , function (output) {
-                    if (output.errno) {
-                        throw new Error ("FAILED TO CREATE "+this.prefix+model.collection+":" + JSON.stringify(output));
-                    }
-                    callback(output);
-                });
-            },
-
-            createTableFromInstructions : function createTableFromInstructions (tableName, callback) {
-                this.db.query(this.sqlInstructions[tableName]["create-sql"].replace(/#PREFIX\./g,this.db.getPrefix()),function (output) {
-                    if (output.errno) {
-                        throw new Error ("FAILED TO CREATE "+tableName+":" + JSON.stringify(output));
-                    }
-                    callback(output);
-                });
+                this.executeCreateTableQuery("CREATE TABLE "+self.schema+"."+self.prefix +model.collection+" (" + queryString+", "+ keys.join (",") +") ENGINE=InnoDB DEFAULT CHARSET=utf8", callback);
             },
 
             getInsertIntoModelUpdateTableQuery : function getInsertIntoModelUpdateTableQuery (tableName) {
@@ -169,7 +171,7 @@
             /*
              createModelUpdateTable
              ModelUpdate is created seperately because it's the only table that has content by default
-            * */
+            * *//*
             createModelUpdateTable : function createModelUpdateTable (callback) {
                 var self=this,
                     queries = [],
@@ -181,14 +183,13 @@
                     queries.push(self.getInsertIntoModelUpdateTableQuery(tableName));
                 });
                 self.db.executeMultipleUpdates(queries,callback);
-
-            },
+            },*/
 
             /*
              createAllTablesExceptModelUpdate
              Creates all tables (except for Model-Update) without checking whether they exists or not
              Note that it is presumed the line in Model-update is already set properly
-             */
+             *//*
             createAllTablesExceptModelUpdate : function createAllTablesExceptModelUpdate (callback) {
                 var queries = [],
                     instructions = this.sqlInstructions,
@@ -209,7 +210,7 @@
                 this.db.executeMultipleUpdates(queries,function() {
                     callback({"created ":Object.keys(instructions).length});
                 });
-            },
+            },*//*
 
             checkAllTablesExceptModelUpdate : function checkAllTablesExceptModelUpdate (callback) {
                 var self =this,
@@ -231,7 +232,7 @@
                     });
                 });
                 callback({"updated":updateCount});
-            },
+            },*//*
 
             checkTableIsUpToDate : function checkTableIsUpToDate (tableName, callback) {
                 var self = this,
@@ -254,7 +255,7 @@
                         callback ({"updated":queries.length});
                     });
                 });
-            }
+            }*/
 
     };
     })();

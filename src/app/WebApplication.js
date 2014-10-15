@@ -192,19 +192,6 @@
         /*  Helper functions.                                                 */
         /*  ================================================================  */
 
-        self.setupVariables = function() {
-            //  Set the environment variables we need.
-            self.ipaddress = self.vars("OPENSHIFT_NODEJS_IP");
-            self.port      = self.vars("OPENSHIFT_NODEJS_PORT") || config.port || 8080;
-
-            if (typeof self.ipaddress === "undefined") {
-                //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
-                //  allows us to run/test the app locally.
-                self.log('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1',"warn");
-                self.ipaddress = "127.0.0.1";
-            }
-        };
-
         /////////////////////////////////////////////////////////////////////
 
         self.getAppAPI = function (req, res) {
@@ -273,9 +260,13 @@
                     }
                 } else if (!session.isJSON && output.app) {
                     var app = output.app;
-                    app.mode = self.getApplicationMode();
-                    app.server = "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host;
-                    app.referer = session.req.headers.referer;
+                    _.extend(app, {
+                        mode : self.getApplicationMode(),
+                        server : "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
+                        url : session.url,
+                        referer : session.req.headers.referer
+                    });
+
                     res.end(self.xslt(output));
                 } else {
                     res.end(JSON.stringify(output));
@@ -400,15 +391,16 @@
                 });
             });
 
-            self.setupVariables();
-            self.initProcesses();
-
+            self.ipaddress = self.vars("OPENSHIFT_NODEJS_IP") || self.vars("IP") || "127.0.0.1";
+            self.port      = self.vars("OPENSHIFT_NODEJS_PORT") || self.vars("PORT") || 8080;
             self.mailLogs = true;
         };
 
         self.start = function (callback) {
             self.portListener = self.app.listen(self.port, self.ipaddress, function() {
                 self.log("Node server running "+self.appName+" on "+self.ipaddress+":"+self.port,"info");
+                self.initProcesses();
+                self.db.verifyDBIntegrity();
                 if (typeof callback == "function") {
                     callback();
                 }

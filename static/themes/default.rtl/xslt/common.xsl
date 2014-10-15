@@ -30,6 +30,9 @@
                 <meta charset='utf-8' />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+                <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+                <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
 
                 <link type="text/css" rel='stylesheet' href="/ui/core.css" />
@@ -83,7 +86,7 @@
                     </xsl:for-each>
                 </ul>
                 <div id="report-bugs" />
-                <div id="plugins">
+                <div id="plugins" class="plugins">
                     <xsl:apply-templates select="plugins" />
                 </div>
             </body>

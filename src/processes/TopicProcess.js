@@ -139,28 +139,24 @@
 
             getTopic: function (session,callback) {
                 io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
-                    if (!topicId) {
-                        callback(session.getErrorHandler(topicKey.error));
-                    } else {
-                        io.db.getTopic(topicId, function (topic){
-                            if (topic) {
-                                io.db.getTopicRead(topicId, function(topicRead){
-                                    topic.set("content",topicRead ? topicRead : "");
+                    io.db.getTopic(topicId, function (topic){
+                        if (topic) {
+                            io.db.getTopicRead(topicId, function(topicRead){
+                                topic.set("read",topicRead ? topicRead : "");
 
-                                    callback(session.isJSON ? topic.toJSON() : {
-                                        "app":{
-                                            "page": {
-                                                "@type":"topicView",
-                                                "topic": topic.toJSON()
-                                            }
+                                callback(session.isJSON ? topic.toJSON() : {
+                                    "app":{
+                                        "page": {
+                                            "@type":"topicView",
+                                            "topic": topic.toJSON()
                                         }
-                                    });
+                                    }
                                 });
-                            } else {
-                                callback(session.get404());
-                            }
-                        });
-                    }
+                            });
+                        } else {
+                            callback(session.get404());
+                        }
+                    });
                 });
             },
 
@@ -177,65 +173,298 @@
             },
 
             getTopicForRead: function getTopicForRead (session,callback) {
-                //TODO: allow accepting TopicSlug as input
-                var topicKey = this.getTopicIndexByUrl(session.url);
-
-                io.db.getTopicRead(topicKey.topic_id, function(topicRead){
-                    callback(topicRead ? topicRead : "");
+                io.db.useTopicIdFromURL(session.url, function editEithTopicId (topicId) {
+                    io.db.getTopicRead(topicId, function (topicRead) {
+                        callback(topicRead ? topicRead : "");
+                    });
                 });
             },
 
-            getTopicForEdit: function (session,callback) {
-                callback("<app>"+io.getScriptListXML()+"<topicEdit /></app>");
+            getTopicDraft: function (session,callback) {
+                var self = this;
+                session.useUserAccount(function withUser (user){
+                   if (user.can("edit")) {
+                       io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
+                           io.db.getTopicDraft(topicId, user.get("user_id"), function(topicDraft){
+                               self.topicDraftLoaded (session,callback, topicId, topicDraft);
+                           });
+
+                       });
+                   } else {
+                       callback(session.getErrorHandler("no-permissions"));
+                   }
+                });
+
             },
 
-            setTopic: function (session,callback) { callback({"error":"method-not-implemented"});},
+            topicDraftLoaded: function (session,callback,topicId, topicDraft) {
+                var correctOrder = [];
+                // console.log("sorting topic draft:)
+                topicDraft.section.forEach(function placeInRightPlace(section) {
+                    var id = section.get("section_id"),
+                        before =section.get("before_section_id"),
+                        misplaced = true;
 
-
-            setUserTopicAttribute :function (session,callback,attribute,value) {
-                var topicKey = this.getTopicIndexByUrl(session.url);
-                if (topicKey.error) {
-                    callback(session.getErrorHandler(topicKey));
-                    callback();
-                    return;
-                }
-                session.useUserId(function(userId) {
-                    //TODO: check user permissions
-                    io.db.getTopic(topicKey, function (topic){
+                    for (var i=0;i<correctOrder.length && misplaced;i++) {
+                        var compareId = correctOrder[i].get("section_id"),
+                            compareBefore = correctOrder[i].get("before_section_id");
+                        if (((compareBefore==before) && (compareId>id)) || (before==compareId)) {
+                            correctOrder.splice(i,0,section);
+                            misplaced=false;
+                        }
+                    }
+                    if (misplaced) {
+                        correctOrder.push (section);
+                    }
+                });
+                topicDraft.section = correctOrder;
+                if (session.isJSON) {
+                    callback (topicDraft);
+                } else {
+                    io.db.getTopic(topicId, function (topic){
                         if (topic) {
-                            var topicId = topic.get("topic_id");
-                            io.db.setUserTopic(userId,topicId,attribute,value,function (output){
-                                if (!output) {
-                                    session.log("failed to save user-topic" +JSON.stringify({"user":userId,"topic":topicId,"attribute":attribute,"value":value}),"error");
-                                    callback(session.getErrorHandler("operation-failed"));
-                                } else {
-                                    io.db.getTopicStatistics(topicId, function (statistics) {
-                                        var value = statistics[attribute];
-                                        topic.set(attribute,(value ? value : 0));
-                                        //TODO: topic.score on user feedback is calculated real-time
-                                        //TODO: update user_topic.score
-                                        //TODO: update user.score
-                                        io.db.save(topic, function(topicSaveResult){
-                                            if (!topicSaveResult.error) {
-                                                if (session.isJSON) {
-                                                    callback ({
-                                                        "key":attribute,
-                                                        "value":(value ? value : 0)
-                                                    });
-                                                } else {
-                                                    callback({  "directive":"redirect",
-                                                                "location":"referer"});
-                                                }
-                                            } else {
-                                                callback (topicSaveResult);
-                                            }
-                                        });
-                                    });
+                            topic.set("draft", topicDraft );
+                            callback({
+                                "app":{
+                                    "page": {
+                                        "@type":"topicView",
+                                        "topic": topic.toJSON()
+                                    }
                                 }
                             });
                         } else {
-                            callback(session.getErrorHandler("topic-not-found"));
+                            callback(session.get404());
                         }
+                    });
+                }
+            },
+
+            setTopicDraft: function (session,callback) {
+                var input = session.input,
+                    self = this;
+
+
+                session.useUserAccount(function withUser (user){
+                    if (user.can("edit")) {
+                        io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
+                            io.db.getTopicDraft(topicId, user.get("user_id"), function(topicDraft){
+                                var tasks = 0,
+                                    onComplete = function onComplete() {
+                                        if (--tasks === 0) {
+                                            self.topicDraftLoaded(session, callback, topicId, topicDraft);
+                                        }
+                                    };
+
+                                topicDraft.section.forEach(function perSection (section) {
+                                    var sectionId = section.get("section_id"),
+                                        prependedSection = input["prependBefore"+sectionId],
+                                        origAltSelected = input["origAltSelected"+sectionId],
+                                        selectedAlt = input["selectAlt"+sectionId];
+                                                                                                                        // Add prepedning section
+                                    if (prependedSection && (prependedSection.length > io.config.minimum_topic_section_length)) {
+                                        tasks++;
+                                        self.saveSection (user, topicId, topicDraft, prependedSection, sectionId,onComplete);
+                                    }
+
+                                    if ((typeof selectedAlt !== "undefined") && (origAltSelected != selectedAlt)){
+                                        section.set("user_select",0);
+                                        if (selectedAlt=="add") {
+                                            var content = input["addAlternative"+sectionId];
+                                            if (content  && (content.length > io.config.minimum_topic_section_length)) {
+                                                tasks++;
+                                                self.saveAlternative (user, section, topicDraft, content, function (alternative) {
+                                                    var alts = section.get("alternative") || [];
+                                                    alts.push (alternative);
+                                                    section.set("alternative",alts);
+                                                    onComplete();
+                                                });
+                                            }
+                                        } else {
+                                            tasks++;
+                                            self.saveUserAlternativeSelection (user, section, new Topic.Alternative({"alt_id":selectedAlt}),function selSaved () {
+                                                self.saveSectionGeneralSelection(section, function (output) {
+                                                    if (output && output.result == "removed") {
+                                                        var sections = topicDraft.section;
+                                                        for (var idx = sections.length; idx--;) {
+                                                            if (sections[idx].get("section_id")==sectionId) {
+                                                                sections.splice(idx,1);
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                    onComplete();
+                                                });
+                                            });
+                                        }
+                                    }
+
+                                });
+                                if (input.appendSection.length > io.config.minimum_topic_section_length) {
+                                    tasks++;
+                                    self.saveSection (user, topicId, topicDraft, input.appendSection, 0,onComplete);
+                                }
+                                if (!tasks) {
+                                    tasks++;
+                                    onComplete();
+                                }
+                            });
+
+                        });
+                    } else {
+                        callback(session.getErrorHandler("no-permissions"));
+                    }
+                });
+            },
+
+            saveSectionGeneralSelection: function saveSectionGeneralSelection (section, callback) {
+                var topicId = section.get("topic_id"),
+                    sectionId = section.get("section_id"),
+                    alts = {},
+                    redundantSection = true,
+                    current = 0;
+
+                io.db.loads(User.TopicDraft, {"where":[{"key":"topic_id","value":topicId}] },function userTopicDraftsLoaded(topicDrafts) {
+                    topicDrafts.forEach(function perTopicDraft(topicDraft){
+                        var selections = topicDraft.get("selections");
+                        if (selections) {
+                            var alternativeId = selections[sectionId];
+                            if (alternativeId) {
+                                console.log(sectionId +":"+ alternativeId);
+                                redundantSection = redundantSection && ((alternativeId*1) === 0);
+                                if (alts[alternativeId]) {
+                                    alts[alternativeId]++;
+                                } else {
+                                    alts[alternativeId] = 1;
+                                }
+                                if (!alts[current] || alts[alternativeId] > alts[current]) {
+                                    current = alternativeId;
+                                }
+                            }
+                        }
+                    });
+                    if (redundantSection) {
+                        io.db.removeSection (section,function () {
+                            callback({result:"removed"});
+                        });
+                    } else {
+                        var emptyCallback = function(){};
+                        for (var altId in alts) {
+                            if (alts[altId] === 0) {
+                                io.db.remove(new Topic.Alternative ({alt_id: altId}), emptyCallback );
+                            }
+                        }
+                        section.set("best_alternative_id",current);
+                        io.db.save(section, callback);
+                    }
+                });
+            },
+
+            saveUserAlternativeSelection: function saveUserAlternativeSelection (user, section, alternative,callback) {
+                var userId = user.get("user_id"),
+                    topicId = section.get("topic_id"),
+                    sectionId = section.get("section_id"),
+                    alternativeId = alternative.get("alt_id");
+
+                section.set("user_select",alternativeId);
+                io.db.load(User.TopicDraft,{"user_id":userId, "topic_id":topicId}, function userTopicDraftLoaded (userTopicDraft) {
+                    if (!userTopicDraft) {
+                        console.log("userTopicDraft not found, creating new one");
+                        userTopicDraft = new User.TopicDraft({"user_id":userId, "topic_id":topicId});
+                    }
+                    var selections = userTopicDraft.get("selections");
+                    if (!selections) {
+                        selections = {};
+                    }
+                    selections[sectionId] = alternativeId;
+                    userTopicDraft.set("selections",selections);
+                    io.db.save(userTopicDraft,callback);
+                });
+            },
+
+            saveAlternative: function saveAlternative (user, section, newContent,callback ) {
+                var self = this,
+                    userId = user.get("user_id"),
+                    sectionId = section.get("section_id");
+
+                io.db.save(new Topic.Alternative({
+                    "section_id": sectionId,
+                    "user_id": userId,
+                    "created": (new Date()).toISOString(),
+                    "content": newContent.substr(0,io.config.maximum_topic_section_length),
+                    "votes": 1
+                }), function savedAlt (alternative) {
+                    if (alternative) {
+                        self.saveUserAlternativeSelection (user, section, alternative, function userAltSelSaved () {
+                            self.saveSectionGeneralSelection (section, function sectionUpdated () {
+                                callback(alternative);
+                            });
+                        });
+                    } else {
+                        callback(alternative);
+                    }
+                });
+            },
+
+            saveSection: function saveSection (user, topicId, topicDraft, newContent, beforeSectionId, callback) {
+                var self = this,
+                    section = new Topic.Section({
+                        "topic_id": topicId,
+                        "before_section_id": beforeSectionId
+                    });
+                io.db.save(section, function getSectionId (section){
+                    if (section) {
+                        topicDraft.section.push(section);
+                        self.saveAlternative (user, section, newContent, function alternativeSaved (alternative) {
+                            section.set("alternative",[alternative]);
+                            callback(topicDraft);
+                        });
+
+                    } else {
+                        callback(topicDraft);
+                    }
+                });
+            },
+
+            setUserTopicAttribute :function setUserTopicAttribute (session,callback,attribute,value) {
+                io.db.useTopicIdFromURL(session.url, function editEithTopicId (topicId) {
+                    session.useUserId(function(userId) {
+                        //TODO: check user permissions
+                        io.db.getTopic(topicId, function (topic){
+                            if (topic) {
+                                var topicId = topic.get("topic_id");
+                                io.db.setUserTopic(userId,topicId,attribute,value,function (output){
+                                    if (!output) {
+                                        session.log("failed to save user-topic" +JSON.stringify({"user":userId,"topic":topicId,"attribute":attribute,"value":value}),"error");
+                                        callback(session.getErrorHandler("operation-failed"));
+                                    } else {
+                                        io.db.getTopicStatistics(topicId, function (statistics) {
+                                            var value = statistics[attribute];
+                                            topic.set(attribute,(value ? value : 0));
+                                            //TODO: topic.score on user feedback is calculated real-time
+                                            //TODO: update user_topic.score
+                                            //TODO: update user.score
+                                            io.db.save(topic, function(topicSaveResult){
+                                                if (!topicSaveResult.error) {
+                                                    if (session.isJSON) {
+                                                        callback ({
+                                                            "key":attribute,
+                                                            "value":(value ? value : 0)
+                                                        });
+                                                    } else {
+                                                        callback({  "directive":"redirect",
+                                                            "location":"referer"});
+                                                    }
+                                                } else {
+                                                    callback (topicSaveResult);
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            } else {
+                                callback(session.getErrorHandler("topic-not-found"));
+                            }
+                        });
                     });
                 });
             },
@@ -295,8 +524,8 @@
         {"method":"DELETE",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,           "handler":TopicProcess.removeTopic.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/remove\/?$/,      "handler":TopicProcess.removeTopic.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/read\/?$/,        "handler":TopicProcess.getTopicForRead.bind(TopicProcess)},
-        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicForEdit.bind(TopicProcess)},
-        {"method":"POST",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,       "handler":TopicProcess.setTopic.bind(TopicProcess)},
+        {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.getTopicDraft.bind(TopicProcess)},
+        {"method":"POST", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,        "handler":TopicProcess.setTopicDraft.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?follow\/?$/,         "handler":TopicProcess.follow.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?endorse\/?$/,        "handler":TopicProcess.endorse.bind(TopicProcess)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/(un)?report\/?$/,         "handler":TopicProcess.report.bind(TopicProcess)},
