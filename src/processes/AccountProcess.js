@@ -61,7 +61,6 @@
                         });
                     });
                 }
-
             },
 
             getProfileImage: function getProfileImage(session, callback) {
@@ -711,12 +710,14 @@
         {"method": "GET", "url": "/password", "handler": AccountProcess.getUpdatePasswordPage.bind(AccountProcess)},
         {"method": "POST", "url": "/password", "handler": AccountProcess.updatePassword.bind(AccountProcess)},
 
-        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/topics\/add\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
-        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)}
+        {"method": "GET", "url": [
+            /^\/(:\d+\/?)?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/,
+            /^\/topics\/add\/?$/,
+            /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/
+            ], "pipe": AccountProcess.pGetAccount.bind(AccountProcess)},
+        {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": AccountProcess.pGetAccount.bind(AccountProcess)}
     ];
 
     if (typeof exports !== "undefined") {

@@ -1,5 +1,5 @@
 exports.getTests = function TopicTestSuite () {
-    var Topic = (require ("./Topic.js")).model();
+    var Topic = (require ("../src/models/Topic.js")).model();
 
     function expectException (expectedError,test) {
         try {
@@ -42,6 +42,41 @@ exports.getTests = function TopicTestSuite () {
 
         function testTopicSlugIsInvalidCharacters(assert) {
             assert.ok (!Topic.isSlugValid("!? ##"), "slug is invalid" );
+        },
+
+        function testTopicIncrementStatusFailsOnModel(assert) {
+            var status = false;
+            try {
+                status = Topic.incrementStatus();
+            } catch (e) {
+                // do nothing
+            }
+
+            assert.ok (!status, "cannot increment status of Topic Model" );
+        },
+
+        function testTopicIncrementStatusIncrementIdeaToDiscussion(assert) {
+            var status = false,
+                topic = new Topic({"status":"idea"});
+            try {
+                status = topic.incrementStatus();
+            } catch (e) {
+                // do nothing
+            }
+
+            assert.ok (status=="discussion", "cannot increment status from idea to discussion" );
+        },
+
+        function testTopicIncrementStatusKeepAgreementAsIs(assert) {
+            var status = false,
+                topic = new Topic({"status":"agreement"});
+            try {
+                status = topic.incrementStatus();
+            } catch (e) {
+                // do nothing
+            }
+
+            assert.ok (status=="agreement", "cannot increment status from idea to discussion" );
         },
     ];
 };

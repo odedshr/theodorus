@@ -156,10 +156,10 @@ module.exports = function(grunt) {
     npms.forEach(function (npm) {
         grunt.loadNpmTasks(npm);
     });
+    //grunt.registerTask('test', ['qunit']);
     grunt.registerTask('build', ['clean', 'jshint','copyto:everything','recess','uglify']);
     grunt.registerTask('client-side', ['jshint','copyto:rebuild_client_side','recess','uglify']);
     grunt.registerTask('default', ['clean','jshint','copyto:everything','recess','uglify','forever:stop','rename:currentToOld','rename:newToCurrent','forever:start']);
-    //TODO add: grunt.loadNpmTasks('grunt-contrib-qunit');
     //grunt.loadNpmTasks('grunt-jsdoc');
     //TODO: add qunit, jsdoc
 

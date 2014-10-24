@@ -20,7 +20,7 @@ Theodorus.namespace("feed").TopicListController =  Theodorus.Controller.extend({
         this.isLoading = false;
         while (numberOfNewItems--) {
             var model = collection.at(numberOfItems-numberOfNewItems-1);
-            var value = model.get("initiator");
+            var value = model.get("user_id");
             if (typeof value == "object") {
                 model.set("initiator",new User(value));
             }

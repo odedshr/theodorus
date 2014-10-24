@@ -1,22 +1,23 @@
 { "include": [
-    "XSLTGeneratorTestSuite"
+    "TopicTestSuite"
     ],
   "exclude": [
-      "ORMTestSuite",
       "AbstractModelTestSuite",
       "AccountProcessTestSuite",
       "CommentTestSuite",
       "CredentialTestSuite",
-      "TopicTestSuite",
-      "UserTestSuite",
+      "EncryptionTestSuite",
+      "MailerTestSuite",
       "MySQLDbAPITestSuite",
       "MySQLDbTestSuite",
+      "ORMTestSuite",
       "PrettyDateTestSuite",
       "TopicProcessTestSuite",
+      "TopicTestSuite",
       "UserProcessTestSuite",
+      "UserTestSuite",
       "WebApplicationAppAPITestSuite",
-      "MailerTestSuite",
       "WebApplicationTestSuite",
-      "EncryptionTestSuite"
+      "XSLTGeneratorTestSuite"
   ]
 }

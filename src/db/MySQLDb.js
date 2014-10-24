@@ -11,7 +11,7 @@
         log        = console.log,
         _          = require('underscore'),
         renderWhereString = function renderWhereString (filters) {
-            if (filters) {
+            if (filters && filters.length) {
                 var where = [];
                 filters.forEach(function(value) {
                     if (value.operator=="IN") {
@@ -64,7 +64,7 @@
 
             for (key in jsonized) {
                 var value = jsonized[key];
-                if (value) {
+                if (value || (value === 0)) {
                     parameters.push(key + " = " + (value == "null" ? "NULL" : ("'"+value+"'")) );
                 }
             }
@@ -151,9 +151,7 @@
 
         for (var key in item.schema) {
             var value = json[key]; //TODO: convert ' and " => something else
-            if (json[key]) {
-                output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
-            }
+            output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
         }
 
         return output;

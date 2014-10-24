@@ -16,7 +16,7 @@
                 "picture": { type: "text", size: 250 }
             }
         });
-    User.initialPermissions = {"suggest": true, "feedback": true, "comment": true};
+    User.initialPermissions = {"endorse": true,"suggest": true, "feedback": true, "comment": true};
     /** @class theodorus.User.Account */
     User.Account = AbstractModelLibrary.model({
         autoId: true,

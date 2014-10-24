@@ -99,7 +99,7 @@
                                                 });
                                             } else {
                                                 io.db.getTopic(topicId,function gotTopic (topic) {
-                                                    notifyUser(topic.get("initiator"), topic.get("title"));
+                                                    notifyUser(topic.get("user_id"), topic.get("title"));
                                                 });
                                             }
 
@@ -182,7 +182,7 @@
                             //callback ({"error":"t"+topic.initiator+"<br/>,u:"+userId});
                         });
                     } else {
-                        callback(session.get404());
+                        callback(session.getNotFoundError("comment",commentId));
                     }
                 });
             }
