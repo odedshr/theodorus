@@ -18,7 +18,9 @@
                     if (user.can("edit")) {
                         io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
                             io.db.getTopicDraft(topicId, user.get("user_id"), function(topicDraft){
-                                self.topicDraftLoaded (session,callback, topicId, topicDraft);
+                                self.sortTopicDraft(topicDraft, function topicDraftSorted (topicDraft) {
+                                    self.outputTopicDraft (session,callback, topicId, topicDraft);
+                                } );
                             });
 
                         });
@@ -29,7 +31,7 @@
 
             },
 
-            topicDraftLoaded: function (session,callback,topicId, topicDraft) {
+            sortTopicDraft : function sortTopicDraft (topicDraft, callback) {
                 var correctOrder = [];
                 topicDraft.section.forEach(function placeInRightPlace(section) {
                     var id = section.get("section_id"),
@@ -49,6 +51,10 @@
                     }
                 });
                 topicDraft.section = correctOrder;
+                callback (topicDraft);
+            },
+
+            outputTopicDraft: function (session,callback,topicId, topicDraft) {
                 if (session.isJSON) {
                     callback (topicDraft);
                 } else {
@@ -64,7 +70,7 @@
                                 }
                             });
                         } else {
-                            callback(session.get404());
+                            callback(session.getNotFoundError("topic",topicId));
                         }
                     });
                 }
@@ -80,9 +86,22 @@
                         io.db.useTopicIdFromURL(session.url, function withTopicId (topicId){
                             io.db.getTopicDraft(topicId, user.get("user_id"), function(topicDraft){
                                 var tasks = 0,
+                                    changed = true,
+                                    redirectAsOutput = { "directive":"redirect",
+                                                         "location":"/topics/"+topicId},
                                     onComplete = function onComplete() {
-                                        if (--tasks === 0) {
-                                            self.topicDraftLoaded(session, callback, topicId, topicDraft);
+                                        if (!changed || (--tasks === 0)) {
+                                            self.sortTopicDraft (topicDraft,function draftSorted (topicDraft) {
+                                                if (changed) {
+                                                    self.renderTopicRead (topicId, topicDraft, function TopicReadRendered () {
+                                                        callback(redirectAsOutput);
+                                                        //self.outputTopicDraft (session, callback, topicId, topicDraft);
+                                                    });
+                                                } else {
+                                                    //self.outputTopicDraft (session, callback, topicId, topicDraft);
+                                                    callback(redirectAsOutput);
+                                                }
+                                            });
                                         }
                                     };
 
@@ -103,7 +122,7 @@
                                             var content = input["addAlternative"+sectionId];
                                             if (content  && (content.length > io.config.minimum_topic_section_length)) {
                                                 tasks++;
-                                                self.saveAlternative (user, section, topicDraft, content, function (alternative) {
+                                                self.saveAlternative (user, section, content, function (alternative) {
                                                     var alts = section.get("alternative") || [];
                                                     alts.push (alternative);
                                                     section.set("alternative",alts);
@@ -135,7 +154,7 @@
                                     self.saveSection (user, topicId, topicDraft, input.appendSection, 0,onComplete);
                                 }
                                 if (!tasks) {
-                                    tasks++;
+                                    changed = false;
                                     onComplete();
                                 }
                             });
@@ -245,12 +264,32 @@
                         topicDraft.section.push(section);
                         self.saveAlternative (user, section, newContent, function alternativeSaved (alternative) {
                             section.set("alternative",[alternative]);
+                            section.set("best_alternative_id",alternative.get("alt_id"));
                             callback(topicDraft);
                         });
 
                     } else {
                         callback(topicDraft);
                     }
+                });
+            },
+
+            renderTopicRead: function renderTopicRead (topicId, topicDraft, callback) {
+                var selected = [],
+                    topicRead = new Topic.Read({"topic_id": topicId});
+                topicDraft.section.forEach(function perSection (section) {
+                    var selectedAlt =  section.get("best_alternative_id");
+                    if (selectedAlt) {
+                        section.get("alternative").forEach(function perAlternative (alternative) {
+                            if (alternative.get("alt_id") == selectedAlt) {
+                                selected.push (alternative.get("content"));
+                            }
+                        });
+                    }
+                });
+                topicRead.set("content",selected);
+                io.db.save(topicRead, function saved (topicRead) {
+                    callback(topicRead);
                 });
             }
         };

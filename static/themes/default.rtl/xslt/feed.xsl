@@ -23,7 +23,7 @@
                 <button id="button_suggest" accesskey="s" class="topic_add_submit"><xsl:value-of select="$btn_suggest" /></button>
             </form>
         </xsl:if>
-        <div id="feed_wrapper" class="feed_wrapper">
+        <div id="feed_wrapper" class="feed-wrapper">
             <div id="feed" class="feed">
                 <div id="topics" class="topics">
                     <xsl:choose>
@@ -119,7 +119,7 @@
             </xsl:choose>
         </xsl:param>
 
-        <li class="topic">
+        <li class="topic {status}">
             <a class="title-link" href="/topics/{topic_id}">
                 <!-- xsl:if test="slug">
                     <xsl:attribute name="href">/*<xsl:value-of select="slug" /></xsl:attribute>
@@ -145,7 +145,7 @@
             <span class="hidden"> · </span>
 
             <xslt:call-template name="datetime-render">
-                <xsl:with-param name="value" select="created" />
+                <xsl:with-param name="value" select="prettyCreated" />
             </xslt:call-template>
 
             <span class="hidden"> · </span>
@@ -169,10 +169,11 @@
                         <a class="button-action" href="/topics/{topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
                     </xsl:when>
                     <xsl:when test="initiator/user_id != //user/user_id">
-                        <a class="button-action button-endorse" href="/topics/{topic_id}/endorse">
+                        <a class="button-action button-endorse" href="/topics/{topic_id}/endorse?nocache={//noCache}" title="{$btn_endorse_tooltip}">
                             <xsl:if test="user_endorse = '1'">
-                                <xsl:attribute name="href">/topics/<xsl:value-of select="topic_id"/>/unendorse</xsl:attribute>
+                                <xsl:attribute name="href">/topics/<xsl:value-of select="topic_id"/>/unendorse?nocache=<xsl:value-of select="//noCache"/></xsl:attribute>
                                 <xsl:attribute name="class">button-action pressed</xsl:attribute>
+                                <xsl:attribute name="title"><xsl:value-of select="$btn_unendorse_tooltip" /></xsl:attribute>
                             </xsl:if>
                             <span class="count"><xsl:value-of select="endorse" /></span>
                             <span class="hidden"> · </span>

@@ -145,18 +145,23 @@
                 });
             };
 
-            this.get404 = function () {
+            this.getNotFoundError = function (key,value) {
                 res.status(404);
-                return this.getErrorHandler('item-not-found');
+                return this.getErrorHandler('item-not-found',key,value);
             };
 
-            this.get501 = function () {
+            this.getInternalServerError = function () {
                 res.status(501);
                 return this.getErrorHandler('system-error');
             };
 
+            this.getPermissionDeniedError = function (action) {
+                res.status(550);
+                return this.getErrorHandler('permission-error','permission',action);
+            };
+
             this.getErrorHandler = function (errorMessage,key,data) {
-                self.log (errorMessage+"\n"+data,"error");
+                self.log (errorMessage+(data ? "\n"+data : ""),"error");
                 var output;
 
                 if (self.isJSON) {
@@ -236,14 +241,15 @@
                 nextPipe (session, nextPipe, callback);
             } catch (err) {
                 self.log(err,"exception");
-                callback(session.get501());
+                callback(session.getInternalServerError("exception",err));
             }
         };
 
         self.executeHandler = function executeHandler(res, session, handlerDef, callback) {
             var method = session.req.method.toLocaleLowerCase(),
-                handler = handlerDef.handler;
-            self.executePipes(method + ":" + handlerDef.url, session, handler, callback);
+                handler = handlerDef.handler,
+                url = handlerDef.url;
+            self.executePipes(method + ":" + (Array.isArray(url) ? url[0] : url), session, handler, callback);
         };
 
         self.processRequest = function (res, session, handlerDef) {
@@ -256,7 +262,7 @@
                             res.writeHead(301,{"location" : location} );
                             res.end();
                             break;
-                        case "default": res.end(session.get404());
+                        case "default": res.end(session.getNotFoundError("directive",output.directive));
                     }
                 } else if (!session.isJSON && output.app) {
                     var app = output.app;
@@ -264,7 +270,8 @@
                         mode : self.getApplicationMode(),
                         server : "http"+(session.req.connection.encrypted?"s":"")+"://" + session.req.headers.host,
                         url : session.url,
-                        referer : session.req.headers.referer
+                        referer : session.req.headers.referer,
+                        noCache : Math.random()
                     });
 
                     res.end(self.xslt(output));
@@ -275,42 +282,37 @@
         };
 
         self.addHandler = function addHandler (handlerDef) {
-            var url = handlerDef.url,
+            var urls = Array.isArray(handlerDef.url) ? handlerDef.url : [ handlerDef.url ],
                 method = handlerDef.method.toLowerCase();
-
-            self.handlers[method].push ({   "pattern":url,
-                                            "handlerDef":handlerDef }); // store func for internal invocation // handlerDef.url
-            self.app[method](url, function (req, res) { // external invocation
-                var session = self.getAppAPI(req, res);
-                res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
-                if (req.method == "GET" || req.method == "DELETE") {
-                    self.processRequest(res, session, handlerDef);
-                } else {
-                    session.useInput(function () {
+            urls.forEach(function (url) {
+                self.handlers[method].push ({   "pattern":url,
+                    "handlerDef":handlerDef }); // store func for internal invocation // handlerDef.url
+                self.app[method](url, function (req, res) { // external invocation
+                    var session = self.getAppAPI(req, res);
+                    res.setHeader('Content-Type', (session.isJSON ? 'application/json' : 'text/html') + "; charset=utf8");
+                    if (req.method == "GET" || req.method == "DELETE") {
                         self.processRequest(res, session, handlerDef);
-                    });
-                }
-            }); // external invocation
+                    } else {
+                        session.useInput(function () {
+                            self.processRequest(res, session, handlerDef);
+                        });
+                    }
+                }); // external invocation
+            });
         };
 
         self.addPipe = function addPlugin (pipeDef) {
-            var pattern = pipeDef.method.toLowerCase()+":"+pipeDef.url,
-                repo = self.pipes[pattern];
-            if (typeof repo == "undefined") {
-                repo = [];
-                self.pipes[pattern] = repo;
-            }
-            self.pipes[pattern].push (pipeDef.pipe);
-        };
-
-        self.addhandler = function addPlugin (handlerDef) {
-            var pattern = handlerDef.method.toLowerCase()+":"+handlerDef.url,
-                repo = self.pipes[pattern];
-            if (typeof repo == "undefined") {
-                repo = [];
-                self.pipes[pattern] = repo;
-            }
-            self.pipes[pattern].push (handlerDef.handler);
+            var urls = Array.isArray(pipeDef.url) ? pipeDef.url : [pipeDef.url] ,
+                method = pipeDef.method.toLowerCase();
+            urls.forEach(function (url) {
+                var pattern = method+":"+url,
+                    repo = self.pipes[pattern];
+                if (typeof repo == "undefined") {
+                    repo = [];
+                    self.pipes[pattern] = repo;
+                }
+                self.pipes[pattern].push (pipeDef.pipe);
+            });
         };
 
         self.initProcesses =  function () {
@@ -366,7 +368,7 @@
                         }*/
                     } else {
                         console.error("file not found " + rootFolder + requestedFile);
-                        res.end (self.getAppAPI(req,res).get404());
+                        res.end (self.getAppAPI(req,res).getNotFoundError("file",requestedFile));
                     }
                 });
             });

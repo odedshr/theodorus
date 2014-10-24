@@ -189,7 +189,7 @@
                         <xsl:value-of select="$your_opinion" />
                         <span class="text-wrapper-from">
                             <xslt:call-template name="datetime-render">
-                                <xsl:with-param name="value" select="created" />
+                                <xsl:with-param name="value" select="prettyCreated" />
                             </xslt:call-template>
                         </span>
                         <xslt:call-template name="endorse">
@@ -223,7 +223,7 @@
                     </xsl:when>
                     <xsl:otherwise>
                         <xslt:call-template name="datetime-render">
-                            <xsl:with-param name="value" select="created" />
+                            <xsl:with-param name="value" select="prettyCreated" />
                         </xslt:call-template>
 
                         <span class="hidden"> · </span>

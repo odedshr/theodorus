@@ -295,22 +295,38 @@
     TagPlugin.methods = [
         {"method":"GET", "url":/^\/tags\/?$/,  "handler":TagPlugin.getTags.bind(TagPlugin)},
         {"method":"GET", "url":/^\/tags\/[^#\/:\s]{3,140}\/count?\/?$/,  "handler":TagPlugin.getTagTopicCount.bind(TagPlugin)},
-        {"method":"GET", "url":/^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/,  "handler":TagPlugin.getTagTopics.bind(TagPlugin)},
-        {"method":"GET", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags(\/(\d+))?\/?$/, "handler":TagPlugin.getTopicTags.bind(TagPlugin)},
-        {"method":"POST", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/?$/, "handler":TagPlugin.updateUserTopicTags.bind(TagPlugin)},
         {"method":"GET",  "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/my\/?$/, "handler":TagPlugin.getUserTopicTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(:\d+\/?)?$/, "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,       "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
+
+        {"method":"GET", "url": [
+            /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags(\/(\d+))?\/?$/
+            ], "handler":TagPlugin.getTagTopics.bind(TagPlugin)},
+        {"method":"POST", "url":/^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/tags\/?$/, "handler":TagPlugin.updateUserTopicTags.bind(TagPlugin)},
+
+
+        {"method": "GET", "url": [
+            /^\/(:\d+\/?)?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/
+        ], "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
         {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,       "pipe": TagPlugin.pGetTopicTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetTopicTags.bind(TagPlugin)},
+
+        {"method": "GET", "url": [
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/
+            ], "pipe": TagPlugin.pGetTopicTags.bind(TagPlugin)},
         {"method": "POST","url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetTopicTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,       "pipe": TagPlugin.pGetUserTopicTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetUserTopicTags.bind(TagPlugin)},
+
+        {"method": "GET", "url": [
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/?$/,
+            /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/
+            ], "pipe": TagPlugin.pGetUserTopicTags.bind(TagPlugin)},
         {"method": "POST", "url": /^\/(topics\/\d+|\*[a-zA-Z0-9_-]{3,140})\/edit\/?$/, "pipe": TagPlugin.pGetUserTopicTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/topics\/add\/?$/, "pipe": TagPlugin.pGetTags.bind(TagPlugin)},
-        {"method": "GET", "url": /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/, "pipe": TagPlugin.pGetTags.bind(TagPlugin)}
+
+        {"method": "GET", "url": [
+            /^\/topics\/add\/?$/,
+            /^\/tags\/[^#\/:\s]{3,140}(\/?:\d+)?\/?$/
+            ], "pipe": TagPlugin.pGetTags.bind(TagPlugin)}
     ];
 
     if (typeof exports !== "undefined") {
