@@ -145,7 +145,7 @@
             <span class="hidden"> · </span>
 
             <xslt:call-template name="datetime-render">
-                <xsl:with-param name="value" select="created" />
+                <xsl:with-param name="value" select="prettyCreated" />
             </xslt:call-template>
 
             <span class="hidden"> · </span>

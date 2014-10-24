@@ -24,6 +24,7 @@
     <xsl:param name="javascript_disabled_title" select="'הפעלת קוד גאוהסקריפט אינה זמינה בדפדפן האינטרנט שלך'"/>
     <xsl:param name="javascript_disabled_instructions" select="'כרגע אין תמיכה לדפדנים ללא תמיכה בגאוהסקריפט'"/>
     <xsl:param name="text_intro" select="'מערכת דמוקרטית לניהול רעיונות ודיונים. כל אחד יכול להציע רעיון. כולם משתתפים בדיון, מוצאים פשרות ומגיעים להסכמות. כי ככה צריך לנהל קהילה.'"/>
+    <xsl:param name="community_has_X_members" select="'בקהילה שלנו # חברים וחברות.'"/>
     <xsl:param name="system_loading" select="'טוען קבצים, אנא המתן...'"/>
     <xsl:param name="previous_page" select="'לעמוד הקודם'"/>
 
@@ -195,6 +196,12 @@
     <xsl:param name="link_to_main_page" select="'לעמוד הראשי'"/>
     <xsl:param name="back_to_main_page" select="'בחזרה לעמוד הראשי'"/>
     <xsl:param name="back_to_main_list" select="'בחזרה לרשימה הראשית'"/>
+    <xsl:param name="link_edit" select="'עריכה'"/>
+    <xsl:param name="draft_is_empty" select="'ההצעה חסרת תוכן כרגע'"/>
+    <xsl:param name="write_topic_content_here" select="'ניתן להוסיף תוכן להצעה כאן'"/>
+    <xsl:param name="lbl_push_new_section" select="'הוספת פיסקה נוספת כאן'"/>
+    <xsl:param name="lbl_new_alternative" select="'אלטרנטיבה חדשה'"/>
+    <xsl:param name="lbl_remove_section" select="'עדיף להוריד את הפיסקה'"/>
 
     <xsl:param name="lbl_topic_title" select="'כותרת'"/>
     <xsl:param name="example_topic_title">לדוגמא: לכל אזרח תהיה האפשרות להציע חוקים והצעות פופולריות יהפכו לטיוטה משותפת שבסופו של דבר תעמוד לסוג של משאל עם</xsl:param>
@@ -212,7 +219,9 @@
     <xsl:param name="link_suggest_topic" select="'נושא חדש'"/>
     <xsl:param name="btn_remove" select="'הסרה'"/>
     <xsl:param name="stat_endorse" select="'תומכים'"/>
-    <xsl:param name="btn_endorse" select="'תמיכה'"/>
+    <xsl:param name="btn_endorse" select="'תומכים'"/>
+    <xsl:param name="btn_endorse_tooltip" select="'הבעת תמיכה'"/>
+    <xsl:param name="btn_unendorse_tooltip" select="'הסרת תמיכה'"/>
     <xsl:param name="stat_follow" select="'עוקבים'"/>
     <xsl:param name="btn_follow" select="'מעקב'"/>
     <xsl:param name="stat_report" select="'דיווחים'"/>

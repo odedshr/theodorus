@@ -9,7 +9,21 @@
         prefix     = "",
         vars        = function(){ return false;},
         log        = console.log,
-        _          = require('underscore');
+        _          = require('underscore'),
+        renderWhereString = function renderWhereString (filters) {
+            if (filters && filters.length) {
+                var where = [];
+                filters.forEach(function(value) {
+                    if (value.operator=="IN") {
+                        where.push(value.key + " IN ('"+value.value.join("','")+"')");
+                    } else {
+                        where.push(value.key + " "+ (value.operator ? value.operator : "=") + " " + (isNaN(value.value) ? "'"+value.value+"'" : value.value));
+                    }
+                });
+                return "\n\t"+ "WHERE " + where.join(" AND ");
+            }
+            return "";
+        };
 
     exports.init = function (varsGetter,consoleLog) {
         if (varsGetter) { vars = varsGetter; }
@@ -40,14 +54,17 @@
             filters = [],
             key = null;
         if (item.key) {
-            var jsonized = sanitizeJSONObject(item);
+            var jsonized = sanitizeJSONObject(item),
+                keys = Array.isArray(item.key) ? item.key : [item.key];
 
-            filters.push (item.key+" = '"+item.get(item.key)+"'");
-                delete jsonized[item.key];
+            keys.forEach(function perKey (key) {
+                filters.push (key+" = '"+item.get(key)+"'");
+                delete jsonized[key];
+            });
 
             for (key in jsonized) {
                 var value = jsonized[key];
-                if (value) {
+                if (value || (value === 0)) {
                     parameters.push(key + " = " + (value == "null" ? "NULL" : ("'"+value+"'")) );
                 }
             }
@@ -92,6 +109,9 @@
             values = _.values(item.set);
             values = values.concat(_.values(item.where));
         }
+        if (!keys.length) {
+            throw new Error ("insert into "+item.collection+ " with no values:" + JSON.stringify(item.toJSON()));
+        }
         var query = "INSERT INTO "+prefix+item.collection + " ("+keys.join(",")+") VALUES ('"+values.join("','")+"');";
         connection.query(query , function(err, result) {
             if (err) {
@@ -113,8 +133,9 @@
                     console.error("save/getConnection error:" + error);
                     callback (false, error);
                 } else {
-                    var key = item.key ? item.get(item.key) : false,
-                        query = ((key && (typeof item.get(item.key) !== "undefined") && key != "null") ? update : insert)(connection,item,callback);
+                    var key = item.key ? (Array.isArray(item.key) ? true : item.get(item.key)) : false,
+                        execFunction = (((typeof key !== "undefined") && key != "null") ? update : insert);
+                    execFunction (connection,item,callback);
                     connection.release();
                 }
             });
@@ -130,9 +151,7 @@
 
         for (var key in item.schema) {
             var value = json[key]; //TODO: convert ' and " => something else
-            if (json[key]) {
-                output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
-            }
+            output[key] = (typeof value === "object" ? JSON.stringify(value) : value);
         }
 
         return output;
@@ -169,8 +188,17 @@
         }
         try {
             var query = "SELECT * FROM "+prefix+model.collection,
-                where = "WHERE "+((typeof key == "object") ? (_.keys(key)[0] +" = '"+_.values(key)[0]+"'") : model.key +" = '"+key+"'");
-                query += " "+where+" LIMIT 1";
+                where = "WHERE ";
+            if (typeof key === "object") {
+                var filters = [];
+                _.keys(key).forEach(function (keyName) {
+                    filters.push (keyName + " = '"+key[keyName]+"'" );
+                });
+                where += filters.join (" AND ");
+            } else {
+                where += model.key +" = '"+key+"'";
+            }
+            query += " "+where+" LIMIT 1";
 
             exports.query (query, function(rows) {
                 callback((rows.length>0) ? new model(rows[0], model.schema) : false);
@@ -184,7 +212,8 @@
     exports.getItems = function (model,parameters,callback) {
         var pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
             page =  (parameters.page) ? parameters.page : 1,
-            limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "";
+            limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "",
+            order = parameters.order;
 
         if (!parameters.where) {
             parameters.where = [];
@@ -192,13 +221,12 @@
         if (parameters.whitelist) {
             parameters.where.push ({"key":"t.topic_id","operator":"IN","value":parameters.whitelist});
         }
-        parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
+        //parameters.where.push ({"key":"status","operator":"<>","value":"removed"});
         //TODO: parse queryOptions to get SORTBY and WHERE filters
         exports.query ("SELECT * "+
             "\n\t"+"FROM "+prefix+model.collection +
-            renderWhereString(parameters.where)+
-            "\n\t"+"GROUP BY topic_id"+
-            "\n\t"+"ORDER BY score DESC, t.modified DESC" +
+            "\n\t"+renderWhereString(parameters.where)+
+            "\n\t"+(order ? "ORDER BY " + order.join(",") : "")+
             "\n\t"+limit + ";", function(rows) {
             var schema =model.schema;
             if (rows) {
@@ -208,6 +236,10 @@
             }
             callback(rows);
         });
+    };
+
+    exports.removes = function loads (model, queryOptions, callback) {
+        db.removes(model.collection, queryOptions, callback);
     };
 
     exports.query = function (query,callback,logQuery) {
@@ -266,19 +298,5 @@
         });
     };
 
-
-    exports.renderWhereString = function renderWhereString (filters) {
-        if (filters) {
-            var where = [];
-            filters.forEach(function(value) {
-                if (value.operator=="IN") {
-                    where.push(value.key + " IN ('"+value.value.join("','")+"')");
-                } else {
-                    where.push(value.key + " "+ value.operator + " " + (isNaN(value.value) ? "'"+value.value+"'" : value.value));
-                }
-            });
-            return "\n\t"+ "WHERE " + where.join(" AND ");
-        }
-        return "";
-    };
+    exports.renderWhereString = renderWhereString;
 })();

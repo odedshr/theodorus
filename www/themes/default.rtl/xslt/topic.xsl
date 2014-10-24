@@ -27,7 +27,7 @@
         <div id="topic" class="topic-view">
             <!--<a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>-->
             <a href="/" class="button-back"><xsl:value-of select="$back" /></a>
-            <h2><xsl:value-of select="topic/title" /></h2>
+            <h2 class="topic-title {topic/status}"><xsl:value-of select="topic/title" /></h2>
             <div id="content"><xsl:value-of select="topic/content" /></div>
             <!--<xsl:choose>
                 <xsl:when test="topic[status='idea']">idea</xsl:when>
@@ -40,7 +40,7 @@
                 <span class="hidden"> · </span>
 
                 <xslt:call-template name="datetime-render">
-                    <xsl:with-param name="value" select="topic/created" />
+                    <xsl:with-param name="value" select="topic/prettyCreated" />
                 </xslt:call-template>
 
                 <span class="hidden"> · </span>
@@ -64,9 +64,9 @@
                             <a class="button-action" href="/topics/{topic/topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
                         </xsl:when>
                         <xsl:when test="topic/initiator/user_id != //user/user_id">
-                            <a class="button-action button-endorse" href="/topics/{topic/topic_id}/endorse">
+                            <a class="button-action button-endorse" href="/topics/{topic/topic_id}/endorse?nocache={//noCache}">
                                 <xsl:if test="topic/user_endorse = '1'">
-                                    <xsl:attribute name="href">/topics/<xsl:value-of select="topic/topic_id"/>/unendorse</xsl:attribute>
+                                    <xsl:attribute name="href">/topics/<xsl:value-of select="topic/topic_id"/>/unendorse?nocache=<xsl:value-of select="//noCache"/></xsl:attribute>
                                     <xsl:attribute name="class">button-action pressed</xsl:attribute>
                                 </xsl:if>
                                 <span class="count"><xsl:value-of select="topic/endorse" /></span>
@@ -118,72 +118,142 @@
                 </li>
             </ul>
 
-            <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
-                <input type="hidden" name="topic_id" value="{topic/topic_id}" />
-                <a name="opinions" class="opinions-title"><xsl:value-of select="$opinions" /></a>
+            <xsl:if test="topic/status != 'idea'">
+                <xsl:if test="topic/status != 'discussion'">
 
-                <xsl:choose>
-                    <!-- User have opinion-->
-                    <xsl:when test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
-                        <!-- my opinion -->
-                        <xsl:call-template name="comments">
-                            <xsl:with-param name="comment" select="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]" />
-                            <xsl:with-param name="is_root" select="true()" />
-                        </xsl:call-template>
+                    <span class="hidden"> · </span>
 
-                        <xsl:choose>
-                            <xsl:when test="comments/comment[commenter/user_id != //user/user_id]">
-                                <div class="other-opinions">
-                                    <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$other_opinions" /></a>
-                                    <xsl:call-template name="comments">
-                                        <xsl:with-param name="comment" select="comments/comment[commenter/user_id != //user/user_id and parent_id = 0]" />
-                                        <xsl:with-param name="is_root" select="true()" />
-                                    </xsl:call-template>
+                    <xsl:choose>
+                        <xsl:when test="topic/draft">
+                            <form id="topic-content" class="topic-content topic-draft" action="{//url}" method="post">
+                                <xsl:for-each select="topic/draft/section">
+                                    <div class="topic-section">
+                                        <textarea class="topic-add-section" placeholder="{$lbl_push_new_section}" name="prependBefore{section_id}" />
+                                        <input type="hidden" name="origAltSelected{section_id}" value="{user_select}" />
+                                        <xsl:for-each select="alternative">
+                                            <div class="topic-section-alternative">
+                                                <xsl:if test="../best_alternative_id = alt_id">
+                                                    <xsl:attribute name="class">topic-section-alternative topic-section-alternative-best</xsl:attribute>
+                                                </xsl:if>
+                                                <input type="radio" name="selectAlt{../section_id}" value="{alt_id}">
+                                                    <xsl:if test="../user_select = alt_id">
+                                                        <xsl:attribute name="checked">checked</xsl:attribute>
+                                                    </xsl:if>
+                                                </input>
+                                                <label><xsl:value-of select="content"/></label>
+                                            </div>
+                                        </xsl:for-each>
+                                        <div class="topic-section-alternative">
+                                            <input type="radio" name="selectAlt{section_id}" value="add" />
+                                            <label><xsl:value-of select="$lbl_new_alternative"/></label>
+                                            <textarea class="topic-add-alternative" name="addAlternative{section_id}" />
+                                        </div>
+                                        <div class="topic-section-alternative">
+                                            <input type="radio" name="selectAlt{section_id}" value="0">
+                                                <xsl:if test="user_select = '0'">
+                                                    <xsl:attribute name="checked">checked</xsl:attribute>
+                                                </xsl:if>
+                                            </input>
+                                            <label><xsl:value-of select="$lbl_remove_section"/></label>
+                                        </div>
+                                    </div>
+                                </xsl:for-each>
+                                <textarea name="appendSection" maxlength="140" placeholder="{$write_topic_content_here}" class="topic-add-section topic-append-section"/>
+
+                                <button><xsl:value-of select="$btn_ok"/></button>
+                            </form>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <div id="topic-content" class="topic-content topic-read">
+                                <div class="topic-content-readonly">
+                                    <xsl:choose>
+                                        <xsl:when test="//topic/read/section">
+                                            <xsl:for-each select="//topic/read/section">
+                                                <div class="section"><xsl:value-of select="."/></div>
+                                            </xsl:for-each>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="$draft_is_empty"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
                                 </div>
-                            </xsl:when>
-                            <xsl:otherwise test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
-                                <div class="no-comments"><xsl:value-of select="$no_other_opinions" /></div>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:when test="//user/user_id">
-                        <!-- ask user opinion -->
-                        <xsl:call-template name="comment-box">
-                            <xsl:with-param name="parent_id" select="0" />
-                            <xsl:with-param name="original" select="empty" />
-                        </xsl:call-template>
-                        <xsl:choose>
-                            <xsl:when test="comments/comment[commenter/user_id != //user/user_id]"> <!---->
-                                <div class="other-opinions">
-                                    <xsl:call-template name="comments">
-                                        <xsl:with-param name="comment" select="comments/comment[commenter/user_id != //user/user_id]" />
-                                        <xsl:with-param name="is_root" select="true()" />
-                                    </xsl:call-template>
-                                </div>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <!-- anonymous user-->
-                        <xsl:choose>
-                            <xsl:when test="comments/comment"> <!---->
-                                <div class="opinions">
-                                    <xsl:call-template name="comments">
-                                        <xsl:with-param name="comment" select="comments/comment" />
-                                        <xsl:with-param name="is_root" select="true()" />
-                                    </xsl:call-template>
-                                </div>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </form>
+                                <xsl:if test="//topic/status = 'draft' and //user/permissions/edit">
+                                    <a href="/topics/{//topic/topic_id}/edit"><xsl:value-of select="$link_edit"/></a>
+                                </xsl:if>
+                            </div>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:if>
+
+                <span class="hidden"> · </span>
+
+                <form id="comments" class="comments" action="/topics/{topic/topic_id}/comment" method="post">
+                    <input type="hidden" name="topic_id" value="{topic/topic_id}" />
+                    <a name="opinions" class="opinions-title"><xsl:value-of select="$opinions" /></a>
+
+                    <xsl:choose>
+                        <!-- User have opinion-->
+                        <xsl:when test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
+                            <!-- my opinion -->
+                            <xsl:call-template name="comments">
+                                <xsl:with-param name="comment" select="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]" />
+                                <xsl:with-param name="is_root" select="true()" />
+                            </xsl:call-template>
+
+                            <xsl:choose>
+                                <xsl:when test="comments/comment[commenter/user_id != //user/user_id]">
+                                    <div class="other-opinions">
+                                        <a name="other-opinions" class="other-opinions-title"><xsl:value-of select="$other_opinions" /></a>
+                                        <xsl:call-template name="comments">
+                                            <xsl:with-param name="comment" select="comments/comment[commenter/user_id != //user/user_id and parent_id = 0]" />
+                                            <xsl:with-param name="is_root" select="true()" />
+                                        </xsl:call-template>
+                                    </div>
+                                </xsl:when>
+                                <xsl:otherwise test="comments/comment[commenter/user_id = //user/user_id and parent_id = 0]">
+                                    <div class="no-comments"><xsl:value-of select="$no_other_opinions" /></div>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:when>
+                        <xsl:when test="//user/user_id">
+                            <!-- ask user opinion -->
+                            <xsl:call-template name="comment-box">
+                                <xsl:with-param name="parent_id" select="0" />
+                                <xsl:with-param name="original" select="empty" />
+                            </xsl:call-template>
+                            <xsl:choose>
+                                <xsl:when test="comments/comment[commenter/user_id != //user/user_id]"> <!---->
+                                    <div class="other-opinions">
+                                        <xsl:call-template name="comments">
+                                            <xsl:with-param name="comment" select="comments/comment[commenter/user_id != //user/user_id]" />
+                                            <xsl:with-param name="is_root" select="true()" />
+                                        </xsl:call-template>
+                                    </div>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- anonymous user-->
+                            <xsl:choose>
+                                <xsl:when test="comments/comment"> <!---->
+                                    <div class="opinions">
+                                        <xsl:call-template name="comments">
+                                            <xsl:with-param name="comment" select="comments/comment" />
+                                            <xsl:with-param name="is_root" select="true()" />
+                                        </xsl:call-template>
+                                    </div>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <div class="no-comments"><xsl:value-of select="$no_opinions" /></div>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </form>
+            </xsl:if>
         </div>
     </xsl:template>
 
@@ -257,7 +327,7 @@
                     </xsl:when>
                     <xsl:otherwise>
                         <xslt:call-template name="datetime-render">
-                            <xsl:with-param name="value" select="created" />
+                            <xsl:with-param name="value" select="prettyCreated" />
                         </xslt:call-template>
 
                         <span class="hidden"> · </span>
@@ -303,6 +373,7 @@
                     <xsl:with-param name="is_root" select="false()" />
                 </xsl:call-template>
             </xsl:if>
+
         </li>
     </xsl:template>
 
@@ -312,9 +383,9 @@
 
         <xsl:choose>
             <xsl:when test="$user_endorse != false()">
-                <a class="button-action button-endorse" href="/topics/{comment_id}/endorse">
+                <a class="button-action button-endorse" href="/topics/{comment_id}/endorse?nocache={//noCache}">
                     <xsl:if test="user_endorse = '1'">
-                        <xsl:attribute name="href">/topics/<xsl:value-of select="comment_id"/>/unendorse</xsl:attribute>
+                        <xsl:attribute name="href">/topics/<xsl:value-of select="comment_id"/>/unendorse?nocache=<xsl:value-of select="//noCache"/></xsl:attribute>
                         <xsl:attribute name="class">button-action pressed</xsl:attribute>
                     </xsl:if>
                     <span class="count"><xsl:value-of select="endorse" /></span>

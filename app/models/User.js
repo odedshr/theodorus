@@ -16,7 +16,7 @@
                 "picture": { type: "text", size: 250 }
             }
         });
-    User.initialPermissions = {"suggest": true, "feedback": true, "comment": true};
+    User.initialPermissions = {"endorse": true,"suggest": true, "feedback": true, "comment": true};
     /** @class theodorus.User.Account */
     User.Account = AbstractModelLibrary.model({
         autoId: true,
@@ -60,6 +60,7 @@
      * */
     /** @class theodorus.User.Topic */
     User.Topic = AbstractModelLibrary.model({
+        autoId: true,
         collection: "user_topic",
         key: "user_topic_id",
         schema: {
@@ -73,6 +74,17 @@
             "score": { type: "number", defaultValue: 0 }
         }
     });
+
+    User.TopicDraft = AbstractModelLibrary.model({
+        collection: "user_topic_draft",
+        key: ["user_id", "topic_id"],
+        schema: {
+            "user_id": { type: "number", isNullOk: false, isSecondaryKey: true },
+            "topic_id": { type: "number", isNullOk: false, isSecondaryKey: true },
+            "selections": { type: "object" }
+        }
+    });
+
     /** @class theodorus.User.Comment */
     User.Comment = AbstractModelLibrary.model({
         collection: "user_comment",

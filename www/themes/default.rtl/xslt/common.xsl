@@ -30,6 +30,9 @@
                 <meta charset='utf-8' />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+                <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+                <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
                 <xsl:if test="app/page/topic"> - <xsl:value-of select="app/page/topic/title" /></xsl:if>
 
                 <link type="text/css" rel='stylesheet' href="/ui/core.css" />
@@ -58,7 +61,19 @@
                 <span class="force-web-font-preload">Loading fonts...</span>
                 <header class="page-header">
                    <a href="/"><h1><span><xsl:value-of select="$app_name" /></span><sub>Beta</sub></h1></a>
-                   <div class="intro_text"><xsl:value-of select="$text_intro" /></div>
+                   <div class="intro_text">
+                       <span><xsl:value-of select="$text_intro" /></span>
+                       <xsl:if test="//userCount">
+                           <xsl:variable name="communitySizeString">
+                               <xsl:call-template name="string-replace-all">
+                                   <xsl:with-param name="text" select="$community_has_X_members" />
+                                   <xsl:with-param name="replace" select="'#'" />
+                                   <xsl:with-param name="by" select="//userCount" />
+                               </xsl:call-template>
+                           </xsl:variable>
+                           <span class="community-size"><xsl:value-of select="$communitySizeString"/></span>
+                       </xsl:if>
+                   </div>
                 </header>
                 <div id="main" class="page-content">
                     <xsl:apply-templates select="page" />
@@ -83,7 +98,7 @@
                     </xsl:for-each>
                 </ul>
                 <div id="report-bugs" />
-                <div id="plugins">
+                <div id="plugins" class="plugins">
                     <xsl:apply-templates select="plugins" />
                 </div>
             </body>
