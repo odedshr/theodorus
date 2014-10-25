@@ -64,13 +64,15 @@
         collection: "user_topic",
         key: "user_topic_id",
         schema: {
-            "user_topic_id": { type: "serial", isNullOk: false },
             "user_id": { type: "number", isNullOk: false, isSecondaryKey: true },
             "topic_id": { type: "number", isNullOk: false, isSecondaryKey: true },
             "seen": { type: "boolean", defaultValue: false},
             "follow": { type: "boolean", defaultValue: false},
             "endorse": { type: "boolean", defaultValue: false},
             "report": { type: "boolean", defaultValue: false},
+            "vote": { type: "enum", values: ["na", "yes", "no", "refrain"], defaultValue: "na" },
+            "votes_required": { type: "integer", defaultValue: 0 },
+            "yes_votes_required": { type: "integer", defaultValue: 0 },
             "score": { type: "number", defaultValue: 0 }
         }
     });
@@ -95,8 +97,7 @@
             "seen": { type: "boolean", defaultValue: false},
             "follow": { type: "boolean", defaultValue: false},
             "endorse": { type: "boolean", defaultValue: false},
-            "report": { type: "boolean", defaultValue: false},
-            "score": { type: "number", defaultValue: 0 }
+            "report": { type: "boolean", defaultValue: false}
         }
     });
 

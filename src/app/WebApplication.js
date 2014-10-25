@@ -360,12 +360,6 @@
                 fileSystem.exists(rootFolder + requestedFile, function isFileExists (exists) {
                     if (exists) {
                         res.redirect(requestedFile);
-                        /*if (requestedFile.lastIndexOf(".css") == (requestedFile.length-4)) {
-                            res.writeHead(200, {'Content-Type': "text/css" });
-                            res.end(fileSystem.readFileSync(requestedFile), 'text');
-                        } else {
-                            res.end(fileSystem.readFileSync(requestedFile), 'binary');
-                        }*/
                     } else {
                         console.error("file not found " + rootFolder + requestedFile);
                         res.end (self.getAppAPI(req,res).getNotFoundError("file",requestedFile));
@@ -402,7 +396,9 @@
             self.portListener = self.app.listen(self.port, self.ipaddress, function() {
                 self.log("Node server running "+self.appName+" on "+self.ipaddress+":"+self.port,"info");
                 self.initProcesses();
-                self.db.verifyDBIntegrity();
+                self.db.verifyDBIntegrity(function (output) {
+                    self.log(JSON.stringify(output));
+                });
                 if (typeof callback == "function") {
                     callback();
                 }

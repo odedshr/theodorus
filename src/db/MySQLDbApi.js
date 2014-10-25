@@ -55,9 +55,8 @@
         });
     };
 
-    exports.verifyDBIntegrity = function verifyDBIntegrity (callback) {
-        dbAdmin.checkDB(function () {
-            var models = [   Comment,
+    exports.verifyDBIntegrity = function verifyDBIntegrity (callback, models) {
+        dbAdmin.verifyDBIntegrity ( models ? models : [   Comment,
                 Credentials,
                 User.Account,
                 User.Comment,
@@ -67,30 +66,8 @@
                 Topic.Read,
                 Topic.Section,
                 Topic.Alternative ],
-                modelCount = models.length;
-
-            models.forEach(function (model) {
-                exports.verifyExistance(model, function(output){
-                    if (!output || output.result !== true) {
-                        console.log("verifyExistance("+model.collection+"):"+JSON.stringify(output));
-                    }
-                    if (--modelCount === 0 && callback) {
-                        callback ({"result":true});
-                    }
-                });
-            });
-        });
-    };
-
-    exports.verifyExistance = function verifyExistance (model, callback) {
-        dbAdmin.isTableExists(model.collection, function (output) {
-            if (output.result) {
-                callback(output);
-            } else {
-                dbAdmin.createTable(model, callback);
-                callback({"result":"created"});
-            }
-        });
+                callback
+        );
     };
 
     exports.load = function load (model, itemId, callback) {

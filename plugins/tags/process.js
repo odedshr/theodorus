@@ -12,14 +12,13 @@
                 io = ioFunctions;
                 TOPIC_PAGE_SIZE  = (io.config.topic_page_size) ? io.config.topic_page_size : TOPIC_PAGE_SIZE;
 
-                var originalGetTopics = io.db.getTopics,
-                    modelsToVerify = [ Tag, Tag.TopicTags];
+                var originalGetTopics = io.db.getTopics;
                 io.db.getTopics = function (parameters, callback) {
                     originalGetTopics(parameters,function (output) { return TagPlugin.getTopicsWithTags(output,callback); })
                 }
-                modelsToVerify.forEach(function (model) {
-                    io.db.verifyExistance(model, function(){});
-                });
+                io.db.verifyDBIntegrity(function(output){
+                    io.log(JSON.stringify(output));
+                }, [ Tag, Tag.TopicTags]);
                 return this.methods;
             },
 
@@ -43,7 +42,6 @@
                         });
                     });
                 }
-
             },
 
             getTopicTags: function getTopicTags (session,callback) {

@@ -19,6 +19,54 @@
                 this.modelUpdateTableFullName = this.schema+"."+this.prefix+(new ModelUpdate()).collection;
             },
 
+            verifyDBIntegrity : function verifyDBIntegrity (models,callback) {
+                var self = this,
+                    outputs = {};
+
+                self.checkDB( function schemaExists () {
+                    self.db.query ( "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, COLUMN_TYPE, COLUMN_KEY"+
+                            "\n\t"+"FROM information_schema.columns WHERE table_schema='"+self.schema+"'",
+                        function (results) {
+                            var collections = {};
+                            results.forEach(function perRecord (record) {
+                                var tableName = record.TABLE_NAME;
+                                if (!collections[tableName]) {
+                                    collections[tableName] = {};
+                                }
+                                collections[tableName][record.COLUMN_NAME] = record;
+                            });
+
+                            models.forEach(function perModel (model){
+                                var tableName = model.collection,
+                                    table = collections[tableName];
+                                if (!table) {
+                                    self.createTable(model, function () {});
+                                    outputs[tableName] = "created";
+                                } else {
+                                    var schema = model.schema,
+                                        columnResults = [];
+
+                                    _.keys(schema).forEach(function perField(key) {
+                                        var column = table[key];
+                                        if (!column) {
+                                            self.db.query ("ALTER TABLE `"+self.schema+"`.`"+model.collection+"` "+
+                                                    "\n\t"+"ADD COLUMN " + self.getColumnString (key, schema[key], model.autoId),
+                                                function () {});
+                                            columnResults.push ("column added:"+ key);
+                                        } else {
+                                            //TODO: verify column details
+                                            //ALTER TABLE `theo`.`user_topic` CHANGE COLUMN `topic_id` `topic_id` VARCHAR(11) NULL  ;
+                                        }
+                                    });
+                                    outputs[tableName] = columnResults.length ? columnResults : "ok";
+                                }
+                            });
+
+                            callback (outputs);
+                        });
+                });
+            },
+
             checkDB : function checkDB (callback) {
                 var self = this;
                 callback = callback || function(){};
@@ -29,22 +77,7 @@
                        self.createDb(callback);
                    } else {
                        callback({"result":true});
-                   }/*else {
-                       self.isTableExists((new ModelUpdate()).collection, function(output) {
-                           var checkAllTablesExceptModelUpdateCallback = function checkAllTablesExceptModelUpdateCallback(output) {
-                               self.log((output && output.updated) ? "Database had "+output.updated+" updates" : "Database is up to date");
-                               callback();
-                           };
-                           if (output.result === false) {
-                               self.createModelUpdateTable(function () {
-                                   self.checkAllTablesExceptModelUpdate(checkAllTablesExceptModelUpdateCallback);
-                               });
-                           } else {
-                               self.checkAllTablesExceptModelUpdate(checkAllTablesExceptModelUpdateCallback);
-                           }
-
-                       });
-                   }*/
+                   }
                 });
             },
 
@@ -68,19 +101,6 @@
                 });
             },
 
-            createDbCallback : function createDbCallback (output) {
-                var self = this;
-                if (output.result === true) {
-                    self.createModelUpdateTable(function () {
-                        self.createAllTablesExceptModelUpdate(function (output) {
-                            self.log("created " + (output.created+1) + "tables in the database");
-                        });
-                    });
-                } else {
-                    throw new Error ("FAILED TO CREATE DB: "+ JSON.stringify(output));
-                }
-            },
-
             isTableExists : function isTableExists (tableName, callback) {
                 this.db.query ( "SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = '"+this.schema+"' AND TABLE_NAME = '"+this.prefix+tableName+"'" , function (rows) {
                     callback({"result":(rows.length>0)});
@@ -99,10 +119,48 @@
                 });
             },
 
-            /*createTableFromInstructions : function createTableFromInstructions (tableName, callback) {
-                this.executeCreateTableQuery(this.sqlInstructions[tableName]["create-sql"].replace(/#PREFIX\./g,this.db.getPrefix()), callback);
-            },*/
+            getDataType : function getDataType (columnData, isAutoId) {
+                switch (columnData.type) {
+                    case "text":
+                        return columnData.size ? ("VARCHAR("+columnData.size+")") : "TEXT";
+                    case "number":
+                        switch (columnData.size) {
+                            case 2: return "DECIMAL";
+                            case 4: return "FLOAT";
+                            case 8: return "DOUBLE";
+                            default: return "FLOAT";
+                        }
+                        return "FLOAT";
+                    case "integer":
+                        switch (columnData.size) {
+                            case 2: return "TINYINT";
+                            case 4: return "SMALLINT";
+                            case 8: return "BIGINT";
+                            default: return "INT";
+                        }
+                        return "INT";
+                    case "boolean": return "BOOL";
+                    case "date": return columnData.time ? "DATE" : "DATETIME";
+                    case "enum": return "ENUM('"+columnData.values.join("','")+"')";
+                    case "object": return "TEXT"; //json
+                    case "point": return "POINT";
+                    case "binary": return "BINARY";
+                    case "serial": return "INT" + (isAutoId ? " AUTO_INCREMENT" : "");
+                    default:
+                        this.log("column with no type?! "+ JSON.stringify(columnData) );
+                        return "TEXT"; //how did you get here?!
+                }
+            },
 
+            getColumnString : function getColumnString (columnName, columnData, isAutoId) {
+                var columnString = "`"+columnName+"` ";
+                columnString += this.getDataType (columnData, isAutoId);
+                if (columnData.defaultValue) {
+                    columnString += " DEFAULT '"+columnData.defaultValue+"'";
+                }
+                columnString += (columnData.isNull?"":" NOT") + " NULL";
+                return columnString;
+            },
             createTable : function createTable (modelClass, callback) {
                 var self = this,
                     model = new modelClass(),
@@ -116,41 +174,8 @@
 
                 for (var columnName in modelSchema) {
                     var columnData = modelSchema[columnName];
-                    queryString += (queryString.length?", ":"")+"`"+columnName+"` ";
-                    switch (columnData.type) {
-                        case "text":
-                            queryString += columnData.size ? ("VARCHAR("+columnData.size+")") : "TEXT";
-                            break;
-                        case "number":
-                            switch (columnData.size) {
-                                case 2: queryString += "DECIMAL"; break;
-                                case 4: queryString += "FLOAT"; break;
-                                case 8: queryString += "DOUBLE"; break;
-                                default: queryString += "FLOAT"; break;
-                            }
-                            break;
-                        case "integer":
-                            switch (columnData.size) {
-                                case 2: queryString += "TINYINT"; break;
-                                case 4: queryString += "SMALLINT"; break;
-                                case 8: queryString += "BIGINT"; break;
-                                default: queryString += "INT"; break;
-                            }
-                            break;
-                        case "boolean": queryString += "BOOL"; break;
-                        case "date": queryString += columnData.time ? "DATE" : "DATETIME"; break;
-                        case "enum":
-                            queryString += "ENUM('"+columnData.values.join("','")+"')";
-                            break;
-                        case "object": queryString += "TEXT";break; //json
-                        case "point": queryString += "POINT"; break;
-                        case "binary": queryString += "BINARY";break;
-                        case "serial": queryString += "INT" + (modelClass.autoId ? " AUTO_INCREMENT" : ""); break;
-                    }
-                    if (columnData.defaultValue) {
-                        queryString += "DEFAULT '"+columnData.defaultValue+"'";
-                    }
-                    queryString += (columnData.isNull?"":" NOT") + " NULL";
+                    queryString += (queryString.length?", ":"") + self.getColumnString (columnName, columnData, modelClass.autoId);
+
                     if (columnData.isSecondaryKey) {
                         keys.push("KEY `idx_"+model.collection+"_"+columnName+"` (`"+columnName+"`)");
                     } else if (columnData.isUnique) {
@@ -166,102 +191,16 @@
 
             getUpdateIntoModelUpdateTableQuery : function getUpdateIntoModelUpdateTableQuery (tableName) {
                 return "UPDATE "+this.modelUpdateTableFullName+ " SET modified = '"+(new Date()).toISOString()+"' WHERE model='"+tableName+"'";
-            },
-
-            /*
-             createModelUpdateTable
-             ModelUpdate is created seperately because it's the only table that has content by default
-            * *//*
-            createModelUpdateTable : function createModelUpdateTable (callback) {
-                var self=this,
-                    queries = [],
-                    instructions = self.sqlInstructions,
-                    prefix =self.db.getPrefix(),
-                    modelUpdatesTable = (new ModelUpdate()).collection;
-                queries.push(instructions[modelUpdatesTable]["create-sql"].replace(/#PREFIX\./g,prefix));
-                Object.keys(instructions).forEach(function(tableName){
-                    queries.push(self.getInsertIntoModelUpdateTableQuery(tableName));
-                });
-                self.db.executeMultipleUpdates(queries,callback);
-            },*/
-
-            /*
-             createAllTablesExceptModelUpdate
-             Creates all tables (except for Model-Update) without checking whether they exists or not
-             Note that it is presumed the line in Model-update is already set properly
-             *//*
-            createAllTablesExceptModelUpdate : function createAllTablesExceptModelUpdate (callback) {
-                var queries = [],
-                    instructions = this.sqlInstructions,
-                    prefix = this.db.getPrefix(),
-                    modelUpdatesTable = (new ModelUpdate()).collection;
-                Object.keys(instructions).forEach(function(tableName){
-                    if (tableName != modelUpdatesTable) {
-                        var table = instructions[tableName];
-                        queries.push(table["create-sql"].replace(/#PREFIX\./g,prefix));
-                        table.updates.forEach(function(update) {
-                            update.queries.forEach(function (query) {
-                                queries.push(query.replace(/#PREFIX\./g,prefix));
-                            });
-                        });
-
-                    }
-                });
-                this.db.executeMultipleUpdates(queries,function() {
-                    callback({"created ":Object.keys(instructions).length});
-                });
-            },*//*
-
-            checkAllTablesExceptModelUpdate : function checkAllTablesExceptModelUpdate (callback) {
-                var self =this,
-                    instructions = this.sqlInstructions,
-                    updateCount = 0;
-                    checkTableIsUpToDateCallback = function checkTableIsUpToDateCallback (output) {
-                        updateCount += output.updated;
-                    };
-
-                Object.keys(instructions).forEach(function(tableName){
-                    self.isTableExists(tableName, function (output) {
-                        if (output.result !== true) {
-                            self.createTableFromInstructions(tableName,function () {
-                                self.checkTableIsUpToDate (tableName, checkTableIsUpToDateCallback);
-                            });
-                        } else {
-                            self.checkTableIsUpToDate (tableName, checkTableIsUpToDateCallback);
-                        }
-                    });
-                });
-                callback({"updated":updateCount});
-            },*//*
-
-            checkTableIsUpToDate : function checkTableIsUpToDate (tableName, callback) {
-                var self = this,
-                    queries = [],
-                    prefix = self.db.getPrefix();
-
-                this.db.query("SELECT modified FROM "+this.modelUpdateTableFullName + " WHERE model='"+this.prefix+tableName+"'", function (output){
-                    var lastUpdate = output.length ? new Date(output[0].modified) : false;
-
-                        self.sqlInstructions[tableName].updates.forEach(function(update) {
-                            if (!lastUpdate || (new Date(update.date)) > lastUpdate) {
-                                update.queries.forEach(function (query) {
-                                    queries.push(query.replace(/#PREFIX\./g,prefix));
-                                });
-                            }
-                        });
-
-                    queries.push(output.length ? self.getUpdateIntoModelUpdateTableQuery(tableName) : self.getInsertIntoModelUpdateTableQuery(tableName));
-                    self.db.executeMultipleUpdates(queries,function() {
-                        callback ({"updated":queries.length});
-                    });
-                });
-            }*/
+            }
 
     };
     })();
 
     exports.init = MySQLDbAdmin.init.bind(MySQLDbAdmin);
     exports.checkDB = MySQLDbAdmin.checkDB.bind(MySQLDbAdmin);
+    exports.verifyDBIntegrity = MySQLDbAdmin.verifyDBIntegrity.bind(MySQLDbAdmin);
+
+
     exports.isTableExists = MySQLDbAdmin.isTableExists.bind(MySQLDbAdmin);
     exports.createTable = MySQLDbAdmin.createTable.bind(MySQLDbAdmin);
 })();

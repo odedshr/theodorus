@@ -88,3 +88,4 @@ cd /runtime/theodorus-profile-images
 - 2014/09/12 - 0.19.1 - fixed some bugs caused by the plugin change
 - 2014/09/14 - 0.20 - Grunt
 - 2014/09/14 - 0.21 - topic-draft editing
+- 2014/09/14 - 0.22 - changing topic status from idea to discussion to draft
