@@ -387,6 +387,26 @@ h3 {
       display: inline;
       margin-right:1rem;
     }
+    .statistics {
+      display: inline;
+
+      .count {}
+
+      .count:before { content: "("; }
+      .count:after { content: ") " ;}
+      .item-label { margin-right: 0.1rem; }
+
+      .statistics-item {
+        display: inline;
+        margin-right:1rem;
+
+        .item-label:before { content: " ";}
+      }
+      .stat-opinion { cursor: help; }
+      .stat-opinion.statistics-item-0 { display: none; }
+      .stat-endorse.statistics-item-0 { display: none; }
+    }
+
     .actions {
       display: inline;
 
@@ -394,22 +414,8 @@ h3 {
         display: inline;
         margin-right:1rem;
 
-        .count {}
-
-        .count:before { content: "("; }
-        .count:after { content: ") " ;}
         .item-label { margin-right: 0.1rem; }
       }
-
-      .statistics-item {
-          display: inline;
-          margin-right:1rem;
-
-        .item-label:before { content: " ";}
-      }
-      .stat-opinion { cursor: help; }
-      .stat-opinion.statistics-item-0 { display: none; }
-      .stat-endorse.statistics-item-0 { display: none; }
     }
 
   }

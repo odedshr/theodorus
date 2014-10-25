@@ -219,9 +219,8 @@
     <xsl:param name="link_suggest_topic" select="'נושא חדש'"/>
     <xsl:param name="btn_remove" select="'הסרה'"/>
     <xsl:param name="stat_endorse" select="'תומכים'"/>
-    <xsl:param name="btn_endorse" select="'תומכים'"/>
-    <xsl:param name="btn_endorse_tooltip" select="'הבעת תמיכה'"/>
-    <xsl:param name="btn_unendorse_tooltip" select="'הסרת תמיכה'"/>
+    <xsl:param name="btn_endorse" select="'הבעת תמיכה'"/>
+    <xsl:param name="btn_unendorse" select="'הסרת תמיכה'"/>
     <xsl:param name="stat_follow" select="'עוקבים'"/>
     <xsl:param name="btn_follow" select="'מעקב'"/>
     <xsl:param name="stat_report" select="'דיווחים'"/>

@@ -415,29 +415,36 @@ h3 {
       display: inline;
       margin-left:1rem;
     }
-    .actions {
+    .statistics {
       display: inline;
 
-      .button-action {
-        display: inline;
-        margin-left:1rem;
+      .count {}
 
-        .count {}
-
-        .count:before { content: "("; }
-        .count:after { content: ") " ;}
-        .item-label { margin-left: 0.1rem; }
-      }
+      .count:before { content: "("; }
+      .count:after { content: ") " ;}
+      .item-label { margin-left: 0.1rem; }
 
       .statistics-item {
-          display: inline;
-          margin-left:1rem;
+        display: inline;
+        margin-left:1rem;
 
         .item-label:before { content: " ";}
       }
       .stat-opinion { cursor: help; }
       .stat-opinion.statistics-item-0 { display: none; }
       .stat-endorse.statistics-item-0 { display: none; }
+    }
+    .actions:before {
+      content : "|";
+      margin-left:0.5rem;
+    }
+    .actions {
+      display: inline;
+
+      .button-action {
+        display: inline;
+        margin-left: 1rem;
+      }
     }
   }
 }
