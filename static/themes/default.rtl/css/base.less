@@ -434,7 +434,7 @@ h3 {
       .stat-opinion.statistics-item-0 { display: none; }
       .stat-endorse.statistics-item-0 { display: none; }
     }
-    .actions:before {
+    .actions:not(:empty):before {
       content : "|";
       margin-left:0.5rem;
     }

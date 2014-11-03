@@ -176,18 +176,20 @@
                 <xsl:when test="initiator/user_id != //user/user_id and status = 'idea'">
                     <span class="hidden"> | </span>
                     <div class="actions">
-                        <xsl:choose>
-                            <xsl:when test="user_endorse = '1'">
-                                <a class="button-action button-endorse pressed" href="/topics/{topic_id}/unendorse?nocache={//noCache}">
-                                    <span class="item-label"><xsl:value-of select="$btn_unendorse" /></span>
-                                </a>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <a class="button-action button-endorse" href="/topics/{topic_id}/endorse?nocache={//noCache}">
-                                    <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
-                                </a>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:if test="//user/permissions/endorse">
+                            <xsl:choose>
+                                    <xsl:when test="user_endorse = '1'">
+                                        <a class="button-action button-endorse pressed" href="/topics/{topic_id}/unendorse?nocache={//noCache}">
+                                            <span class="item-label"><xsl:value-of select="$btn_unendorse" /></span>
+                                        </a>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <a class="button-action button-endorse" href="/topics/{topic_id}/endorse?nocache={//noCache}">
+                                            <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                                        </a>
+                                    </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:if>
                     </div>
                 </xsl:when>
             </xsl:choose>

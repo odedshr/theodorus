@@ -48,7 +48,7 @@
         <error type="name-in-use">שם המשתמש כבר בשימוש</error>
         <error type="method-not-implemented">המתודה טרם יושמה</error>
         <error type="bad-credentials">פרטי ההתחברות שגויים</error>
-        <error type="no-permission">אין לך הרשאות לפעולה זו</error>
+        <error type="permission-error">אין לך הרשאות לפעולה זו</error>
         <error type="no-input">פעולה זו דורשת קלט</error>
         <result type="title-too-long">הכותרת ארוכה מדי</result>
         <result type="title-too-short">הכותרת קצרה מדי</result>

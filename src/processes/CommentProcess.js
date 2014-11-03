@@ -114,7 +114,7 @@
                                         }
                                     });
                                 } else {
-                                    callback (session.getErrorHandler("no-permission"));
+                                    callback (session.getPermissionDeniedError());
                                 }
                             });
                         });

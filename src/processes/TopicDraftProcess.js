@@ -25,7 +25,7 @@
 
                         });
                     } else {
-                        callback(session.getErrorHandler("no-permissions"));
+                        callback(session.getPermissionDeniedError());
                     }
                 });
 
@@ -161,7 +161,7 @@
 
                         });
                     } else {
-                        callback(session.getErrorHandler("no-permissions"));
+                        callback(session.getPermissionDeniedError());
                     }
                 });
             },
