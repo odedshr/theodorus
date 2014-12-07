@@ -1,0 +1,2 @@
+#!/bin/bash
+date >> ${OPENSHIFT_NODEJS_LOG_DIR}/ticktock.log
