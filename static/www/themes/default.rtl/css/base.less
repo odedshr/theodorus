@@ -415,40 +415,42 @@ h3 {
       display: inline;
       margin-left:1rem;
     }
-    .statistics {
-      display: inline;
-
-      .count {}
-
-      .count:before { content: "("; }
-      .count:after { content: ") " ;}
-      .item-label { margin-left: 0.1rem; }
-
-      .statistics-item {
-        display: inline;
-        margin-left:1rem;
-
-        .item-label:before { content: " ";}
-      }
-      .stat-opinion { cursor: help; }
-      .stat-opinion.statistics-item-0 { display: none; }
-      .stat-endorse.statistics-item-0 { display: none; }
-    }
-    .actions:not(:empty):before {
-      content : "|";
-      margin-left:0.5rem;
-    }
-    .actions {
-      display: inline;
-
-      .button-action {
-        display: inline;
-        margin-left: 1rem;
-      }
-    }
   }
 }
 
+.topic {
+  .statistics {
+    display: inline;
+
+    .count {}
+
+    .count:before { content: "("; }
+    .count:after { content: ") " ;}
+    .item-label { margin-left: 0.1rem; }
+
+    .statistics-item {
+      display: inline;
+      margin-left:1rem;
+
+      .item-label:before { content: " ";}
+    }
+    .stat-opinion { cursor: help; }
+    .stat-opinion.statistics-item-0 { display: none; }
+    .stat-endorse.statistics-item-0 { display: none; }
+  }
+  .actions:not(:empty):before {
+    content : "|";
+    margin-left:0.5rem;
+  }
+  .actions {
+    display: inline;
+
+    .button-action {
+      display: inline;
+      margin-left: 1rem;
+    }
+  }
+}
 .topic-view .topic-title:before, .feed .title-link:before {
   background: url('/ui/img/all.png') no-repeat transparent;
   content: " ";
@@ -581,6 +583,10 @@ h3 {
 
       .commenter, .comment-content {
         font-size:1.2rem;
+      }
+      .comment-content:after {
+        content:"\A";
+        white-space:pre;
       }
       .commenter {
           color: @theodorusColor;

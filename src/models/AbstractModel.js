@@ -42,7 +42,7 @@
                         }
                     }
                     catch (err) {
-                        console.error("failed to write "+ key+" to "+ this.collection +" with "+newValue);
+                        console.error("failed to write '"+newValue+"' ("+(typeof newValue)+") to "+ key+" in "+ this.collection + " with error: " + err);
                     }
                 }
             }

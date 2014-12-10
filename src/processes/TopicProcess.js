@@ -4,14 +4,18 @@
         Comment = (typeof Comment !== "undefined") ? Comment : require("../models/Comment").model(),
         User = (typeof User !== "undefined") ? User : require("../models/User").model(),
         _ = (typeof _ !== "undefined") ? _ : require("underscore"),
-        TOPIC_PAGE_SIZE = 0;
+        TOPIC_PAGE_SIZE = 0,
+        RELEVANCY_PERIOD = 0;
 
     var TopicProcess = (function () {
         return {
             init: function (ioFunctions) {
                 io = ioFunctions;
-                var topicPageSize = io.config.topic_page_size;
+                var topicPageSize = io.vars("topic_page_size"),
+                    relevancyPeriod = io.vars("relevancy_period");
+
                 TOPIC_PAGE_SIZE  = (topicPageSize) ? topicPageSize : TOPIC_PAGE_SIZE;
+                RELEVANCY_PERIOD = (relevancyPeriod) ? relevancyPeriod : RELEVANCY_PERIOD;
                 return this.methods;
             },
 
@@ -43,7 +47,8 @@
                         parameters = {
                             "user" : userId,
                             "pageSize" : TOPIC_PAGE_SIZE,
-                            "page": page
+                            "page": page,
+                            "relevancyPeriod" : RELEVANCY_PERIOD
                         };
 
                     io.db.getTopics (parameters,function (topics) {

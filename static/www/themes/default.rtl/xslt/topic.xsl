@@ -24,7 +24,7 @@
             </xsl:choose>
         </xsl:param>
 
-        <div id="topic" class="topic-view">
+        <div id="topic" class="topic topic-view">
             <!--<a href="{//referer}" class="button-back" onclick="history.go(-1);return false;"><xsl:value-of select="$back" /></a>-->
             <a href="/" class="button-back"><xsl:value-of select="$back" /></a>
             <h2 class="topic-title {topic/status}"><xsl:value-of select="topic/title" /></h2>
@@ -45,7 +45,7 @@
 
                 <span class="hidden"> · </span>
 
-                <div class="actions">
+                <div class="statistics">
                     <a class="statistics-item stat-opinion statistics-item-{topic/opinion}" title="{topic/comment} {$stat_comment}">
                         <span class="count"><xsl:value-of select="topic/opinion" /></span>
                         <span class="hidden"> · </span>
@@ -54,35 +54,40 @@
 
                     <span class="hidden"> · </span>
 
-                    <xsl:choose>
-                        <xsl:when test="topic/initiator/user_id = //user/user_id and endorse = 0 and follow = 0 and comment = 0">
-                            <a class="statistics-item stat-endorse statistics-item-{topic/endorse}">
-                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
-                                <span class="hidden"> · </span>
-                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
-                            </a>
-                            <a class="button-action" href="/topics/{topic/topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
-                        </xsl:when>
-                        <xsl:when test="topic/initiator/user_id != //user/user_id">
-                            <a class="button-action button-endorse" href="/topics/{topic/topic_id}/endorse?nocache={//noCache}">
-                                <xsl:if test="topic/user_endorse = '1'">
-                                    <xsl:attribute name="href">/topics/<xsl:value-of select="topic/topic_id"/>/unendorse?nocache=<xsl:value-of select="//noCache"/></xsl:attribute>
-                                    <xsl:attribute name="class">button-action pressed</xsl:attribute>
-                                </xsl:if>
-                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
-                                <span class="hidden"> · </span>
-                                <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
-                            </a>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <a class="statistics-item stat-endorse statistics-item-{topic/endorse}">
-                                <span class="count"><xsl:value-of select="topic/endorse" /></span>
-                                <span class="hidden"> · </span>
-                                <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
-                            </a>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <a class="statistics-item stat-endorse statistics-item-{topic/endorse}">
+                        <span class="count"><xsl:value-of select="topic/endorse" /></span>
+                        <span class="hidden"> · </span>
+                        <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                    </a>
                 </div>
+
+                <xsl:choose>
+                    <xsl:when test="topic/initiator/user_id = //user/user_id and topic/endorse = 0 and topic/follow = 0 and topic/comment = 0">
+                        <span class="hidden"> | </span>
+                        <div class="actions">
+                            <a class="button-action" href="/topics/{topic/topic_id}/remove"><xsl:value-of select="$btn_remove" /></a>
+                        </div>
+                    </xsl:when>
+                    <xsl:when test="topic/initiator/user_id != //user/user_id">
+                        <span class="hidden"> | </span>
+                        <div class="actions">
+                            <xsl:if test="//user/permissions/endorse">
+                                <xsl:choose>
+                                    <xsl:when test="topic/user_endorse = '1'">
+                                        <a class="button-action button-endorse pressed" href="/topics/{topic/topic_id}/unendorse?nocache={//noCache}">
+                                            <span class="item-label"><xsl:value-of select="$btn_unendorse" /></span>
+                                        </a>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <a class="button-action button-endorse" href="/topics/{topic/topic_id}/endorse?nocache={//noCache}">
+                                            <span class="item-label"><xsl:value-of select="$btn_endorse" /></span>
+                                        </a>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:if>
+                        </div>
+                    </xsl:when>
+                </xsl:choose>
             </div>
             <ul id="socialTools" class="socialTools">
                 <li id="twitter-button" class="socialTool twitter">
@@ -318,52 +323,43 @@
             </xsl:choose>
             <span class="hidden"> · </span>
 
-            <div class="actions">
-                <xsl:choose>
-                    <xsl:when test="$is_mine and $is_leaf and not(//commentId)">
+            <xslt:call-template name="datetime-render">
+                <xsl:with-param name="value" select="prettyCreated" />
+            </xslt:call-template>
+            <span class="hidden"> · </span>
+
+            <div class="statistics">
+                <span class="statistics-item stat-endorse">
+                    <span class="count"><xsl:value-of select="$comment/endorse" /></span>
+                    <span class="hidden"> · </span>
+                    <span class="item-label"><xsl:value-of select="$stat_endorse" /></span>
+                </span>
+            </div>
+
+            <xsl:choose>
+                <xsl:when test="$is_mine and $is_leaf and not(//commentId)">
+                    <span class="hidden"> · </span>
+
+                    <div class="actions">
                         <xsl:if test="$comment/endorse = 0 and $comment/follow = 0 and count($comment/comments/comment[not(commenter/user_id = //user/user_id)]) = 0">
                             <a class="button-action" href="/topics/{//topic/topic_id}/comments/{$comment/comment_id}/remove"><xsl:value-of select="$btn_remove" /></a>
                         </xsl:if>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xslt:call-template name="datetime-render">
-                            <xsl:with-param name="value" select="prettyCreated" />
-                        </xslt:call-template>
-
-                        <span class="hidden"> · </span>
-
-                        <xsl:choose>
-                            <xsl:when test="$comment/commenter/user_id != //user/user_id">
-                                <xslt:call-template name="endorse">
-                                    <xsl:with-param name="count" select="$comment/endorse" />
-                                    <xsl:with-param name="user_endorse" select="user_endorse"/>
-                                </xslt:call-template>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xslt:call-template name="endorse">
-                                    <xsl:with-param name="count" select="$comment/endorse" />
-                                    <xsl:with-param name="user_endorse" select="false()"/>
-                                </xslt:call-template>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <xsl:choose>
-                    <xsl:when test="//user/user_id and //commentId = comment_id" >
-                        <xsl:call-template name="comment-box">
-                            <xsl:with-param name="parent_id" select="comment_id" />
-                            <xsl:with-param name="original" select="empty" />
-                        </xsl:call-template>
-                    </xsl:when>
-                    <xsl:when test="//user/user_id and not($is_mine)">
-                        <a class="button-action" href="/topics/{//topic/topic_id}/comments/{comment_id}#add_comment"><xsl:value-of select="$btn_add_comment" /></a>
-                    </xsl:when>
-                    <xsl:when test="$is_mine and $is_root and //commentId" >
-                        <a class="button-action" href="/topics/{//topic/topic_id}"><xsl:value-of select="$btn_update_comment" /></a>
-                    </xsl:when>
-                </xsl:choose>
-            </div>
+                    </div>
+                </xsl:when>
+                <xsl:when test="//user/user_id and //commentId = comment_id" >
+                    <xsl:call-template name="comment-box">
+                        <xsl:with-param name="parent_id" select="comment_id" />
+                        <xsl:with-param name="original" select="empty" />
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:when test="//user/user_id and not($is_mine)">
+                    <a class="button-action button-endorse" href="/topics/{comment_id}/endorse?nocache={//noCache}"><xsl:value-of select="$btn_endorse" /></a>
+                    <a class="button-action" href="/topics/{//topic/topic_id}/comments/{comment_id}#add_comment"><xsl:value-of select="$btn_add_comment" /></a>
+                </xsl:when>
+                <xsl:when test="$is_mine and $is_root and //commentId" >
+                    <a class="button-action" href="/topics/{//topic/topic_id}"><xsl:value-of select="$btn_update_comment" /></a>
+                </xsl:when>
+            </xsl:choose>
 
             <span class="hidden"> · </span>
 

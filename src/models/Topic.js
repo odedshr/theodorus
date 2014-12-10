@@ -43,7 +43,7 @@
                 "comment": { type: "integer", defaultValue: 0},
                 "votes_required": { type: "integer", defaultValue: 0 },
                 "yes_votes_required": { type: "integer", defaultValue: 0 },
-                "votes": { type: "object", isNullOk: true },
+                "votes": { type: "object", isNullOk: true, defaultValue: "{}" },
                 "status": { type: "enum", values: ["idea", "discussion", "draft", "proposal","agreement", "removed"], defaultValue: "na", isNullOk: true},
                 "report_status": { type: "enum", values: ["na", "questioned", "ok", "irrelevant", "offensive", "spam", "violent", "selfcensor"], defaultValue: "idea", isNullOk: true},
                 "score": { type: "number", isNullOk: false, isSecondaryKey: true }

@@ -5,12 +5,10 @@
  * */
 
 (function MySQLDbAPIClosure() {
-     //TODO: move TOPIC_PAGE_SIZE and RELEVANCY_PERIOD to config.json
     var db = require('./MySQLDb'),
         dbAdmin = require("./MySQLDbAdmin"),
         ORM = require("orm"),
         ormConnectionString = "",
-        RELEVANCY_PERIOD = 14,
         User = require("../models/User").model(),
         Credentials = require("../models/Credentials").model(),
         Topic = require("../models/Topic").model(),
@@ -177,9 +175,10 @@
         var userId = parameters.user,
             pageSize = (parameters.pageSize) ? parameters.pageSize : 0,
             page =  (parameters.page) ? parameters.page : 1,
-            limit = ""; //pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "";
+            limit = pageSize>0 ? ("LIMIT "+((page-1)*pageSize)+", "+pageSize ): "",
+            relevancyPeriod = (parameters.relevancyPeriod) ? parameters.relevancyPeriod : 0;
 
-            if (!parameters.where) {
+        if (!parameters.where) {
                 parameters.where = [];
             }
             if (parameters.whitelist) {
@@ -191,7 +190,7 @@
          RELEVANCY_PERIOD points) + number of follows, endorsements and reports
          * */
         var query = "SELECT t.user_id AS user_id, display_name,u.slug AS user_slug, u.picture AS picture,"+
-            "\n\t"+"(t.score + GREATEST(0,"+RELEVANCY_PERIOD+"-datediff(now(),t.modified)) +"+
+            "\n\t"+"(t.score + GREATEST(0,"+ relevancyPeriod +"-datediff(now(),t.modified)) +"+
             "\n\t"+"\n\t"+"(t.follow+IFNULL(ut.follow,0)) + ((t.endorse+IFNULL(ut.endorse,0))*1.1) - (t.report+IFNULL(ut.report,0))) AS score,"+
             "\n\t"+"t.topic_id AS topic_id, t.slug AS slug, created, t.modified AS modified, title, "+
             "\n\t"+"t.seen AS seen, t.follow AS follow, t.endorse AS endorse, t.comment AS comment, t.opinion AS opinion,"+

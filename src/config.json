@@ -16,6 +16,7 @@
     "maximum_topic_section_length":140,
     "maximum_slug_length":140,
     "topic_page_size":10,
+    "relevancy_period":14,
     "topic_status_caps":{
         "idea":10,
         "discussion":33,

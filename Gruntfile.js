@@ -4,7 +4,7 @@ module.exports = function(grunt) {
             'grunt-contrib-clean',
             'grunt-contrib-uglify',
             'grunt-contrib-jshint',
-            'grunt-copy-to',
+            'grunt-contrib-copy',
             'grunt-rename',
             'grunt-recess',
         ],
@@ -24,8 +24,8 @@ module.exports = function(grunt) {
                         compress: true
                     },
                     files: {
-                        'build.new/www/themes/default/core.css': ['static/themes/default/css/base.less'],
-                        'build.new/www/themes/default.rtl/core.css': ['static/themes/default.rtl/css/base.less']
+                        'build.new/www/themes/default/core.css': ['static/www/themes/default/css/base.less'],
+                        'build.new/www/themes/default.rtl/core.css': ['static/www/themes/default.rtl/css/base.less']
                     }
                 }
             },
@@ -34,7 +34,7 @@ module.exports = function(grunt) {
                 options : {
                     /*reporterOutput: "logs/jshint.log"*/
                 },
-                all: ['Gruntfile.js', 'src/**/*.js', 'tests/**/*.js', 'static/themes/**/*.js']
+                all: ['Gruntfile.js', 'src/**/*.js', 'tests/**/*.js', 'static/www/themes/**/*.js']
             },
 
             uglify: {
@@ -52,24 +52,26 @@ module.exports = function(grunt) {
                 }
             },
 
-            copyto: {
+            copy: {
                 everything: {
                     files: [
                         { cwd: '.', src: ['package.json','LICENSE','README.md'], dest: 'build.new/'},
                         { cwd: 'node_modules', src: ['cheerio/**', 'backbone/**', 'cookie-parser/**', 'express/**', 'formidable/**', 'imagemagick/**', 'mysql/**', 'nodemailer/**', 'orm/**', 'underscore/**'], dest: 'build.new/node_modules/'},
-                        { cwd: 'src', src: ['server.js','config.json','app/**'], dest: 'build.new/'},
+                        { cwd: 'src', src: ['server.js','*.json','app/**'], dest: 'build.new/'},
                         { cwd: 'src', src: ['themes/**'], dest: 'build.new/www/themes/', filter:'isFile' },
                         { cwd: 'src', src: ['processes/**'], dest: 'build.new/app/', filter:'isFile' },
                         { cwd: 'src', src: ['models/**'], dest: 'build.new/app/', filter:'isFile' },
                         { cwd: 'src', src: ['db/**'], dest: 'build.new/app/', filter:'isFile' },
                         { cwd: 'src', src: ['utils/**'], dest: 'build.new/app/', filter:'isFile' },
-                        { cwd: 'static', src: ['**'], dest: 'build.new/www/'},
+                        { cwd: 'static/.openshift', src: ['**'], dest: 'build.new/.openshift/'},
+                        { cwd: 'static', src: ['**'], dest: 'build.new/'},
                         { cwd: '.', src: ['plugins/**'], dest: 'build.new/www/'}
                     ],
                     options: {
                         ignore: [
-                            'static/**/css{,/**/*}'
-                        ]
+                            'static/www/**/css{,/**/*}'
+                        ],
+                        mode: true
                     }
                 },
 
@@ -77,12 +79,12 @@ module.exports = function(grunt) {
                     files: [
                         { cwd: '.', src: ['package.json','LICENSE','README.md'], dest: 'build/'},
                         { cwd: 'src', src: ['themes/**'], dest: 'build/www/themes/', filter:'isFile' },
-                        { cwd: 'static', src: ['**'], dest: 'build/www/'},
+                        { cwd: 'static', src: ['**'], dest: 'build/'},
                         { cwd: '.', src: ['plugins/**'], dest: 'build/www/'}
                     ],
                     options: {
                         ignore: [
-                            'static/**/css{,/**/*}'
+                            'static/www/**/css{,/**/*}'
                         ]
                     }
                 },
@@ -94,7 +96,7 @@ module.exports = function(grunt) {
                     ],
                     options: {
                         ignore: [
-                            'static/**/css{,/**/*}'
+                            'static/www/**/css{,/**/*}'
                         ]
                     }
                 }
@@ -103,7 +105,7 @@ module.exports = function(grunt) {
             jsdoc : {
                 // http://usejsdoc.org/howto-commonjs-modules.html
                 dist : {
-                    src: ['src/**/*.js', 'tests/**/*.js', 'plugins/**/*.js', 'static/themes/**/*.js'],
+                    src: ['src/**/*.js', 'tests/**/*.js', 'plugins/**/*.js', 'static/www/themes/**/*.js'],
                     options: {
                         destination: 'build.new/docs'
                     }
@@ -157,10 +159,10 @@ module.exports = function(grunt) {
         grunt.loadNpmTasks(npm);
     });
     //grunt.registerTask('test', ['qunit']);
-    grunt.registerTask('build', ['clean', 'jshint','copyto:everything','recess','uglify']);
-    grunt.registerTask('client-side', ['jshint','copyto:rebuild_client_side','recess','uglify']);
-    grunt.registerTask('default', ['clean','jshint','copyto:everything','recess','uglify','rename:currentToOld','rename:newToCurrent','forever:start']);
-    grunt.registerTask('stop-and-default', ['forever:stop','clean','jshint','copyto:everything','recess','uglify','rename:currentToOld','rename:newToCurrent','forever:start']);
+    grunt.registerTask('build', ['clean', 'jshint','copy:everything','recess','uglify']);
+    grunt.registerTask('client-side', ['jshint','copy:rebuild_client_side','recess','uglify']);
+    grunt.registerTask('default', ['clean','jshint','copy:everything','recess','uglify','rename:currentToOld','rename:newToCurrent','forever:start']);
+    grunt.registerTask('stop-and-default', ['forever:stop','clean','jshint','copy:everything','recess','uglify','rename:currentToOld','rename:newToCurrent','forever:start']);
     //grunt.loadNpmTasks('grunt-jsdoc');
     //TODO: add qunit, jsdoc
 

@@ -397,7 +397,7 @@
                 self.log("Node server running "+self.appName+" on "+self.ipaddress+":"+self.port,"info");
                 self.initProcesses();
                 self.db.verifyDBIntegrity(function (output) {
-                    self.log(JSON.stringify(output));
+                    self.log("verifyDBIntegrity: "+JSON.stringify(output));
                 });
                 if (typeof callback == "function") {
                     callback();

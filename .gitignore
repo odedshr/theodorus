@@ -44,3 +44,4 @@ Thumbs.db
 .idea
 
 /node_modules/node_xslt/*.*
+environment_variables.json
