@@ -16,6 +16,51 @@ to educate people to participate in the political debate and encourage them to e
 * This is my first opensource proejct at github, so I'm still learning the trade. Please bare with me.
 ** I will appreciate any feedback regarding the project itself and its maintenance.
 
+## Models
+* User
+  - It has login credentials (username, password)
+* Community
+  - User can belong to one or more communities
+  - A community can be visible to all or to members-only
+  - Joining a community can be limited to invitation-only, invitation and/or request, free for all
+  - User can create their own communities
+  - Community has a name, a description and a logo
+  - Community can decide whether permissions and penalties are visible or private
+* Membership is the relationship between a user and a community
+  - It has a display name
+  - It has a profile image
+  - It has a score
+  - It has bio (100 words)
+  - It has the set of available permissions
+  - It has a list of penalties
+  - It has the flag "moderator"
+  - It has a flag "public" making all his actions visible to other members in the community
+  - It has the flag "representative" (so others members can endorse him)
+* ProfileImage is an image that belongs to a user
+  - he can link it to different memberships
+  - user can add up to 10 different profileImages
+  - User can only remove profilesImages that are not linked to a membership
+* Message can be either: 
+  - Topic is the beginning of a discussion in a community.
+      - It contains a message of 140 characters
+      - It may contain up to 140 different links
+      - It has a single creator (a user)
+  - Response is a user's response to a topic
+      - It contains a message of 140 characters (or 140 links)
+      - A user may have a single response per topic
+  - Comment is a feedback to a response or to another comment
+      - It contains a message of 100 words
+      - A user may have many comments to per response
+* Rating is set of values a user can give to topic/response/comment
+  - It contains the flags - Endorse, Follow, Report
+  - Endorse and Report are mutually exclusive
+* Interaction is the relationship between user to another user in his community
+  - He can follow (meaning, he'll get notification on the user's activities)
+  - He can endorse (meaning, he'll automatically endorse anything the representative will endorse)
+  - He can report of misconduct
+
+
+
 ### Settings to configure
 The following items should be configured as a environment variables (that way they are hidden by anyone plainly looking
 at your code). Use the command line (or terminal console) to set them:
