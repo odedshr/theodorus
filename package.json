@@ -31,14 +31,6 @@
     "winston": "^1.1.1"
   },
   "devDependencies": {
-    "grunt": "*",
-    "grunt-contrib-clean": "*",
-    "grunt-contrib-copy": "*",
-    "grunt-contrib-nodeunit": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-forever": "*",
-    "grunt-recess": "*",
-    "grunt-rename": "*",
     "minimatch": "*",
     "mocha": "^2.3.3",
     "qunitjs": "*",
