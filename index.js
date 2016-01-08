@@ -6,7 +6,7 @@
     var app = express();
     var config = require('./helpers/config.js');
     var log = require('./helpers/logger.js');
-    var createContext = require('./helpers/Context.js');
+    var createContext = require('./helpers/context.js');
     var db = require('./helpers/db.js');
     var iterateFiles = require('./helpers/iterateFiles.js');
     var routesFolder = './routes';
@@ -53,7 +53,10 @@
             }
         });
 
-        app.listen (config ('port'), config ('ipAddress'), function serverStarted() {
+        app.set('port', config ('port'));
+        app.set('ip', config ('ipAddress'));
+
+        app.listen (app.get('port') ,app.get('ip'), function serverStarted() {
             log ('Node server running ' + config('appName') + ' on ' + config('ipAddress') + ':' + config('port'), 'info');
         });
     } catch (err) {

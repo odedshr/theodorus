@@ -11,7 +11,7 @@
                     variable = process.env.OPENSHIFT_NODEJS_IP;
                     break;
                 case 'port':
-                    variable = process.env.OPENSHIFT_NODEJS_PORT;
+                    variable = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || variables.port;
                     break;
                 case 'environment':
                     variable = (getConfig('ipAddress') === '127.0.0.1') ? 'dev' : 'prod';
