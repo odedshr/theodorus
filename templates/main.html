@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+<ul>
+    <li id="headerTemplate" class="js-template">
+        <header>
+            <h1>{{#app-title}}</h1>
+            <div>because opinions matter</div>
+            {{?user}}
+                Hello {{user.name}}! <a href="">Sign off</a>
+            {{/user}}
+        </header>
+    </li>
+
+    <li id="anonymousTemplate" class="js-template">
+        {{.:headerTemplate}}
+
+        <article>
+            <ul>
+                <li>A list of 'best' topics from all public communities</li>
+            </ul>
+        </article>
+        <aside>
+            <h2>What is {{#app-title}} ?</h2>
+            <div>lorem ipsum...</div>
+        </aside>
+        <aside>
+            <h2>Join the conversation</h2>
+            {{.:signInTemplate}}
+            <a href="">Not a member yet? sign up and speak up!</a>
+        </aside>
+    </li>
+
+    <li id="signInTemplate" class="js-template">
+        <form>
+            <div>
+                <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="signInEmail"/>
+            </div>
+            <div>
+                <label for="signInPassword">Password</label><input type="password" id="signInPassword" name="signInPassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                <button id="btnSignIn">Sign In</button>
+            </div>
+        </form>
+    </li>
+
+    <li id="signUpTemplate" class="js-template">
+        <form>
+            <div>
+                <label for="signUpEmail">Email</label><input type="email" id="signUpEmail" name="signUpEmail"/>
+            </div>
+            <div>
+                <label for="signUpPassword">Password</label><input type="password" id="signUpPassword" name="signUpPassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                <label for="signUpRetypePassword">Retype Password</label><input type="password" id="signUpRetypePassword" name="signUpRetypePassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                <button id="btnSignUp">Sign Up</button>
+            </div>
+        </form>
+    </li>
+
+    <li id="authUserHomepageTemplate" class="js-template">
+        {{.:headerTemplate}}
+        <article>
+            <h2>my topics</h2>
+        </article>
+        <article>
+            <h2>topics from my communities</h2>
+        </article>
+        <article>
+            <h2>other topics</h2>
+        </article>
+        <aside>
+            <h2>My communities</h2>
+            list of my communities (show score per community)
+        </aside>
+    </li>
+</ul>
+</body>
+</html>

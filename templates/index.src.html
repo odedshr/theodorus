@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="lang">
+<html lang="{{lang}}">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="viewport" content="width=device-width">
 
-    <title>Theodorus</title>
+    <title>{{#app-title}}</title>
 
-    <link rel="stylesheet" href="stylesheet.min.css" />
-    
+    {{stylesheet@stylesheets}}<link rel="stylesheet" href="{{.}}" />
+    {{/stylesheet@stylesheets}}
     <script language="JavaScript" src="/vendor/o.min.js"></script>
-    <script language="JavaScript" src="code.min.js"></script>
-    
+    {{script@scripts}}<script language="JavaScript" src="{{.}}"></script>
+    {{/script@scripts}}
 </head>
 <body id="body">
     <noscript>Please enable javascript to view this site.</noscript>
-    <div>Loading ...</div>
+    <div>{{#label.loading}}</div>
 </body>
 </html>
