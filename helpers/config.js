@@ -13,6 +13,9 @@
                 case 'port':
                     variable = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || variables.port;
                     break;
+                case 'dbConnectionString':
+                    variable = process.env.OPENSHIFT_MYSQL_DB_URL || variables.dbConnectionString;
+                    break;
                 case 'environment':
                     variable = (getConfig('ipAddress') === '127.0.0.1') ? 'dev' : 'prod';
                 break;
