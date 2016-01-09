@@ -14,7 +14,6 @@
                     variable = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || variables.port;
                     break;
                 case 'dbConnectionString':
-                    throw new Error('oded: great!!!' + process.env.OPENSHIFT_MYSQL_DB_URL);
                     variable = process.env.OPENSHIFT_MYSQL_DB_URL || variables.dbConnectionString;
                     break;
                 case 'environment':
