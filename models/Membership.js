@@ -1,6 +1,6 @@
 ;(function MembershipClosure() {
     'use strict';
-    var Community = require ('./Community.js');
+    var Community = require ('./Communities.js');
     var Encryption = require ( '../helpers/Encryption.js' );
 
     var status =  { invited: "invited", requested: "requested",declined: "declined", "rejected": "rejected", active: "active", unfit: "unfit", quit: "quit", archived: "archived"};
