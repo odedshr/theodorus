@@ -14,7 +14,8 @@
                     variable = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || variables.port;
                     break;
                 case 'dbConnectionString':
-                    variable = process.env.OPENSHIFT_MYSQL_DB_URL || variables.dbConnectionString;
+                    //TODO: remove the use of THEODORUS_MYSQL_SCHEMA
+                    variable = (process.env.OPENSHIFT_MYSQL_DB_URL + process.env.THEODORUS_MYSQL_SCHEMA) || variables.dbConnectionString;
                     break;
                 case 'environment':
                     variable = (getConfig('ipAddress') === '127.0.0.1') ? 'dev' : 'prod';
