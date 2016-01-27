@@ -7,36 +7,60 @@
 <body>
 <ul>
     <li id="headerTemplate" class="js-template">
-        <header>
-            <h1>{{#app-title}}</h1>
-            <div>because opinions matter</div>
-            {{?user}}
-                Hello {{user.name}}! <a href="">Sign off</a>
-            {{/user}}
+        <header class="header">
+            <a href="/" id="btnHome" class="app-logo">
+                <h1 class="app-title">{{#app.title}}</h1>
+                <div class="app-quick-description">because opinions matter</div>
+            </a>
+            {{?!showUserDetailsInHeader}}
+            <nav class="header-navigation">
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
+                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}"><span>{{#link.signUp}}</span></a>
+                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}"><span></span></a>
+                <a href="#bug" class="nav-link link-report-bug" title=""><span>{{#link.reportBug}}</span></a>
+            </nav>
+            {{/showUserDetailsInHeader}}
+            {{?showUserDetailsInHeader}}
+            <nav class="header-navigation">
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
+                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}"><span>{{#link.messages}}</span></a>
+                <a href="#me" class="nav-link link-me" title="{{#link.me}}"><span>{{#link.me}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"><span>{{#link.reportBug}}</span></a>
+            </nav>
+            {{/showUserDetailsInHeader}}
         </header>
     </li>
 
-    <li id="anonymousTemplate" class="js-template">
-        {{.:headerTemplate}}
+    <li id="welcomePageTemplate" class="js-template">
+        <aside class="visitors-info-what-is">
+            <h2>What is {{#app.title}} ?</h2>
+            <div>lorem ipsum...</div>
+        </aside>
 
-        <article>
+        <article class="newsfeed">
             <ul>
                 <li>A list of 'best' topics from all public communities</li>
             </ul>
         </article>
-        <aside>
-            <h2>What is {{#app-title}} ?</h2>
-            <div>lorem ipsum...</div>
-        </aside>
-        <aside>
-            <h2>Join the conversation</h2>
-            {{.:signInTemplate}}
-            <a href="">Not a member yet? sign up and speak up!</a>
+
+        <aside class="visitor-options">
+            <div class="sign-in">
+                <h2>Sign in and speak up!</h2>
+                {{.:signInTemplate}}
+            </div>
+            <div class="sign-up">
+                <h2>Sign up and join the conversation</h2>
+                {{.:signUpTemplate}}
+            </div>
         </aside>
     </li>
 
+    <li id="signinPageTemplate" class="js-template">
+        {{.:signInTemplate}}
+    </li>
+
     <li id="signInTemplate" class="js-template">
-        <form>
+        <form id="frmSignIn" class="sign-in-form" data-register="">
             <div>
                 <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="signInEmail"/>
             </div>
@@ -50,8 +74,12 @@
         </form>
     </li>
 
+    <li id="signupPageTemplate" class="js-template">
+        {{.:signUpTemplate}}
+    </li>
+
     <li id="signUpTemplate" class="js-template">
-        <form>
+        <form id="frmSignUp" class="sign-up-form" data-register="">
             <div>
                 <label for="signUpEmail">Email</label><input type="email" id="signUpEmail" name="signUpEmail"/>
             </div>
@@ -64,13 +92,22 @@
                 <i title="Show password">E</i>
             </div>
             <div>
+                By clicking the sign up, you agree to the terms of use.
+            </div>
+            <div>
                 <button id="btnSignUp">Sign Up</button>
             </div>
         </form>
     </li>
 
-    <li id="authUserHomepageTemplate" class="js-template">
-        {{.:headerTemplate}}
+    <li id="applicationTemplate" class="js-template">
+        {{.:'headerTemplate'}}
+        <div id="pageContainer">
+            {{.:page}}
+        </div>
+    </li>
+
+    <li id="homePageTemplate" class="js-template">
         <article>
             <h2>my topics</h2>
         </article>
@@ -82,8 +119,40 @@
         </article>
         <aside>
             <h2>My communities</h2>
-            list of my communities (show score per community)
         </aside>
+    </li>
+
+    <li id="frmSearchTemplate" class="js-template">
+        <form id="frmSearch" class="search" data-register="">
+            <input type="text" placeholder="{{#label.search}}"/>
+            <button><i class="icon icon-search"></i><span>{{{{#label.search}}}}</span></button>
+        </form>
+    </li>
+
+    <li id="אtopicAddPageTemplate" class="js-template">
+        {{.:addTopicTemplate}}
+    </li>
+
+    <li id="messagesPageTemplate" class="js-template">
+        message
+    </li>
+
+    <li id="mePageTemplate" class="js-template">
+        me
+        <a id="btnSignOut" href="/" data-register="" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+    </li>
+
+    <li id="bugPageTemplate" class="js-template">
+        bug
+    </li>
+
+    <li id="addTopicTemplate" class="js-template">
+        <form id="frmAddTopic" class="add-community-form" data-register="">
+            <div>
+                <button id="btnAddTopic" data-register="">{{#btn.ok}}</button>
+                <button data-register="btnCancel">{{#btn.cancel}}</button>
+            </div>
+        </form>
     </li>
 </ul>
 </body>

@@ -45,7 +45,6 @@
         if (!fs.existsSync(cssFolder)){
             fs.mkdirSync(cssFolder);
         }
-
         return gulpMerge(
             gulp.src(allLessFiles)
                 .pipe(less({plugins : [cleancss, autoprefix]}))
@@ -78,7 +77,7 @@
     }
     gulp.task('render-index', function createIndexTask () {
         TPL.setLocale(params.language);
-        TPL.loadLanguage(params.language, require(i18nFolder + '/' + params.language + '.json'));
+        TPL.loadLanguage('.'+i18nFolder + '/' + params.language + '.json');
 
         fs.readFile ('./templates/index.src.html', 'utf-8', function (err, template) {
             var data = {

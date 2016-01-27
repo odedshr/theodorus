@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+<ul>
+    <li id="topicListTemplate" class="js-template">
+        <ul>
+            {{topic@topics}}<li class="topic">{{.:topicListItemTemplate}}</li>{{/topic@topics}}
+        </ul>
+    </li>
+
+    <li id="topicListItemTemplate" class="js-template">
+        <a href="#topic:{{id}}">{{name}}</a>
+    </li>
+</ul>
+</body>
+</html>
