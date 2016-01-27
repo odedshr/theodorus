@@ -2,10 +2,11 @@
     'use strict';
 
     var _ = require('underscore');
+    var url = require('url');
     var config = require('../helpers/config.js');
     var Encryption = require ('../helpers/Encryption.js');
     var log = require('../helpers/logger.js');
-    var url = require('url');
+    var Errors = require('../helpers/Errors.js');
     var errorCodes = {
         400: 'bad-request',
         401: 'unauthorized',
@@ -26,8 +27,12 @@
 
     function write(res, data) {
         if (data instanceof Error) {
-            if (typeof data.details !== undefined) {
-                log(JSON.stringify(data.details,null,4));
+            log ('error in URL ' +  res.req.url);
+            if (data.details) {
+                log(data.details);
+            }
+            if (data.message) {
+                log(data.message);
             }
             var errorMessage = errorCodes[data.message];
             if (errorMessage === undefined) {
@@ -88,16 +93,23 @@
                                 try {
                                     value = JSON.parse(Encryption.decode(req.headers.authorization));
                                 } catch (err) {
-                                    throw new Error(401);
+                                    throw Errors.unauthorized();
                                 }
                                 if (value.expires instanceof Date && value.expires < (new Date())) {
-                                    throw new Error(401);
+                                    throw Errors.unauthorized();
                                 }
                                 var token = getAuthToken(req);
                                 if (token.localIP !== value.localIP || token.serverIP !== value.serverIP) {
-                                    throw new Error(401);
+                                    throw Errors.unauthorized();
                                 }
                                 value = value.user;
+                                break;
+                            case 'optionalUser':
+                                try {
+                                    value = JSON.parse(Encryption.decode(req.headers.authorization)).user;
+                                } catch (err) {
+                                    value = undefined;
+                                }
                                 break;
                             case 'isReturnJson':
                                 value = (req.get("accept").indexOf("json") !== -1);
@@ -107,6 +119,9 @@
                         if (settings !== undefined) {
                             if (settings.alias !== undefined) {
                                 value = input[settings.alias];
+                            }
+                            if (settings.value !== undefined) {
+                                value = settings.value;
                             }
                         }
                         args.push(value);

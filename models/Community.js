@@ -96,6 +96,7 @@
                 name: name,
                 description: description,
                 topics: 0,
+                members: 1, // at least the founder is a member
                 status: status[iStatus] ? status[iStatus] : status.active,
                 created: now,
                 modified: now,

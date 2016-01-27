@@ -9,6 +9,9 @@
     DetailedError.prototype = Object.create(Error.prototype);
     DetailedError.prototype.constructor = DetailedError;
 
+    function unauthorized () {
+        return new DetailedError (401);
+    }
     function notFound () {
         return new DetailedError (404);
     }
@@ -17,8 +20,10 @@
         return new DetailedError ('no-permissions-to-'+actionName);
     }
 
-    function badInput (description) {
-        return new DetailedError (description);
+    function badInput (key, value) {
+        var error = new DetailedError (key);
+        error.value = value;
+        return error;
     }
 
     function tooLong (varName) {
@@ -29,6 +34,7 @@
         return new DetailedError ('immutable-' + varType);
     }
 
+    module.exports.unauthorized = unauthorized;
     module.exports.notFound = notFound;
     module.exports.noPermissions = noPermissions;
     module.exports.badInput = badInput;

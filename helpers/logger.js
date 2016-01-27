@@ -1,7 +1,9 @@
 ;(function loggerEnclosure() {
     'use strict';
 
-    module.exports = function logger(string, level) {
-        console.log((typeof level === undefined ? '': (level + ': ')) + string);
+    function logger (string, level) {
+        console.log ((level === undefined ? '': (level + ': ')) + string);
     }
+
+    module.exports = logger;
 })();

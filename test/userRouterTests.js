@@ -49,7 +49,7 @@
     function removeUser (token, onSuccess, onError) {
         request(url)
         .delete('/user')
-        .set('authorization', token)
+        .set('Authorization', token)
         .expect(200) //Status code
         .end(onResponse.bind(null,onSuccess,onError));
     }
@@ -267,7 +267,7 @@
                 createUser(email,function (token) {
                     request(url)
                         .post('/user/password')
-                        .set('authorization', token)
+                        .set('Authorization', token)
                         .send({oldPassword:testPassword, newPassword: testPassword2})
                         .expect(200) //Status code
                         .end(function (err) {

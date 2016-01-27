@@ -2,9 +2,9 @@
     'use strict';
 
     var Encryption = require ('../helpers/Encryption.js');
+    var Errors = require('../helpers/Errors.js');
     var tryCatch = require('../helpers/tryCatch.js');
     var chain = require('../helpers/chain.js');
-    var userController = require('../controllers/userController.js');
 
     function add (authUser, email, communityId, db, callback) {
         db.community.get(Encryption.unmask(communityId), chain.onLoad.bind(null, 'community', addOnCommunityLoaded.bind(null,db, callback, email, authUser), callback, true));
@@ -67,7 +67,7 @@
             dMembership.approverId = approver.id;
             db.user.get(dMembership.userId, chain.onLoad.bind(null, 'user', addOnRequesterUserLoaded.bind(null, db, callback, dMembership, community), callback, true));
         } else {
-            callback(new Error('no-permissions'));
+            callback(Errors.noPermissions('approve-members'));
         }
     }
     function addOnRequesterUserLoaded (db, callback, dMembership, community, requesterUser) {
@@ -115,7 +115,7 @@
             db.membership.create(jMembership, chain.onSaved.bind(null, callback));
 
         } else {
-            callback(new Error('no-permissions'));
+            callback(Errors.noPermissions('invite-members'));
         }
     }
 
@@ -128,7 +128,7 @@
         if (membership.status === db.membership.model.status.requested || membership.status === db.membership.model.status.rejected) {
             db.membership.one({userId: authUser.id, communityId: membership.communityId }, chain.onLoad.bind(null, 'user', rejectOnUserLoaded.bind(null, db, callback, membership), callback, true));
         } else {
-            callback(new Error('disinformation'));
+            ccallback(Errors.badInput('status',membership.status));
         }
     }
 
@@ -139,7 +139,7 @@
             membership.modifed = new Date();
             membership.save(chain.onSaved.bind(null, callback));
         } else {
-            callback(new Error('no-permissions'));
+            callback(Errors.noPermissions('approve-members'));
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@
             membership.modifed = new Date();
             membership.save(chain.onSaved.bind(null, callback));
         } else {
-            callback(new Error('disinformation'));
+            callback(Errors.badInput('status',membership.status));
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,7 +167,7 @@
             membership.modifed = new Date();
             membership.save(chain.onSaved.bind(null, callback));
         } else {
-            callback(new Error('disinformation'));
+            callback(Errors.badInput('status',membership.status));
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,11 +245,10 @@
 
     function listCommunities (authUser, membershipId, db, callback) {
         var tasks = [];
-        if (membershipId===false) {
+        if (membershipId === undefined) {
             tasks = [{name:'memberships', table:db.membership, parameters: { userId: authUser.id }, multiple: {} }];
         } else {
-            var membershipUnmaskedId = Encryption.unmask(membershipUnmaskedId);
-            tasks =[{name:'membership', table:db.membership, parameters: membershipUnmaskedId, continueIf: listCommunitiesIsListPublic.bind(null,authUser.id)},
+            tasks =[{name:'membership', table:db.membership, parameters: Encryption.unmask(membershipId), continueIf: listCommunitiesIsListPublic.bind(null,authUser.id)},
                     {name:'memberships', table:db.membership, parameters: { userId: false }, multiple: {} }
             ];
         }
@@ -262,18 +261,23 @@
 
     function listCommunitiesOnMembershipsLoaded (db, callback, data) {
         var CommunityIds = [];
-        var membershipByCommuntyId = {};
+        var membershipByCommunityId = {};
         var membershipsCount = data.memberships.length;
         var isCurrentUserList = (data.membership === undefined);
 
-        for (var i = 0; i < membershipsCount; i++) {
-            var membership = data.memberships[i];
-            if (isCurrentUserList || membership.status === db.membership.model.status.active) {
-                CommunityIds.push(membership.communityId);
-                membershipByCommuntyId[membership.communityId] = membership;
+        if (membershipsCount) {
+            for (var i = 0; i < membershipsCount; i++) {
+                var membership = data.memberships[i];
+                if (isCurrentUserList || membership.status === db.membership.model.status.active) {
+                    CommunityIds.push(membership.communityId);
+                    membershipByCommunityId[membership.communityId] = membership;
+                }
             }
+            db.community.find({id: CommunityIds}, chain.onLoad.bind(null, 'communities', listCommunitiesOnCommunitiesLoaded.bind(null, callback, isCurrentUserList, membershipByCommunityId), callback, false));
+        } else {
+            callback([]);
         }
-        db.community.find({id: CommunityIds}, chain.onLoad.bind(null, 'communities', listCommunitiesOnCommunitiesLoaded.bind(null, callback, isCurrentUserList, membershipByCommuntyId), callback, true));
+
     }
     function listCommunitiesOnCommunitiesLoaded (callback, isCurrentUserList, membershipByCommuntyId, dCommunities) {
         var communities = [];
@@ -285,6 +289,7 @@
                 var membership = membershipByCommuntyId[dCommunities[i].id];
                 community.membershipId = Encryption.mask(membership.id);
                 community.membershipStatus = membership.status;
+                community.membershipName = membership.name;
             }
             communities.push(community);
         }
