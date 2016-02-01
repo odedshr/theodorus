@@ -93,9 +93,16 @@ Temporary Items
 
 # Created by .ignore support plugin (hsz.mobi)
 
+[branch "gh-pages.src"]
 /css
 /code.min.js
 /index.html
 /index.dev.html
 /stylesheet.min.css
 /templates.html
+
+[branch "gh-pages"]
+/js
+/less
+/templates
+/node_templates
