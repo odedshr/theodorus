@@ -6,7 +6,7 @@
 </head>
 <body>
 <ul>
-    <li id="headerTemplate" class="js-template">
+    <li data-template="header">
         <header class="header">
             <a href="/" id="btnHome" class="app-logo">
                 <h1 class="app-title">{{#app.title}}</h1>
@@ -31,7 +31,7 @@
         </header>
     </li>
 
-    <li id="welcomePageTemplate" class="js-template">
+    <li data-template="welcomePage">
         <aside class="visitors-info-what-is">
             <h2>What is {{#app.title}} ?</h2>
             <div>lorem ipsum...</div>
@@ -46,21 +46,21 @@
         <aside class="visitor-options">
             <div class="sign-in">
                 <h2>Sign in and speak up!</h2>
-                {{.:signInTemplate}}
+                {{.:'signIn'}}
             </div>
             <div class="sign-up">
                 <h2>Sign up and join the conversation</h2>
-                {{.:signUpTemplate}}
+                {{.:'signUp'}}
             </div>
         </aside>
     </li>
 
-    <li id="signinPageTemplate" class="js-template">
-        {{.:signInTemplate}}
+    <li data-template="signinPage">
+        {{.:'signIn'}}
     </li>
 
-    <li id="signInTemplate" class="js-template">
-        <form id="frmSignIn" class="sign-in-form" data-register="">
+    <li data-template="signIn">
+        <form class="sign-in-form" data-register="frmSignIn">
             <div>
                 <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="signInEmail"/>
             </div>
@@ -69,17 +69,17 @@
                 <i title="Show password">E</i>
             </div>
             <div>
-                <button id="btnSignIn">Sign In</button>
+                <button data-register="btnSignIn">Sign In</button>
             </div>
         </form>
     </li>
 
-    <li id="signupPageTemplate" class="js-template">
-        {{.:signUpTemplate}}
+    <li data-template="signupPage">
+        {{.:'signUp'}}
     </li>
 
-    <li id="signUpTemplate" class="js-template">
-        <form id="frmSignUp" class="sign-up-form" data-register="">
+    <li data-template="signUp">
+        <form class="sign-up-form" data-register="frmSignUp">
             <div>
                 <label for="signUpEmail">Email</label><input type="email" id="signUpEmail" name="signUpEmail"/>
             </div>
@@ -95,19 +95,26 @@
                 By clicking the sign up, you agree to the terms of use.
             </div>
             <div>
-                <button id="btnSignUp">Sign Up</button>
+                <button data-register="btnSignUp">Sign Up</button>
             </div>
         </form>
     </li>
 
-    <li id="applicationTemplate" class="js-template">
-        {{.:'headerTemplate'}}
+    <li data-template="application">
+        {{.:'header'}}
         <div id="pageContainer">
-            {{.:page}}
+            {{.:'loading'}}
         </div>
     </li>
 
-    <li id="homePageTemplate" class="js-template">
+
+    <li data-template="loading">
+        <div class="loading">
+            {{#label.loading}}
+        </div>
+    </li>
+
+    <li data-template="homePage">
         <article>
             <h2>my topics</h2>
         </article>
@@ -122,34 +129,34 @@
         </aside>
     </li>
 
-    <li id="frmSearchTemplate" class="js-template">
-        <form id="frmSearch" class="search" data-register="">
+    <li data-template="frmSearch">
+        <form class="search" data-register="frmSearch">
             <input type="text" placeholder="{{#label.search}}"/>
             <button><i class="icon icon-search"></i><span>{{{{#label.search}}}}</span></button>
         </form>
     </li>
 
-    <li id="אtopicAddPageTemplate" class="js-template">
-        {{.:addTopicTemplate}}
+    <li data-template="topicAddPage">
+        {{.:addTopic}}
     </li>
 
-    <li id="messagesPageTemplate" class="js-template">
+    <li data-template="messagesPage">
         message
     </li>
 
-    <li id="mePageTemplate" class="js-template">
+    <li data-template="mePage">
         me
-        <a id="btnSignOut" href="/" data-register="" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+        <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
     </li>
 
-    <li id="bugPageTemplate" class="js-template">
+    <li data-template="bugPage">
         bug
     </li>
 
-    <li id="addTopicTemplate" class="js-template">
-        <form id="frmAddTopic" class="add-community-form" data-register="">
+    <li data-template="addTopic">
+        <form class="add-community-form" data-register="frmAddTopic">
             <div>
-                <button id="btnAddTopic" data-register="">{{#btn.ok}}</button>
+                <button data-register="btnAddTopic">{{#btn.ok}}</button>
                 <button data-register="btnCancel">{{#btn.cancel}}</button>
             </div>
         </form>

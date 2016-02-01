@@ -6,13 +6,13 @@
 </head>
 <body>
 <ul>
-    <li id="topicListTemplate" class="js-template">
+    <li data-template="topicList">
         <ul>
             {{topic@topics}}<li class="topic">{{.:topicListItemTemplate}}</li>{{/topic@topics}}
         </ul>
     </li>
 
-    <li id="topicListItemTemplate" class="js-template">
+    <li data-template="topicListItem">
         <a href="#topic:{{id}}">{{name}}</a>
     </li>
 </ul>

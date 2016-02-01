@@ -2,19 +2,19 @@ app = (typeof app != "undefined") ? app:{};
 (function initEnclosure() {
     'use strict';
     var loadingInProgress = 0;
-    this.backend = 'http://127.0.0.1:5000/';
-    //this.backend = 'http://theo-dorus.rhcloud.com/';
+
     this.registry = this.registry || {};
+    this.state = this.state || {};
 
     this.registry.appContainer = (function registerAppContainer (dElm, callback) {
-        this.renderApplication(callback);
+        this.renderPage();
     }).bind(this);
 
     this.onCancelButtonClicked = (function onCancelButtonClicked () {
         history.back();
     }).bind(this);
 
-    this.registry.btnCancel = (function registerAppContainer (dElm, callback) {
+    this.registry.btnCancel = (function registerCancelButton (dElm, callback) {
         dElm.onclick = this.onCancelButtonClicked;
     }).bind(this);
 
@@ -29,9 +29,8 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     this.updateURL = (function updateURL (hash, title) {
-        history.pushState({}, title, hash);
-        var appName = document.title.split(':')[0];
-        document.title = appName + (title.length > 0 ? (': '+title) : '');
+        history.pushState({}, title, location.href.split('#')[0]+'#'+ hash);
+        this.renderPage();
     }).bind(this);
 
     this.getPageTitleFromHashTag = (function getPageFromHashTag () {
@@ -56,40 +55,37 @@ app = (typeof app != "undefined") ? app:{};
     this.renderPage = (function renderPage () {
         var data = {};
         var title = this.getPageTitleFromHashTag();
-        var pageTemplate = (title.length ? title.replace(/\s/g,'') : (this.isAuthenticated() ? 'home' : 'welcome'))+'PageTemplate';
+        var pageTemplate = (title.length ? title.replace(/\s/g,'') : (this.isAuthenticated() ? 'home' : 'welcome'))+'Page';
         data[pageTemplate] = {};
 
-        this.setAppTitle (title);
+        this.state = this.mapArgumentsFromLocationHash();
 
+        this.setAppTitle (title);
+        console.log('renderPage '+ pageTemplate);
         this.render(O.ELM.pageContainer,data);
-        this.register(O.ELM.pageContainer);
+        this.register(pageTemplate);
     }).bind(this);
 
-    this.renderApplication = (function renderApplication (callback) {
+    var renderApplication = (function renderApplication () {
         var token = O.COOKIE('authToken');
         var authenticated = (token.length > 0);
         if (authenticated) {
             O.AJAX.setDefaults({'credentials': token});
         }
-        var title = this.getPageTitleFromHashTag();
-        var pageTemplate = (title.length ? title.replace(/\s/g,'') : (authenticated ? 'home' : 'welcome'))+'PageTemplate';
-        this.setAppTitle (title);
 
-        this.render(O.ELM.appContainer,{ applicationTemplate:{ showUserDetailsInHeader:authenticated, page: pageTemplate }});
-        if (callback) {
-            callback();
-        }
+        this.render(O.ELM.appContainer,{ application: { showUserDetailsInHeader:authenticated }});
+        this.register(O.ELM.appContainer);
     }).bind(this);
 
     this.onComponentLoaded = (function onComponentLoaded () {
         if (!(--loadingInProgress)) {
             O.ELM.refresh();
-            this.register(O.ELM.appContainer);
+            renderApplication();
         }
     }).bind(this);
 
     this.init = (function init () {
-        loadingInProgress = 4;
+        loadingInProgress = 3;
 
         window.onhashchange = O.EVT.subscribe('window.onhashchange', this.onPageChanged)
              .getDispatcher('window.onhashchange');
@@ -98,9 +94,7 @@ app = (typeof app != "undefined") ? app:{};
             .subscribe('TPL.templatesLoaded', this.onComponentLoaded)
             .subscribe('TPL.languageLoaded', this.onComponentLoaded);
             //.subscribe('navLink.onclick', this.onNavLinkClicked);
-        O.TPL.load('/templates/main.html');
-        O.TPL.load('/templates/community.html');
-        O.TPL.load('/templates/topic.html');
+        O.TPL.load('/templates.html');
         O.TPL.setLocale('en-us');
         O.TPL.loadLanguage('/i18n/en-us.json');
     }).bind(this);

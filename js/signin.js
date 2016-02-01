@@ -24,7 +24,8 @@ app = (typeof app != "undefined") ? app:{};
             alert ('failed to sign in');
         } else {
             O.COOKIE('authToken', response, rememberMe ? 30 : 1);
-            location.href = '/';
+            this.api.clearCache();
+            this.updateURL('','');
         }
     }
 

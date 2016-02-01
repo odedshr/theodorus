@@ -26,8 +26,8 @@ app = (typeof app != "undefined") ? app:{};
         O.ELM.founderName.value = maxName;
     }
     //=================================//
-    this.registry.loadCommunityPageTemplate = (function registerCommunityPage (dElm, callback) {
-        var communityId = this.mapArgumentsFromLocationHash().community;
+    this.registry.communityPage = (function registerCommunityPage (dElm, callback) {
+        var communityId = this.state.community;
         this.api.getCommunity (communityId, onCommunityDetailsLoaded.bind(this, callback));
     }).bind(this);
 
@@ -35,31 +35,61 @@ app = (typeof app != "undefined") ? app:{};
         var data  = {
             communityId : response.id,
             communityName : response.name,
-            isMember : (response.membership && response.membership.status === 'active') ? true: false
+            isMember : false
         };
-        this.render(O.ELM.pageContainer,{loadCommunityPageTemplate: data});
+        console.log(response);
+        if (response.membership) {
+            data.isMember = response.membership.status === 'active';
+            data.memberName = response.membership.name ? response.membership.name : '';
+        }
+        this.render(O.ELM.pageContainer,{communityPage: data});
         callback();
     }
 
-    this.registry.btnJoin = (function registerBtnJoin (dElm, callback) {
-        dElm.onclick = O.EVT.subscribe('submit-join-community',onJoinSubmitted.bind(this)).getDispatcher('submit-join-community');
+    //================================//
+
+    this.registry.communityJoinPage = (function registerCommunityJoinPage (dElm, callback) {
+        var communityId = this.map.community;
+        this.api.getCommunity (communityId, onJoinCommunityDetailsLoaded.bind(this, callback));
+    }).bind(this);
+
+    function onJoinCommunityDetailsLoaded (callback, response) {
+        var data  = {
+            communityId : response.id,
+            communityName : response.name,
+            isMember : (response.membership && response.membership.status === 'active') ? true: false
+        };
+        this.render(O.ELM.pageContainer,{communityJoinPage: data});
+        callback();
+    }
+
+    this.registry.frmJoinCommunity = (function registerBtnJoin (dElm, callback) {
+        dElm.onsubmit = O.EVT.subscribe('submit-join-community',onJoinSubmitted.bind(this)).getDispatcher('submit-join-community');
         callback();
     }).bind(this);
-    //=================================//
+
     function onJoinSubmitted () {
-        var communityId = this.mapArgumentsFromLocationHash().community;
-        O.AJAX.post(this.backend + 'community/'+communityId+'/members/', {}, onJoined.bind(this));
+        var communityId = this.state.community;
+        var data = {
+            name: O.ELM.memberName.value
+        };
+        this.api.joinCommunity(communityId, data, onJoined.bind(this, communityId));
         return false;
     }
 
-    function onJoined (response) {
+    function onJoined (communityId, response) {
         if (response instanceof Error) {
             alert ('failed to join community');
         } else {
-            this.renderPage();
+            this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
         }
     }
     //=================================//
+
+    this.registry.frmAddCommunity = (function registerBtnAdd (dElm, callback) {
+        dElm.onsubmit = O.EVT.subscribe('submit-add-community',onJoinSubmitted.bind(this)).getDispatcher('submit-add-community');
+        callback();
+    }).bind(this);
 
     function onAddSubmitted (evt) {
         var data = {
@@ -72,7 +102,7 @@ app = (typeof app != "undefined") ? app:{};
             if (founderName.length > 0) {
                 data.founderName = founderName;
             }
-            O.AJAX.post(this.backend + 'community', data, onCommunityAdded.bind(this));
+            this.api.addCommunity(data, onCommunityAdded.bind(this));
         }
 
         return false;
@@ -97,13 +127,29 @@ app = (typeof app != "undefined") ? app:{};
         }
     }
     //=================================//
+
+    this.registry.btnLeave = (function registerBtnAdd (dElm, callback) {
+        dElm.onclick = O.EVT.subscribe('submit-quit-community', this.onLeaveClicked.bind(this)).getDispatcher('submit-quit-community');
+        callback();
+    }).bind(this);
+
+    this.onLeaveClicked = (function onLeaveClicked () {
+        var communityId = this.state.community;
+        this.api.quitCommunity(communityId,onLeaveClicked.bind(this,communityId));
+    }).bind(this);
+
+    this.onLeftCommunity = (function onLeftCommunity (communityId) {
+        this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
+    }).bind(this);
+
+    //=================================//
     this.registry.myCommunityList = (function registerMyCommunityList (dElm, callback) {
-        O.AJAX.get(this.backend + 'community', gotMyCommunityList.bind(this,dElm));
+        this.api.getMyCommunities(gotMyCommunityList.bind(this,dElm));
         callback();
     }).bind(this);
 
     function gotMyCommunityList (dElm, response) {
-        this.render(dElm, {communityListTemplate: {communities:{community: response}}});
+        this.render(dElm, {communityList: {communities:{community: response}}});
     }
 
 return this;}).call(app);

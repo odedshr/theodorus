@@ -16,7 +16,8 @@
     var TPL = require ('./vendor/o.min.js');
 
     var i18nFolder = './i18n';
-    var allTemplatesFiles = './templates/**/*.html';
+    var templatesFolder = './templates';
+    var allTemplatesFiles = templatesFolder + '/**/*.html';
 
     var cssUrl = '/css';
     var cssFolder = '.' + cssUrl;
@@ -75,10 +76,32 @@
             return files;
         }
     }
-    gulp.task('render-index', function createIndexTask () {
-        TPL.setLocale(params.language);
-        TPL.loadLanguage('.'+i18nFolder + '/' + params.language + '.json');
 
+    function mergeTemplates () {
+        var templates = getFileList(templatesFolder);
+        var templateCount = templates.length;
+        var accString = "";
+        var contentPattern = new RegExp(/<body>((.|\n)*?)<\/body>/m);
+        while (templateCount--) {
+            var fileName = templates[templateCount];
+            if (fileName.indexOf('.template.html') > -1) {
+                var file = fs.readFileSync(templatesFolder + '/'+fileName, 'utf-8');
+                var content = file.match(contentPattern);
+                accString += content[1];
+            }
+        }
+        var data = {templates : accString};
+
+        fs.readFile ('./templates/templates.src.html', 'utf-8', function (err, template) {
+            fs.writeFile('./templates.html', template.replace('{{templates}}',accString), function (err) {
+                if (err) {
+                    throw err;
+                }
+            });
+        });
+    }
+
+    function renderIndex () {
         fs.readFile ('./templates/index.src.html', 'utf-8', function (err, template) {
             var data = {
                 prod: {
@@ -103,6 +126,14 @@
                 }
             });
         });
+    }
+
+    gulp.task('render-index', function createIndexTask () {
+        TPL.setLocale(params.language);
+        TPL.loadLanguage('.'+i18nFolder + '/' + params.language + '.json');
+
+        mergeTemplates();
+        renderIndex();
     });
 
     function watchTask () {

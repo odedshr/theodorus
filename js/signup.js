@@ -25,7 +25,8 @@ app = (typeof app != "undefined") ? app:{};
             alert ('failed to sign up');
         } else {
             O.COOKIE('authToken', response, 1);
-            this.redirectToLocation();
+            this.api.clearCache();
+            this.updateURL('','');
         }
     }
 

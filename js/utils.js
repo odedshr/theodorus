@@ -1,7 +1,6 @@
 app = (typeof app != "undefined") ? app:{};
 (function utilsEnclosure() {
     'use strict';
-    var rootScope = this;
 
     this.ifNotError = (function ifNotError (callback, item) {
         if (item instanceof Error) {
@@ -58,8 +57,15 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     this.render = (function render (dElm,data) {
-        dElm.innerHTML = O.TPL.render(data);
-        O.ELM.refresh();
+        try {
+            dElm.innerHTML = O.TPL.render(data);
+            O.ELM.refresh();
+        }
+        catch (err) {
+            console.log(err);
+            console.log(O.TPL.list());
+        }
+
     }).bind(this);
 
     this.onElementRegistered = (function onElementRegistered (elmId) {
@@ -79,20 +85,29 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     this.register = (function register (dElm) {
+        var dElmId, registerKey;
+        
         if (dElm) {
-            var dElmId = dElm.id;
+            if (typeof dElm === 'string') {
+                registerKey = dElm;
+                dElm = O.ELM.pageContainer;
+            } else {
+                registerKey = dElm.getAttribute('data-register');
+            }
+            dElmId = dElm.id;
             if (dElmId.length === 0) {
-                dElm.setAttribute('id','elm'+parseInt(Math.random()*10000));
+                dElm.setAttribute('id', registerKey ? registerKey : 'elm'+parseInt(Math.random()*10000));
                 dElmId = dElm.id;
             }
-            O.CSS.remove(dElm,'register').add(dElm,'registering');
-            var registerCode = dElm.getAttribute('data-register');
-            if (registerCode === undefined || registerCode === null || registerCode.length === 0) {
-                registerCode = dElmId;
+            if (registerKey === undefined || registerKey === null || registerKey.length === 0) {
+                registerKey = dElmId;
             }
-            console.log('will ' + (this.registry[registerCode] ? '': 'not ') + registerCode);
-            if (this.registry[registerCode]) {
-                this.registry[registerCode](dElm, this.onElementRegistered.bind(this,dElmId));
+            O.CSS.remove(dElm,'register').add(dElm,'registering');
+
+            var method = this.registry[registerKey];
+            console.log('register %c' + (method ? '✓ ': '✗ ') + registerKey, method ? 'color: green' : 'color: red');
+            if (method) {
+                method(dElm, this.onElementRegistered.bind(this,dElmId));
             } else {
                 this.onElementRegistered(dElmId);
             }

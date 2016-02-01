@@ -23,6 +23,7 @@
     "label.communityAddDescription": "for people to talk about",
     "placeholder.communityDescription": "What is your community about?",
     "label.communityAddFounderName": "In this community my name will be",
-    "placeholder.communityAddFounderName": "(You can have a different alias)"
+    "placeholder.communityAddFounderName": "(You can have a different alias)",
+    "label.communityJoinMemberName": "My name is"
   }
 }

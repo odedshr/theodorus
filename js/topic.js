@@ -4,12 +4,12 @@ app = (typeof app != "undefined") ? app:{};
     this.registry = this.registry || {};
 
     this.registry.communityTopicList = (function registerCreateCommunityForm (dElm, callback) {
-        var communityId = this.mapArgumentsFromLocationHash().community;
+        var communityId = this.state.community;
         this.api.getCommunityTopics (communityId, renderTopicList.bind(this, dElm));
         callback();
     }).bind(this);
 
     function renderTopicList (dElm, topics) {
-        this.render(dElm, { topicListTemplate: { topics: { topic: topics } } });
+        this.render(dElm, { topicList: { topics: { topic: topics } } });
     }
 return this;}).call(app);

@@ -10,6 +10,7 @@ app = (typeof app != "undefined") ? app:{};
 
     function onSignOutClicked (evt) {
         O.COOKIE('authToken','');
+        this.api.clearCache();
         location.href = '/';
         return false;
     }
