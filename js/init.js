@@ -94,9 +94,9 @@ app = (typeof app != "undefined") ? app:{};
             .subscribe('TPL.templatesLoaded', this.onComponentLoaded)
             .subscribe('TPL.languageLoaded', this.onComponentLoaded);
             //.subscribe('navLink.onclick', this.onNavLinkClicked);
-        O.TPL.load('/templates.html');
+        O.TPL.load('templates.html');
         O.TPL.setLocale('en-us');
-        O.TPL.loadLanguage('/i18n/en-us.json');
+        O.TPL.loadLanguage('i18n/en-us.json');
     }).bind(this);
 
 
