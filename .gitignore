@@ -92,10 +92,3 @@ Temporary Items
 .apdisk
 
 # Created by .ignore support plugin (hsz.mobi)
-
-/gulpfile.js
-/index.dev.html
-/js
-/less
-/templates
-/node_templates
