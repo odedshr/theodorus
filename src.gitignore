@@ -93,9 +93,9 @@ Temporary Items
 
 # Created by .ignore support plugin (hsz.mobi)
 
-/gulpfile.js
+/css
+/code.min.js
+/index.html
 /index.dev.html
-/js
-/less
-/templates
-/node_templates
+/stylesheet.min.css
+/templates.html
