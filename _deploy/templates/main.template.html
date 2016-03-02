@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+<ul>
+    <li data-template="header">
+        <header class="header">
+            <a href="/" id="btnHome" class="app-logo">
+                <h1 class="app-title">{{#app.title}}</h1>
+                <div class="app-quick-description">because opinions matter</div>
+            </a>
+            {{?!showUserDetailsInHeader}}
+            <nav class="header-navigation">
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
+                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}"><span>{{#link.signUp}}</span></a>
+                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}"><span></span></a>
+                <a href="#bug" class="nav-link link-report-bug" title=""><span>{{#link.reportBug}}</span></a>
+            </nav>
+            {{/showUserDetailsInHeader}}
+            {{?showUserDetailsInHeader}}
+            <nav class="header-navigation">
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
+                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}"><span>{{#link.messages}}</span></a>
+                <a href="#me" class="nav-link link-me" title="{{#link.me}}"><span>{{#link.me}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"><span>{{#link.reportBug}}</span></a>
+            </nav>
+            {{/showUserDetailsInHeader}}
+        </header>
+    </li>
+
+    <li data-template="welcomePage">
+        <aside class="visitors-info-what-is">
+            <h2>What is {{#app.title}} ?</h2>
+            <div>lorem ipsum...</div>
+        </aside>
+
+        <article class="newsfeed">
+            <ul>
+                <li>A list of 'best' topics from all public communities</li>
+            </ul>
+        </article>
+
+        <aside class="visitor-options">
+            <div class="sign-in">
+                <h2>Sign in and speak up!</h2>
+                {{.:'signIn'}}
+            </div>
+            <div class="sign-up">
+                <h2>Sign up and join the conversation</h2>
+                {{.:'signUp'}}
+            </div>
+        </aside>
+    </li>
+
+    <li data-template="signinPage">
+        {{.:'signIn'}}
+    </li>
+
+    <li data-template="signIn">
+        <form class="sign-in-form" data-register="frmSignIn">
+            <div>
+                <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="signInEmail"/>
+            </div>
+            <div>
+                <label for="signInPassword">Password</label><input type="password" id="signInPassword" name="signInPassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                <button data-register="btnSignIn">Sign In</button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="signupPage">
+        {{.:'signUp'}}
+    </li>
+
+    <li data-template="signUp">
+        <form class="sign-up-form" data-register="frmSignUp">
+            <div>
+                <label for="signUpEmail">Email</label><input type="email" id="signUpEmail" name="signUpEmail"/>
+            </div>
+            <div>
+                <label for="signUpPassword">Password</label><input type="password" id="signUpPassword" name="signUpPassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                <label for="signUpRetypePassword">Retype Password</label><input type="password" id="signUpRetypePassword" name="signUpRetypePassword"/>
+                <i title="Show password">E</i>
+            </div>
+            <div>
+                By clicking the sign up, you agree to the terms of use.
+            </div>
+            <div>
+                <button data-register="btnSignUp">Sign Up</button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="application">
+        {{.:'header'}}
+        <div id="pageContainer">
+            {{.:'loading'}}
+        </div>
+    </li>
+
+
+    <li data-template="loading">
+        <div class="loading">
+            {{#label.loading}}
+        </div>
+    </li>
+
+    <li data-template="homePage">
+        <article>
+            <h2>my topics</h2>
+        </article>
+        <article>
+            <h2>topics from my communities</h2>
+        </article>
+        <article>
+            <h2>other topics</h2>
+        </article>
+        <aside>
+            <h2>My communities</h2>
+        </aside>
+    </li>
+
+    <li data-template="frmSearch">
+        <form class="search" data-register="frmSearch">
+            <input type="text" placeholder="{{#label.search}}"/>
+            <button><i class="icon icon-search"></i><span>{{{{#label.search}}}}</span></button>
+        </form>
+    </li>
+
+    <li data-template="topicAddPage">
+        {{.:addTopic}}
+    </li>
+
+    <li data-template="messagesPage">
+        message
+    </li>
+
+    <li data-template="mePage">
+        me
+        <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+    </li>
+
+    <li data-template="bugPage">
+        bug
+    </li>
+
+    <li data-template="addTopic">
+        <form class="add-community-form" data-register="frmAddTopic">
+            <div>
+                <button data-register="btnAddTopic">{{#btn.ok}}</button>
+                <button data-register="btnCancel">{{#btn.cancel}}</button>
+            </div>
+        </form>
+    </li>
+</ul>
+</body>
+</html>
