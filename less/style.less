@@ -1,0 +1,190 @@
+@clr-lynch: #748A98;
+@clr-lightgrey: lightgray;
+@clr-lightblue : #00B7FF;
+@clr-red : red;
+@clr-white : white;
+/*=============================================== Colours */
+/* based on http://paletton.com/palette.php?uid=73v250k83tQ1BPs4qCjcqpjhcl7 */
+/* reds*/
+@clr-lavender-blush: #FCEFF1;
+@clr-pale-pink: #F8D6D9;
+@clr-blossom: #E6ACB2;
+@clr-charm: #C3777E;
+@clr-hippie-pink: #A34B53;
+/* greens*/
+@clr-apple-green: #E6F0E4;
+@clr-surf-crest: #C5DEC0;
+@clr-spring-rain: #9EC695;
+@clr-amulet: #72A867;
+@clr-fern-green: #4E8C41;
+/* blues*/
+@clr-pattens-blue: #D3DADE;
+@clr-gull-grey: #A0AFB8;
+@clr-bermuda-grey: #748A98;
+@clr-wedgewood: #526E81;
+@clr-blumine: #35566C;
+/* Yellows*/
+@clr-floral-white: #FFF9F2;
+@clr-forget-me-not: #FFEFDC;
+@clr-pink-lady: #35566C;
+@clr-cameo: #CAA77B;
+@clr-muddy-waters: #A8804E;
+/* colours functions*/
+@clr-background: @clr-pattens-blue;
+@clr-btn-background: @clr-gull-grey;
+@clr-title: @clr-bermuda-grey;
+@clr-border: @clr-wedgewood;
+@clr-link: @clr-blumine;
+/*=============================================== Screen Sizes */
+@screen-sm-min: 768px;
+@screen-sm-max: 991px;
+@screen-md-min: 992px;
+@screen-md-max: 1199px;
+@screen-lg-min: 1200px;
+
+@headerHeight : 4.5rem;
+@elementBackground : white;
+@elementBorder : #aaa;
+@disabled: #bbb;
+@hoverColor: #eee;
+@clr-theodorus: @clr-lynch;
+@linkColor: #105cb6;
+@textColor: #333;
+@timeColor: #666;
+@darkeningBackground: rgba(200, 200, 200, 0.1);
+/*=============================================== JS-tools */
+
+[data-hidden]  {
+  display: none;
+}
+
+/*=============================================== The rest */
+
+html body {
+  font-family: 'Titillium Web', sans-serif;
+}
+
+@media only screen and (max-device-width: @screen-sm-max) and (orientation: landscape) {
+  body {
+    background-color:blue;
+  }
+}
+.header {
+  border-bottom: 0.1rem solid @clr-theodorus;
+  padding: 0.5rem;
+
+  @media only screen and (max-device-width: @screen-sm-max) and (orientation: portrait) {
+    bottom: 0;
+    position: fixed;
+    text-align: center;
+    border-top: 1px solid @clr-theodorus;
+    width: 100%;
+
+    .app-logo {
+      background-size: 10rem;
+      background-position: -6.9rem .2rem;
+      height: 3rem;
+      width: 3rem;
+      padding: 0;
+    }
+    .app-title, .app-quick-description {
+      display: none;
+    }
+  }
+}
+.app-logo {
+  background-image: url(/img/all.png);
+  background-position: -8.8rem 0.5rem;
+  background-repeat: no-repeat;
+  clear: both;
+  color: @clr-title;
+  display: inline-block;
+  height: 3.7rem;
+  padding: .3rem 0 0 3.5rem;
+  text-decoration: none;
+  width: 10rem;
+}
+.app-title {
+  font-size: 2rem;
+}
+.app-quick-description {
+  font-size: 1rem;
+}
+
+.header-navigation {
+  float: right;
+  margin: 1rem;
+}
+.nav-link {
+  background-image: url(/img/all.png);
+  background-position: -8.8rem 0.5rem;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  display: inline-block;
+  height: 3rem;
+  width: 3rem;
+
+  span {
+    display: none;
+  }
+}
+
+.nav-link.link-communities {
+  background-position: -9.5rem -5rem;
+}
+
+.nav-link.link-messages {
+  background-position: -6.3rem -5rem;
+}
+
+.nav-link.link-me {
+  background-position: -9.5rem -11rem;
+}
+
+.nav-link.link-sign-out {
+  background-position: -6.3rem -8rem;
+}
+
+.nav-link.link-sign-in {
+  background-position: -6.3rem -8rem;
+}
+
+.nav-link.link-sign-up {
+  background-position: -9.5rem -8rem;
+}
+
+.nav-link.link-report-bug {
+  background-position: -3.3rem -11rem;
+}
+
+.newsfeed {
+  float: left;
+  min-height: 10rem;
+  width: 66%;
+}
+
+.visitors-info-what-is,
+.visitor-options {
+  float: right;
+  width: 33%;
+}
+
+.visitors-info-what-is,
+.visitor-options .sign-in,
+.visitor-options .sign-up {
+  border: 0.5rem solid @clr-lightgrey;
+  box-sizing: border-box;
+  background-color: @clr-white;
+  padding: 0.5rem;
+}
+
+.tag-color-0 { background-color:lightblue; }
+.tag-color-1 { background-color:lightgoldenrodyellow; }
+.tag-color-2 { background-color:lightgrey; }
+.tag-color-3 { background-color:lightpink; }
+.tag-color-4 { background-color:lightyellow; }
+.tag-color-5 { background-color:lightskyblue; }
+.tag-color-6 { background-color:lightgreen; }
+.tag-color-7 { background-color:burlywood; }
+.tag-color-8 { background-color:floralwhite; }
+.tag-color-9 { background-color:lightcoral; }
