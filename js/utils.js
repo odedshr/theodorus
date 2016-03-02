@@ -10,19 +10,55 @@ app = (typeof app != "undefined") ? app:{};
         }
     }).bind(this);
 
-    /*this.extractParametersFromSearchQuery = (function extractParametersFromSearchQuery () {
-        var match,
-            pl     = /\+/g,  // Regex for replacing addition symbol with a space
-            search = /([^&=]+)=?([^&]*)/g,
-            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-            query  = window.location.search.substring(1);
-        var urlParams = {};
-        while (match = search.exec(query)) {
-            urlParams[decode(match[1])] = decode(match[2]);
-        }
+    this.simplyReturn = (function simplyReturn (value) {
+        return value;
+    }).bind(this);
 
-        return urlParams;
-    }).bind(this);*/
+    this.isProduction = (function isProduction () {
+        var url = location.href;
+        return (url.indexOf('localhost') === -1) && (url.indexOf('127.0.0.1') === -1);
+    })();
+
+    this.logType = {
+        'debug': 'debug',
+        'system': 'system',
+        'community': 'community',
+        'message': 'message',
+        'score': 'score',
+        'error': 'error'
+    };
+    this.log = (function log (value, type, color) {
+        if (type=== undefined) {
+            type = this.logType.system;
+        }
+        if (type !== this.logType.debug || !this.isProduction) {
+            if (color === undefined) {
+                console.log(type+': '+ value);
+            } else {
+                console.log(type+': '+ value, color);
+            }
+        }
+        return value;
+    }).bind(this);
+
+    //==================================/
+
+    this.extend = (function extend(obj, src) {
+        for (var key in src) {
+            if (src.hasOwnProperty(key)) obj[key] = src[key];
+        }
+        return obj;
+    }).bind(this);
+
+    //==================================/
+    this.goToStateRedirect =(function goToStateRedirect () {
+        location.href = location.href.split('#')[0] + (this.state.redirect ? this.state.redirect : '');
+    }).bind(this);
+
+
+    this.getPathFromURL = (function getPathFromURL () {
+        return location.href.replace(new RegExp('(https?:\\/\\/)|('+location.host+'\\/)','g'),'').split('#')[0].split('?')[0];
+    }).bind(this);
 
     this.extractArgumentsFromLocationHash = (function extractArgumentsFromLocationHash () {
         var match,
@@ -42,11 +78,29 @@ app = (typeof app != "undefined") ? app:{};
         return output;
     }).bind(this);
 
-    this.mapArgumentsFromLocationHash = (function extractArgumentsFromLocationHash () {
+    var mapParametersFromSearchQuery = (function mapParametersFromSearchQuery () {
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = window.location.search.substring(1);
+        var urlParams = {};
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = decode(match[2]);
+        }
+
+        return urlParams;
+    });
+
+    var mapArgumentsFromLocationHashInternalDecode = function mapArgumentsFromLocationHashInternalDecode (pl, s) {
+        return decodeURIComponent(s.replace(pl, " "));
+    };
+
+    var mapArgumentsFromLocationHash = (function extractArgumentsFromLocationHash () {
         var match,
             pl     = /\+/g,  // Regex for replacing addition symbol with a space
             search = /([^\/:]+):?([^\/]*)/g,
-            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            decode = mapArgumentsFromLocationHashInternalDecode.bind(this,pl),
             query  = window.location.hash.substring(1);
         var output = {};
         while (match = search.exec(query)) {
@@ -54,8 +108,13 @@ app = (typeof app != "undefined") ? app:{};
         }
 
         return output;
+    });
+
+    this.getMappedArguments = (function getInputParameters () {
+        return this.extend(mapParametersFromSearchQuery(), mapArgumentsFromLocationHash());
     }).bind(this);
 
+    //==================================/
     this.render = (function render (dElm,data) {
         try {
             dElm.innerHTML = O.TPL.render(data);
@@ -87,7 +146,7 @@ app = (typeof app != "undefined") ? app:{};
     this.register = (function register (dElm) {
         var dElmId, registerKey;
         
-        if (dElm) {
+        if (dElm !== undefined) {
             if (typeof dElm === 'string') {
                 registerKey = dElm;
                 dElm = O.ELM.pageContainer;
@@ -105,7 +164,7 @@ app = (typeof app != "undefined") ? app:{};
             O.CSS.remove(dElm,'register').add(dElm,'registering');
 
             var method = this.registry[registerKey];
-            console.log('register %c' + (method ? '✓ ': '✗ ') + registerKey, method ? 'color: green' : 'color: red');
+            this.log('register %c' + (method ? '✓ ': '✗ ') + registerKey, this.logType.debug, method ? 'color: green' : 'color: red');
             if (method) {
                 method(dElm, this.onElementRegistered.bind(this,dElmId));
             } else {

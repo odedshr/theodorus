@@ -7,27 +7,27 @@
 <body>
 <ul>
     <li data-template="communitiesPage">
-        <div>
-            <a href="#community/add"><i class="icon-add"><span>{{#btn.add}}</span></i></a>
+        <div class="page-header">
+            <a href="#community/add" data-ico="add"><span>{{#btn.add}}</span></i></a>
             {{.:'frmSearch'}}
         </div>
-        <ul data-register="myCommunityList"></ul>
+        <div data-register="myCommunityList" class="community-list"></div>
     </li>
 
     <li data-template="communityAddPage">
         {{.:'addCommunity'}}
     </li>
 
-    <li data-template="communityList">
-        <ul>
-            {{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}
-        </ul>
+    <li data-template="communityList" class="community-list">
+        <ul class="list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
     </li>
 
     <li data-template="communityListItem">
-        <a href="#community:{{id}}">{{name}}</a>
-        <div class="statistics"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-        <div class="statistics"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+        <a href="#community:{{id}}" class="name">{{name}}</a>
+        <div class="statistics">
+            <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+            <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+        </div>
     </li>
 
     <li data-template="communityPage">
@@ -36,33 +36,38 @@
             <div class="community-actions">
             {{?isMember}}
                 <div class="member-name">{{memberName}}</div>
-                <a href="#community:{{communityId}}/topic/add"><i class="icon-add"><span>{{#btn.add}}</span></i></a>
-                <a href="#community:{{communityId}}/quit" data-register="btnLeave"><i class="icon-delete"><span>{{#btn.quit}}</span></i></a>
+                <a href="#community:{{communityId}}/topic/add" data-ico="add"><span>{{#btn.add}}</span></a>
+                <a href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></i></a>
+                {{.:'frmAddTopic'}}
             {{/isMember}}
             {{?!isMember}}
-                <a href="#community:{{communityId}}/join" data-register="btnJoin"><i class="icon-add"><span>{{#btn.join}}</span></i></a>
+                <a href="#community:{{communityId}}/join"><i class="icon-add"><span>{{#btn.join}}</span></i></a>
             {{/isMember}}
             </div>
         </div>
-        <div>
-            {{.:'frmSearch'}}
-        </div>
-        <ul data-register="communityTopicList"></ul>
+        <div id="communityTopics" data-register="communityTopicList"></div>
     </li>
 
     <li data-template="communityJoinPage">
         <div class="community-header">
             <h2 class="community-name">{{communityName}}</h2>
         </div>
+        {{?isAuthenticated}}
         <form class="join-community-form" data-register="frmJoinCommunity">
             <div>
                 <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label><input type="text" id="memberName" name="memberName" required="required" maxlength="100" placeholder="{{#placeholder.communityAddFounderName}}"/>
             </div>
             <div>
-                <button>{{#btn.ok}}</button>
+                <button data-register="btnJoinSubmit">{{#btn.ok}}</button>
                 <button data-register="btnCancel" >{{#btn.cancel}}</button>
             </div>
         </form>
+        {{/isAuthenticated}}
+        {{?!isAuthenticated}}
+        <a href="#signup">{{#link.signUp}}</a>
+        <a href="#signin">{{#link.signIn}}</a>
+        <a data-register="btnCancel">{{#btn.cancel}}</a>
+        {{/isAuthenticated}}
     </li>
 
     <li data-template="addCommunity">

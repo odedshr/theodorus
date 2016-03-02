@@ -14,65 +14,53 @@
     var fs = require ('fs');
     var TPL = require ('./vendor/o.min.js');
 
-    var root = '.';
-    var devDeploy = '/_deploy.dev';
-    var rootDeploy = ''.concat(root, '/_deploy');
-    var rootDevDeploy = ''.concat(root, '/_deploy.dev');
     var i18nFolder = './i18n';
     var templatesFolder = './templates';
     var allTemplatesFiles = templatesFolder + '/**/*.html';
 
-    var cssUrl = 'css';
-    var cssDevDeployFolder = ''.concat(root, devDeploy, '/',cssUrl);
+    var cssUrl = '/css';
+    var cssFolder = '.' + cssUrl;
     var combinedCssFile = 'stylesheet.min.css';
     var lessFolder = './less';
     var allLessFiles = lessFolder + '/**/*.less';
 
-    var jsUrl = 'js';
-    var jsFolder = ''.concat(root,'/', jsUrl);
-    var jsDevDeployFolder = ''.concat(rootDevDeploy, '/', jsUrl);
+    var jsUrl = '/js';
+    var jsFolder = '.' + jsUrl;
     var allJsFiles =  jsFolder + '/**/*.js';
     var combinedJsFile = 'code.min.js';
-    var rootFolders = ['fonts','i18n','vendor','img'];
-    var rootFiles = [
-        'crossdomain.xml',
-        'favicon.ico',
-        'humans.txt',
-        'LICENSE',
-        'package.json',
-        'params.json',
-        'README.md',
-        'robots.txt'
-    ] ;
-    (function () {
-        var i = rootFiles.length;
-        while (i--) {
-            rootFiles[i] = ''.concat(root,'/',rootFiles[i]);
+
+    var connect = require ('gulp-connect');
+    gulp.task('connect', function connectTask () {
+        connect.server({
+            livereload: true,
+            fallback: '404.dev.html'
+        });
+    });
+
+    gulp.task('reconnect', function htmlTask () {
+        connect.reload();
+    });
+
+    gulp.task('render-less', function () {
+        if (!fs.existsSync(cssFolder)){
+            fs.mkdirSync(cssFolder);
         }
-    })();
-
-    function onError (err) {
-        if (err) {
-            throw err;
-        }
-    }
-
-    gulp.task('render-less', ['create-folders'], function () {
-        gulp.src(allLessFiles)
-            .pipe(less({plugins : [autoprefix]}))
-            .pipe(gulp.dest(cssDevDeployFolder));
-
-        return gulp.src(allLessFiles).pipe(concat(combinedCssFile)).pipe(less({plugins : [cleancss, autoprefix]})).pipe(gulp.dest(rootDeploy));
+        return gulpMerge(
+            gulp.src(allLessFiles)
+                .pipe(less({plugins : [cleancss, autoprefix]}))
+                .pipe(gulp.dest(cssFolder))
+        )
+            .pipe(concat(combinedCssFile))
+            .pipe(gulp.dest('./'));
     });
 
     gulp.task('render-js', function () {
         return gulpMerge(
             gulp.src(allJsFiles)
-                .pipe(gulp.dest(jsDevDeployFolder))
                 .pipe(uglify())
         )
             .pipe(concat(combinedJsFile))
-            .pipe(gulp.dest(rootDeploy));
+            .pipe(gulp.dest('./'));
     });
 
     function getFileList (folder, prefix) {
@@ -101,11 +89,14 @@
                 accString += content[1];
             }
         }
+        var data = {templates : accString};
 
         fs.readFile ('./templates/templates.src.html', 'utf-8', function (err, template) {
-            var content = template.replace('{{templates}}',accString);
-            fs.writeFile(rootDevDeploy.concat('/templates.html'), content, onError);
-            fs.writeFile(rootDeploy.concat('/templates.html'), content, onError);
+            fs.writeFile('./templates.html', template.replace('{{templates}}',accString), function (err) {
+                if (err) {
+                    throw err;
+                }
+            });
         });
     }
 
@@ -118,59 +109,43 @@
                     environment : 'prod'
                 },
                 dev: {
-                    stylesheets:{stylesheet: getFileList (cssDevDeployFolder, cssUrl + '/')  },
+                    stylesheets:{stylesheet: getFileList (cssFolder, cssUrl + '/')  },
                     scripts: { script: getFileList (jsFolder, jsUrl + '/') },
                     environment : 'debug'
                 }
             };
-
+            var onError = function onError (err) {
+                if (err) {
+                    throw err;
+                }
+            };
             var rendered = TPL.render (template, data.dev);
-            fs.writeFile(rootDevDeploy.concat('/index.html'), rendered, onError);
-            fs.writeFile(rootDevDeploy.concat('/404.html'), rendered, onError);
+            fs.writeFile('./index.dev.html', rendered, onError);
+            fs.writeFile('./404.dev.html', rendered, onError);
 
             rendered = TPL.render (template, data.prod);
-            fs.writeFile(rootDeploy.concat('/index.html'), rendered,onError);
-            fs.writeFile(rootDeploy.concat('/404.html'), rendered,onError);
+            fs.writeFile('./index.html', rendered,onError);
+            fs.writeFile('./404.html', rendered,onError);
         });
     }
 
     gulp.task('render-index', function createIndexTask () {
         TPL.setLocale(params.language);
-        TPL.loadLanguage(root.concat(i18nFolder, '/', params.language , '.json'));
+        TPL.loadLanguage('.'+i18nFolder + '/' + params.language + '.json');
 
         mergeTemplates();
         renderIndex();
     });
 
-    gulp.task('create-folders',function createFolders () {
-        var folders = [rootDeploy, rootDevDeploy, cssDevDeployFolder].reverse();
-        var i = folders.length;
-        while (i--) {
-            var folder = folders[i];
-            if (!fs.existsSync(folder)){
-                fs.mkdirSync(folder);
-            }
-        }
-    });
-
-    gulp.task('copy-root',function createFolders () {
-        gulp.src(rootFiles).pipe(gulp.dest(rootDevDeploy)).pipe(gulp.dest(rootDeploy));
-        var i = rootFolders.length;
-        while (i--) {
-            var folder = rootFolders[i];
-            gulp.src([''.concat(root,'/',folder,'/**/*')]).pipe(gulp.dest(''.concat(rootDevDeploy,'/',folder))).pipe(gulp.dest(''.concat(rootDeploy,'/',folder)));
-        }
-    });
-
     function watchTask () {
-        gulp.watch([allJsFiles], ['render-js']);
-        gulp.watch([allLessFiles], ['render-less']);
-        gulp.watch([allTemplatesFiles], ['render-index']);
+        gulp.watch([allJsFiles], ['render-js','reconnect']);
+        gulp.watch([allLessFiles], ['render-less','reconnect']);
+        gulp.watch([allTemplatesFiles], ['render-index','reconnect']);
     }
 
     gulp.task('watch', watchTask);
 
-    gulp.task('default', ['create-folders','copy-root','render-js','render-less','render-index'], function () {
+    gulp.task('default', ['render-js','render-less','render-index', 'connect'], function () {
         console.log('started watching...');
         watchTask ();
     });

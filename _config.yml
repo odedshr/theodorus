@@ -1,0 +1,5 @@
+# Jekyll's develop configuration
+encoding:     "utf-8"
+source: "_deploy.dev"
+destination: "_deploy.bin"
+redirects: yes

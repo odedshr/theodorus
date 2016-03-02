@@ -7,16 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>{{#app.title}}</title>
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link href='https://fonts.googleapis.com/css?family=Titillium+Web&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
 
     {{stylesheet@stylesheets}}<link rel="stylesheet" href="{{.}}" />
     {{/stylesheet@stylesheets}}
     <script language="JavaScript" src="vendor/o.min.js"></script>
+    <script language="JavaScript" src="vendor/moment.min.js"></script>
     {{script@scripts}}<script language="JavaScript" src="{{.}}"></script>
     {{/script@scripts}}
 </head>
-<body id="appContainer" data-register="appContainer">
+<body id="appContainer" data-register="appContainer" data-env="{{environment}}">
 <noscript>Please enable javascript to view this site.</noscript>
 <div>{{#label.loading}}</div>
 </body>

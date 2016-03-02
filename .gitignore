@@ -92,3 +92,9 @@ Temporary Items
 .apdisk
 
 # Created by .ignore support plugin (hsz.mobi)
+
+# Project Sepecific
+/.jekyll-metadata
+/_deploy
+/_deploy.dev
+/_deploy.bin

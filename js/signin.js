@@ -11,11 +11,7 @@ app = (typeof app != "undefined") ? app:{};
     function onSignInSubmitted (evt) {
         var email = O.ELM.signInEmail.value;
         var password = O.ELM.signInPassword.value;
-        var signInDetails = {
-            email: email,
-            password: password
-        };
-        O.AJAX.post(this.backend + 'signin', signInDetails, onSignInResponded.bind(this,true));
+        this.api.signIn(email, password, onSignInResponded.bind(this,true));
         return false;
     }
 
@@ -25,7 +21,7 @@ app = (typeof app != "undefined") ? app:{};
         } else {
             O.COOKIE('authToken', response, rememberMe ? 30 : 1);
             this.api.clearCache();
-            this.updateURL('','');
+            this.goToStateRedirect();
         }
     }
 

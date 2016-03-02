@@ -24,6 +24,11 @@
     "placeholder.communityDescription": "What is your community about?",
     "label.communityAddFounderName": "In this community my name will be",
     "placeholder.communityAddFounderName": "(You can have a different alias)",
-    "label.communityJoinMemberName": "My name is"
+    "label.communityJoinMemberName": "My name is",
+    "post.xJoinedCommunity":"Hello! I'm {name}",
+    "label.noTopics":"No topics to show",
+    "label.noCommunities":"No communities to show",
+    "error.cannotJoinCommunityWithoutId" : "One cannot join community that has no ID",
+    "error.screenTooSmall": "Argh! The screen is too small!"
   }
 }

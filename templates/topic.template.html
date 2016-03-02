@@ -7,13 +7,47 @@
 <body>
 <ul>
     <li data-template="topicList">
-        <ul>
-            {{topic@topics}}<li class="topic">{{.:topicListItemTemplate}}</li>{{/topic@topics}}
-        </ul>
+        <ul class="list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic_{{id}}" class="topic">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
     </li>
 
     <li data-template="topicListItem">
-        <a href="#topic:{{id}}">{{name}}</a>
+        <div class="topic-content" data-type="topic" data-id="{{id}}">
+            <div class="author-image" data-ico="me"></div>
+            <div class="next-to-author-image">
+                <div class="content">{{content}}</div>
+                <div class="info attributes">
+                    <div class="attribute author-name">{{author.name}}</div>
+                    <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
+                    <div class="attribute" data-ico="history"></div>
+                    {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive"></div>{{/isArchivable}}
+                </div>
+                <div class="stats attributes">
+                    <div class="attribute opinion-count" data-ico="heart-empty" data-register="tglOpinion" data-toggle="opinions-{{id}}"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
+                    <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
+                    <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+                </div>
+            </div>
+            <div id="topic_{{id}}_opinion_list" class="opinions" data-hidden="true" data-role="opinions"></div>
+        </div>
+    </li>
+
+    <li data-template="frmAddTopic">
+        <form class="add-topic-form" data-register="frmAddTopic">
+            <div>
+                <label for="topicContent" class="required"></label><input type="text" name="topicContent" id="topicContent" required="required" />
+            </div>
+            <div>
+                <button data-register="btnAddSubmit"><span>{{#btn.ok}}</span></button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="communityTopicAddPage">
+        <div class="community-header">
+            <h2 class="community-name">{{communityName}}</h2>
+        </div>
+        {{.:frmAddTopic}}
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
     </li>
 </ul>
 </body>

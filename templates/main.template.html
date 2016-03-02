@@ -14,18 +14,18 @@
             </a>
             {{?!showUserDetailsInHeader}}
             <nav class="header-navigation">
-                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
-                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}"><span>{{#link.signUp}}</span></a>
-                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}"><span></span></a>
-                <a href="#bug" class="nav-link link-report-bug" title=""><span>{{#link.reportBug}}</span></a>
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
+                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}" data-ico="sign-up"><span>{{#link.signUp}}</span></a>
+                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}" data-ico="sign-in"><span></span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"  data-ico="bug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
             {{?showUserDetailsInHeader}}
             <nav class="header-navigation">
-                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
-                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}"><span>{{#link.messages}}</span></a>
-                <a href="#me" class="nav-link link-me" title="{{#link.me}}"><span>{{#link.me}}</span></a>
-                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"><span>{{#link.reportBug}}</span></a>
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
+                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}" data-ico="message"><span>{{#link.messages}}</span></a>
+                <a href="#me" class="nav-link link-me" title="{{#link.me}}" data-ico="user"><span>{{#link.me}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
         </header>
@@ -102,8 +102,11 @@
 
     <li data-template="application">
         {{.:'header'}}
-        <div id="pageContainer">
+        <div id="pageContainer" class="pageContainer">
             {{.:'loading'}}
+        </div>
+        <div class="error-screen-too-small">
+            {{#error.screenTooSmall}}
         </div>
     </li>
 
@@ -129,10 +132,30 @@
         </aside>
     </li>
 
+    <li data-template="notFoundPage">
+        <article>
+            <h2>404 page not found</h2>
+            <form id="frmPageNotFound">
+                <label for="pageNotFoundURL">I tried to access</label>
+                <input type="text" id="pageNotFoundURL" name="pageNotFoundURL" disabled="disabled">
+                <label for="pageNotFoundDescription">because I expect to find</label>
+                <textarea id="pageNotFoundDescription" name="pageNotFoundDescription"></textarea>
+                <button>{{#btn.ok}}</button>
+            </form>
+        </article>
+    </li>
+
+    <li data-template="errorPage">
+        <article>
+            <h2>Argh! Something went wrong!</h2>
+            <div>{{errorMessage}}</div>
+        </article>
+    </li>
+
     <li data-template="frmSearch">
         <form class="search" data-register="frmSearch">
-            <input type="text" placeholder="{{#label.search}}"/>
-            <button><i class="icon icon-search"></i><span>{{{{#label.search}}}}</span></button>
+            <input type="text" placeholder="{{#label.search}}" id="stringSearch" name="stringSearch" class="stringSearch"/>
+            <a href="#" data-ico="search" title="{{#label.search}}"><span>{{#label.search}}</span></a>
         </form>
     </li>
 

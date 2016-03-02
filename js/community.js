@@ -28,66 +28,37 @@ app = (typeof app != "undefined") ? app:{};
     //=================================//
     this.registry.communityPage = (function registerCommunityPage (dElm, callback) {
         var communityId = this.state.community;
-        this.api.getCommunity (communityId, onCommunityDetailsLoaded.bind(this, callback));
-    }).bind(this);
-
-    function onCommunityDetailsLoaded (callback, response) {
-        var data  = {
-            communityId : response.id,
-            communityName : response.name,
-            isMember : false
-        };
-        console.log(response);
-        if (response.membership) {
-            data.isMember = response.membership.status === 'active';
-            data.memberName = response.membership.name ? response.membership.name : '';
-        }
-        this.render(O.ELM.pageContainer,{communityPage: data});
-        callback();
-    }
-
-    //================================//
-
-    this.registry.communityJoinPage = (function registerCommunityJoinPage (dElm, callback) {
-        var communityId = this.map.community;
-        this.api.getCommunity (communityId, onJoinCommunityDetailsLoaded.bind(this, callback));
-    }).bind(this);
-
-    function onJoinCommunityDetailsLoaded (callback, response) {
-        var data  = {
-            communityId : response.id,
-            communityName : response.name,
-            isMember : (response.membership && response.membership.status === 'active') ? true: false
-        };
-        this.render(O.ELM.pageContainer,{communityJoinPage: data});
-        callback();
-    }
-
-    this.registry.frmJoinCommunity = (function registerBtnJoin (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-join-community',onJoinSubmitted.bind(this)).getDispatcher('submit-join-community');
-        callback();
-    }).bind(this);
-
-    function onJoinSubmitted () {
-        var communityId = this.state.community;
-        var data = {
-            name: O.ELM.memberName.value
-        };
-        this.api.joinCommunity(communityId, data, onJoined.bind(this, communityId));
-        return false;
-    }
-
-    function onJoined (communityId, response) {
-        if (response instanceof Error) {
-            alert ('failed to join community');
+        if (communityId !== undefined && communityId.length > 0) {
+            this.api.async([
+                this.api.getCommunity.bind(this,communityId),
+                this.api.getCommunityTopics.bind(this,communityId)
+            ],
+            onDataLoaded.bind(this,callback));
         } else {
-            this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
+            this.updateURL('communities','');
         }
+    }).bind(this);
+
+    function onDataLoaded (callback, data) {
+        this.state.communityJSON = data.getCommunity;
+        this.state.communityTopics = data.getCommunityTopics;
+        var dataForDisplay  = {
+            communityId : data.getCommunity.id,
+            communityName : data.getCommunity.name,
+            isMember : ((data.getCommunity.membership !== undefined) && (data.getCommunity.membership.status === 'active')),
+            topics : data.getCommunityTopics
+        };
+        if (dataForDisplay.isMember) {
+            dataForDisplay.memberName = data.getCommunity.membership.name ? data.getCommunity.membership.name : '';
+        }
+        this.render(O.ELM.pageContainer,{communityPage: dataForDisplay});
+        callback();
     }
+
     //=================================//
 
     this.registry.frmAddCommunity = (function registerBtnAdd (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-add-community',onJoinSubmitted.bind(this)).getDispatcher('submit-add-community');
+        dElm.onsubmit = O.EVT.subscribe('submit-add-community',onAddSubmitted.bind(this)).getDispatcher('submit-add-community');
         callback();
     }).bind(this);
 
@@ -109,7 +80,7 @@ app = (typeof app != "undefined") ? app:{};
     }
 
     function onCommunityAdded (response) {
-        if (response instanceof Error) {
+        if (response instanceof Error || !response) {
             alert ('failed to add community');
             console.log(response);
         } else {
@@ -126,29 +97,18 @@ app = (typeof app != "undefined") ? app:{};
             console.log(response);
         }
     }
-    //=================================//
-
-    this.registry.btnLeave = (function registerBtnAdd (dElm, callback) {
-        dElm.onclick = O.EVT.subscribe('submit-quit-community', this.onLeaveClicked.bind(this)).getDispatcher('submit-quit-community');
-        callback();
-    }).bind(this);
-
-    this.onLeaveClicked = (function onLeaveClicked () {
-        var communityId = this.state.community;
-        this.api.quitCommunity(communityId,onLeaveClicked.bind(this,communityId));
-    }).bind(this);
-
-    this.onLeftCommunity = (function onLeftCommunity (communityId) {
-        this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
-    }).bind(this);
 
     //=================================//
     this.registry.myCommunityList = (function registerMyCommunityList (dElm, callback) {
-        this.api.getMyCommunities(gotMyCommunityList.bind(this,dElm));
+        //if (this.isAuthenticated()) {
+        //    this.api.getMyCommunities(renderCommunityList.bind(this,dElm));
+        //} else {
+            this.api.getCommunityList(renderCommunityList.bind(this,dElm));
+        //}
         callback();
     }).bind(this);
 
-    function gotMyCommunityList (dElm, response) {
+    function renderCommunityList (dElm, response) {
         this.render(dElm, {communityList: {communities:{community: response}}});
     }
 

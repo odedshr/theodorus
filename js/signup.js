@@ -12,11 +12,20 @@ app = (typeof app != "undefined") ? app:{};
         var email = O.ELM.signUpEmail.value;
         var password = O.ELM.signUpPassword.value;
         var retypePassword = O.ELM.signUpRetypePassword.value;
-        var signUpDetails = {
-            email: email,
-            password: password
-        };
-        O.AJAX.post(this.backend + 'signup', signUpDetails, onSignUpResponded.bind(this));
+        var userModel = this.models.user;
+        if (userModel.email.validate(email)) {
+            if (userModel.password.validate(password)) {
+                if (password === retypePassword) {
+                    this.api.signUp(email, password, onSignUpResponded.bind(this));
+                } else {
+                    this.log('retype password',this.logType.error)
+                }
+            } else {
+                this.log('illegal password',this.logType.error);
+            }
+        } else {
+            this.log('illegal email',this.logType.error);
+        }
         return false;
     }
 
@@ -26,7 +35,7 @@ app = (typeof app != "undefined") ? app:{};
         } else {
             O.COOKIE('authToken', response, 1);
             this.api.clearCache();
-            this.updateURL('','');
+            this.goToStateRedirect();
         }
     }
 
