@@ -2,20 +2,10 @@
     'use strict';
 
     var emailPatternString = '((([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,})))';
-    var maskedIdPattern  = '([\\w\\d]*)';
+    var maskedIdPattern  = '([\\w\\d]+)';
     var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
-    var tagOrComment = new RegExp(
-        '<(?:'
-            // Comment body.
-        + '!--(?:(?:-*[^->])*--+|-?)'
-            // Special "raw text" elements whose content should be elided.
-        + '|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*'
-        + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*'
-            // Regular name
-        + '|/?[a-z]'
-        + tagBody
-        + ')>',
-        'gi');
+    var tagOrComment = new RegExp('<(?:' + '!--(?:(?:-*[^->])*--+|-?)' + '|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*' + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*' + '|/?[a-z]' + ')>','gi');
+        // Comment body. + Special "raw text" elements whose content should be elided. + Regular name
 
     function isValidEmail (username) {
         if (username.match(emailPatternString)) {
@@ -32,12 +22,12 @@
     }
 
     function sanitizeString (string) {
-        return string.replace(tagOrComment, '');
+        return string.replace (tagOrComment, '').replace (/<(?:.|\n)*?>/gm, '');
     }
 
     function textify (string) {
-        string = string.replace(/<(?:.|\n)*?>/gm, ''); //strip html tags
-        string = string.replace(/[^(\s\w)]+/gm, ' '); // split connected words
+        string = string.replace (/<(?:.|\n)*?>/gm, ''); //strip html tags
+        string = string.replace (/[^(\s\w)]+/gm, ' '); // split connected words
         return string;
     }
 

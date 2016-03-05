@@ -12,8 +12,10 @@
     function unauthorized () {
         return new DetailedError (401);
     }
-    function notFound () {
-        return new DetailedError (404);
+    function notFound (type,id) {
+        var error = new DetailedError (404);
+        error.value = {key: type, value: id};
+        return error;
     }
 
     function noPermissions (actionName) {
@@ -34,10 +36,20 @@
         return new DetailedError ('immutable-' + varType);
     }
 
+    function alreadyExists (varType) {
+        return new DetailedError ('already-exists-' + varType);
+    }
+
+    function missingInput (varName) {
+        return new DetailedError (varName+'-too-long');
+    }
+
     module.exports.unauthorized = unauthorized;
     module.exports.notFound = notFound;
     module.exports.noPermissions = noPermissions;
     module.exports.badInput = badInput;
     module.exports.tooLong = tooLong;
     module.exports.immutable = immutable;
+    module.exports.alreadyExists = alreadyExists;
+    module.exports.missingInput =  missingInput;
 })();

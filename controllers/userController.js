@@ -29,7 +29,13 @@
         callback(err ? new Error(err) : true);
     }
 
-    function signin(email, password, authToken, db, callback) {
+    function ping (callback) {
+        tryCatch(function tryCatchPing() {
+            callback({'output':'pong'});
+        },callback);
+    }
+
+    function signin (email, password, authToken, db, callback) {
         tryCatch(function tryCatchSignin() {
             load (email, password, db, signinOnLoaded.bind(null,authToken, callback), callback);
         },callback);
@@ -201,6 +207,7 @@
         }, callback);
     }
 
+    exports.ping = ping;
     exports.signin = signin;
     exports.signup = signup;
     exports.archive = archive;

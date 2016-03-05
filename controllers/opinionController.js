@@ -8,17 +8,23 @@
     var Errors = require('../helpers/Errors.js');
 
     function add (authUser, topicId, content, status, db, callback) {
-        db.topic.get(Encryption.unmask(topicId), chain.onLoad.bind(null,'topic',addOnTopicLoaded.bind(null, authUser, content, status, db, callback),callback,true));
+        if (topicId !== undefined) {
+            var unmasked = Encryption.unmask(topicId);
+            db.topic.get(Encryption.unmask(topicId), chain.onLoad.bind(null,'topic',addOnTopicLoaded.bind(null, authUser, content, status, db, callback),callback,true));
+        }else {
+            callback(Errors.missingInput('topicId'));
+        }
+
     }
 
     function addOnTopicLoaded (authUser, content, status, db, callback, topic) {
         chain ([{name:'topic', data: topic },
             {name:'community', table:db.community, parameters: topic.communityId, continueIf: chain.onlyIfExists },
             {name:'author', table:db.membership, parameters: {userId: authUser.id, communityId: topic.communityId }, continueIf: chain.onlyIfExists }
-        ], addLoadHsitory.bind(null, content, status, db, callback), callback);
+        ], addLoadHistory.bind(null, content, status, db, callback), callback);
     }
 
-    function addLoadHsitory (content, status, db, callback, data) {
+    function addLoadHistory (content, status, db, callback, data) {
         if (data.author.can('opinionate')) {
             if (data.community.isOpinionLengthOk(content)) {
                 db.opinion.one({authorId: data.author.id, topicId: data.topic.id, status: db.opinion.model.status.published}, chain.onLoad.bind(null,'history',addOnDataLoaded.bind(null, content, status, db, callback, data),callback,false));
@@ -45,7 +51,7 @@
 
             opinionJSON.history = { id: data.history.id, created: data.history.created };
         } else {
-            data.topic.opinions = data.topic.opinions + 1;
+            data.topic.opinions = +data.topic.opinions + (opinionJSON.status === db.opinion.model.status.published);
             data.topic.modified = now;
             data.topic.save();
         }
@@ -59,7 +65,7 @@
     }
 
     function update (authUser, opinion, db, callback) {
-        if (opinion.id) {
+        if (opinion && opinion.id) {
             db.opinion.get(Encryption.unmask(opinion.id), chain.onLoad.bind(null,'opinion',updateOnOpinionLoaded.bind(null, authUser, opinion, db, callback),callback,true));
         } else {
             callback(Errors.notFound());
@@ -79,21 +85,29 @@
     }
 
     function updateOnCommunityLoaded (db, callback, data) {
-        if (data.community.isOpinionLengthOk(data.newOpinion.content)) {
-            if (data.opinion.comments === 0 && data.opinion.endorse === 0 && data.opinion.report === 0) {
-                data.opinion.content = data.newOpinion.content ? data.newOpinion.content : data.opinion.content;
-                data.opinion.status = data.newOpinion.status ? data.newOpinion.status : data.opinion.status;
-                data.opinion.modified = new Date();
-                data.opinion.save(chain.onSaved.bind(null, addOnDataSaved.bind(null, db, callback, data)));
-            } else {
-                if (data.opinion.status === db.opinion.model.status.published) {
-                    addOnDataLoaded (data.newPost.content, data.newPost.status, db, callback, data, data.opinion);
+        if (data.opinion.comments === 0 && data.opinion.endorse === 0 && data.opinion.report === 0) {
+            var archivedStatus = db.opinion.model.status.archived;
+            if (data.newOpinion.content !== undefined) {
+                if (data.community.isOpinionLengthOk(data.newOpinion.content)) {
+                    data.opinion.content = data.newOpinion.content ;
                 } else {
-                    callback(Errors.immutable('opinion'));
+                    callback(Errors.tooLong('opinion'));
+                    return;
                 }
             }
+            if ((data.newOpinion.status === archivedStatus) && (data.opinion.status !== archivedStatus)) {
+                data.topic.opinions = +data.topic.opinions - 1; // opinion will be added at addOnDataSaved()
+                data.topic.save();
+            }
+            data.opinion.status = data.newOpinion.status ? data.newOpinion.status : data.opinion.status;
+            data.opinion.modified = new Date();
+            data.opinion.save(chain.onSaved.bind(null, addOnDataSaved.bind(null, db, callback, data)));
         } else {
-            callback(Errors.tooLong('opinion'));
+            if (data.opinion.status === db.opinion.model.status.published) {
+                addOnDataLoaded (data.newOpinion.content, data.newOpinion.status, db, callback, data, data.opinion);
+            } else {
+                callback(Errors.immutable('opinion'));
+            }
         }
     }
 
@@ -111,7 +125,7 @@
     }
 
     function getOnDataLoaded (db, callback, data) {
-        if (data.member || data.community.join !== db.community.model.join.request) {
+        if (data.member || data.community.type !== db.community.model.type.exclusive) {
             data.opinion.author = data.author;
             data.opinion.community = data.community;
             data.opinion.history = data.history;
@@ -133,26 +147,29 @@
     }
 
     function listOnMemberLoaded (db, callback, data) {
-        if (data.member  || data.community.join !== db.community.model.join.request) {
-            db.opinion.find( {
-                topicId: data.topic.id,
-                or: [ { status: [db.opinion.model.status.published, db.opinion.model.status.history]} ,
-                    { status: db.opinion.model.status.draft, authorId: data.member.id }]
-            }, { order: 'created' }, chain.onLoad.bind(null, 'opinions',listOnOpinionsLoaded.bind(null, data, db, callback), callback, true));
+        if (data.member  || data.community.type !== db.community.model.type.exclusive) {
+            var query = { topicId: data.topic.id};
+            if (data.member) {
+                query.or = [ { status: [db.opinion.model.status.published, db.opinion.model.status.history]} ,
+                    { status: db.opinion.model.status.draft, authorId: data.member.id }];
+            } else {
+                query.status = [db.opinion.model.status.published, db.opinion.model.status.history];
+            }
+            db.opinion.find( query, { order: 'created' }, chain.onLoad.bind(null, 'opinions',listOnOpinionsLoaded.bind(null, data, db, callback), callback, true));
         } else {
             callback (Errors.noPermissions('list-comments'));
         }
     }
     function listOnOpinionsLoaded (data, db, callback, opinions) {
-        data.opinions = opinions;
-        var i = opinions.length, authorIdMap = {};
-        if (i) {
-            while (i--) {
-                authorIdMap[opinions[i].authorId] = true;
+        var count = opinions.length, authorIdMap = {};
+        if (count > 0) {
+            data.opinions = opinions;
+            while (count--) {
+                authorIdMap[opinions[count].authorId] = true;
             }
             db.membership.find({id: Object.keys(authorIdMap)}, chain.onLoad.bind(null, 'authors',listOnAuthorsLoaded.bind(null, data, db, callback), callback, false));
         } else {
-            listOnAuthorsLoaded (data, db, callback, []);
+            callback ([]);
         }
     }
     function listOnAuthorsLoaded (data, db, callback, authors) {
@@ -171,7 +188,7 @@
                 if (opinion.status === historyStatus) {
                     historyPerAuthor[opinion.authorId].push(opinion);
                 } else {
-                    opinion.authorJSON = authorsMap[opinion.authorId];
+                    opinion.authorJSON = authorsMap[Encryption.mask(opinion.authorId)];
                     opinion.history = historyPerAuthor[opinion.authorId];
                     output.push(opinion);
                 }

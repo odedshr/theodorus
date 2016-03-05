@@ -78,20 +78,38 @@
     }
 
     function updateOnCommunityLoaded (db, callback, data) {
-        if (data.community.isCommentLengthOk(data.newComment.content )) {
-            if (data.comment.comments === 0 && data.comment.endorse === 0 && data.comment.report === 0) {
-                data.comment.content = data.newComment.content ? data.newComment.content : data.comment.content;
-                data.comment.status = data.newComment.status ? data.newComment.status : data.comment.status;
-                data.comment.modified = new Date();
-                data.comment.save(chain.onSaved.bind(null, updatedOnSaved.bind(null, callback, data)));
-            } else {
-                callback( Errors.immutable('comment' ));
+        if (data.comment.comments === 0 && data.comment.endorse === 0 && data.comment.report === 0) {
+            var archivedStatus =  db.comment.model.status.archived;
+            if (data.newComment.status !== archivedStatus && data.newComment.content) {
+                if (data.community.isCommentLengthOk(data.newComment.content )) {
+                    data.comment.content = data.newComment.content ? data.newComment.content : data.comment.content;
+                } else {
+                    callback( Errors.tooLong('comment' ));
+                    return;
+                }
             }
+            if ((data.comment.status === archivedStatus) !== (data.newComment.status === archivedStatus)) {
+                var commentCountDelta = (data.newComment.status === archivedStatus) ? -1 : 1;
+                if (data.comment.parentId) {
+                    // update parent comment
+                    db.comment.get(data.comment.parentId, chain.onLoad.bind(null,'comment',updateCommentCount.bind(null, commentCountDelta),callback,false));
+                } else {
+                    // update parent opinion
+                    db.opinion.get(data.comment.opinionId, chain.onLoad.bind(null,'opinion',updateCommentCount.bind(null, commentCountDelta),callback,false));
+                }
+            }
+            data.comment.status = data.newComment.status ? data.newComment.status : data.comment.status;
+            data.comment.modified = new Date();
+            data.comment.save(chain.onSaved.bind(null, updatedOnSaved.bind(null, callback, data)));
         } else {
-            callback( Errors.tooLong('comment' ));
+            callback( Errors.immutable('comment' ));
         }
     }
 
+    function updateCommentCount (delta, item) {
+        item.comments = +item.comments + delta;
+        item.save();
+    }
     function updatedOnSaved (callback, data, commentJSON) {
         commentJSON.author = data.author.toJSON();
         commentJSON.community = data.community.toJSON();
@@ -114,7 +132,7 @@
     }
 
     function getOnDataLoaded (db, callback, data) {
-        if (data.member || data.community.join !== db.community.model.join.request) {
+        if (data.member || data.community.type !== db.community.model.type.exclusive) {
             data.comment.author = data.author;
             data.comment.community = data.community;
             callback(data.comment.toJSON());
@@ -141,36 +159,37 @@
     }
 
     function listOnMemberLoaded (db, callback, data) {
-        if (data.member  || data.community.join !== db.community.model.join.request) {
-            var query = {or: [ { status: db.comment.model.status.published } ,
-                               { status: db.comment.model.status.draft, authorId: data.member.id }]};
+        if (data.member  || data.community.type !== db.community.model.type.exclusive) {
+            var query = { status: db.comment.model.status.published };
             if (data.findBy === 'parent') {
                 query.parentId = data.parent.id;
             } else if (data.opinion) {
-                query.opinoinId = data.opinion.id;
+                query.opinionId = data.opinion.id;
             }
-            db.comment.find( query, { order: 'created' }, chain.onLoad.bind(null, 'comments',listOnCommentsLoaded.bind(null, data, db, callback), callback, true));
+            db.comment.find( query, { order: 'created' }, chain.onLoad.bind(null, 'comments',listOnCommentsLoaded.bind(null, data, db, callback), callback, false));
         } else {
             callback (Errors.noPermissions('list-comments'));
         }
     }
     function listOnCommentsLoaded (data, db, callback, comments) {
         data.comments = comments;
-        var i = comments.length, authorIdMap = {};
-        while (i--) {
-            authorIdMap[comments[i].authorId] = true;
+        var count = comments.length, authorIdMap = {};
+        if (count > 0) {
+            while (count--) {
+                authorIdMap[comments[count].authorId] = true;
+            }
+            db.membership.find({id: Object.keys(authorIdMap)}, chain.onLoad.bind(null, 'authors',listOnAuthorsLoaded.bind(null, data, db, callback), callback, false));
+        } else {
+            callback([]);
         }
-        db.membership.find({userId: Object.keys(authorIdMap)}, chain.onLoad.bind(null, 'authors',listOnAuthorsLoaded.bind(null, data, db, callback), callback, false));
     }
     function listOnAuthorsLoaded (data, db, callback, authors) {
         var commentsLength = data.comments.length;
         if (commentsLength > 0) {
-            var communityJSON = data.community.toJSON();
             var authorsMap = db.membership.model.toMap(authors);
             while (commentsLength--) {
                 var comment = data.comments[commentsLength];
-                comment.communityJSON = communityJSON;
-                comment.authorJSON = authorsMap[comment.authorId];
+                comment.authorJSON = authorsMap[Encryption.mask(comment.authorId)];
             }
         }
         callback(db.comment.model.toList(data.comments));

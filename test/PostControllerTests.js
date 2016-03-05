@@ -19,23 +19,21 @@
 
     describe('PostsController', function () {
 
-    before(function beforeAllTests (done) {
-        helpers.getDBModels (function getModels(newModels) {
-            db = newModels;
-            helpers.createUser (db,helpers.getTestUsername ('post'),'password1',function onSuccess (newAuthToken) {
-                authToken = JSON.parse (Encryption.decode (newAuthToken)).user;
-                communityController.add (authToken, 'community', '', undefined, 7, -10, -10, undefined, undefined, undefined, db.community.model.join.open, db, function (oCommunity) {
-                    communityId = oCommunity.id;
-                    membershipController.add (authToken, undefined, communityId, db, function (oMembership) {
-                        membershipId = oMembership.id;
+        before(function beforeAllTests (done) {
+            helpers.getDBModels (function getModels(newModels) {
+                db = newModels;
+                helpers.createUser (db,helpers.getTestUsername ('post'),'password1',function onSuccess (newAuthToken) {
+                    authToken = JSON.parse (Encryption.decode (newAuthToken)).user;
+                    communityController.add (authToken, 'community', '', undefined, 7, -10, -10, undefined, undefined, undefined, db.community.model.type.public, 'founder', db, function (oCommunity) {
+                        communityId = oCommunity.id;
+                        membershipId = oCommunity.membership.id;
                         done();
                     });
+                }, function onError (err) {
+                    throw new Error (err);
                 });
-            }, function onError (err) {
-                throw new Error (err);
             });
         });
-    });
 
          after (function afterAllTests(done) {
              helpers.cleanTestEnvironment(done);

@@ -21,8 +21,8 @@
             isModerator: membership.isModerator,
             isPublic: membership.isPublic,
             isRepresentative: membership.isRepresentative,
-            join: membership.join,
-            endorseJoin: membership.endorseJoin,
+            communityType: membership.communityType,
+            endorseCommunityType: membership.endorseCommunityType,
             endorseGender: membership.endorseGender,
             endorseMinAge: membership.endorseMinAge,
             endorseMaxAge: membership.endorseMaxAge,
@@ -78,8 +78,8 @@
             isModerator: Boolean,
             isPublic: Boolean,
             isRepresentative: Boolean,
-            join: Object.keys(Community.join),
-            endorseJoin: Object.keys(Community.join),
+            communityType: Object.keys(Community.type),
+            endorseCommunityType: Object.keys(Community.type),
             endorseGender: Object.keys(Community.gender),
             endorseMinAge: Number,
             endorseMaxAge: Number
@@ -103,7 +103,7 @@
         toJSON: toJSON,
         toList: toList,
         toMap: toMap,
-        getNew: function getNew (membershipId, userId, communityId, email, join, iStatus) {
+        getNew: function getNew (membershipId, userId, communityId, name, email, communityType, iStatus) {
             var now = new Date ();
             return {
                 id : membershipId,
@@ -112,6 +112,7 @@
                 modified: now,
                 userId : userId,
                 communityId: communityId,
+                name: name,
                 email: email,
                 score: 0,
                 permissions: { 'suggest': true, 'opinionate': true, 'comment':true, 'approve-members': true, 'invite-members': true },
@@ -119,7 +120,7 @@
                 isModerator: false,
                 isPublic: false,
                 isRepresentative: false,
-                join: join
+                communityType: communityType
             };
         }
     };

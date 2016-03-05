@@ -11,7 +11,7 @@
        }
 
        return [
-            { method: 'post', url: new RegExp('^\\/opinion\/?$'), handler: controller.add },
+            { method: 'post', url: new RegExp('^\\/topic\\/' + validators.maskedIdPattern +'\\/opinion\\/?$') , handler: controller.add, parameters: { topicId: {alias: '0' }} },
             { method: 'post', url: new RegExp('^\\/opinion\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.update, parameters: { opinionId: {alias: '0' }} },
             { method: 'get', url: new RegExp('^\\/opinion\\/' + validators.maskedIdPattern +'\\/?$'), handler: controller.get, parameters: { opinionId: {alias: '0' }} },
             { method: 'delete', url: new RegExp('^\\/opinion\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.archive, parameters: { opinionId: {alias: '0' }} },

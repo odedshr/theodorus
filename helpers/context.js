@@ -29,10 +29,10 @@
         if (data instanceof Error) {
             log ('error in URL ' +  res.req.url);
             if (data.details) {
-                log(data.details);
+                log(JSON.stringify(data.details));
             }
             if (data.message) {
-                log(data.message);
+                log(JSON.stringify(data.message));
             }
             var errorMessage = errorCodes[data.message];
             if (errorMessage === undefined) {

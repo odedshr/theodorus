@@ -5,7 +5,7 @@
 
     var status = { active: "active", suspended: "suspended", archived: "archived"};
     var gender = { male: "male", female: "female", neutral: "neutral"};
-    var join = { open: "open", request: "request", invite: "invite"};
+    var type = { public: "public", exclusive: "exclusive", secret: "secret"};
 
     function toJSON (community) {
         return {
@@ -22,7 +22,7 @@
             minAge: community.minAge,
             maxAge: community.maxAge,
             gender: community.gender,
-            join: community.join,
+            type: community.type,
             topics: community.topics
         };
     }
@@ -49,7 +49,7 @@
             minAge: { type: 'integer' },
             maxAge: { type: 'integer' },
             gender: Object.keys(gender),
-            join: Object.keys(join),
+            type: Object.keys(type),
             topics: Number
         },
         relations: function (model, models) {
@@ -86,9 +86,9 @@
         validations: {},
         status : status,
         gender : gender,
-        join : join,
+        type : type,
         toJSON: toJSON,
-        getNew: function getNew (communityId, founderId, name, description, iStatus, topicLength, opinionLength, commentLength, minAge, maxAge, iGender, iJoin) {
+        getNew: function getNew (communityId, founderId, name, description, iStatus, topicLength, opinionLength, commentLength, minAge, maxAge, iGender, iType) {
             var now = new Date ();
             return {
                 id : communityId,
@@ -106,7 +106,7 @@
                 minAge: (minAge !== undefined) ? +minAge : -1,
                 maxAge: (maxAge !== undefined) ? +maxAge : -1,
                 gender: gender[iGender] ? gender[iGender] : gender.neutral,
-                join: join[iJoin] ? join[iJoin]: join.open
+                type: type[iType] ? type[iType]: type.public
             };
         }
     };

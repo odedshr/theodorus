@@ -52,7 +52,11 @@
             var route, routes = controllerRoutes();
             while (routes.length) {
                 route = routes.pop();
-                app[route.method](route.url, createContext(route.handler, route.parameters));
+                if (route.method && route.url && route.handler) {
+                    app[route.method](route.url, createContext(route.handler, route.parameters));
+                } else {
+                    throw Errors.badInput('router',JSON.stringify(route));
+                }
             }
         });
 

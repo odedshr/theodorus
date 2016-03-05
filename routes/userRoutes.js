@@ -12,6 +12,7 @@
        }
 
        return [
+            { method: 'get', url: new RegExp('^\\/ping\\/?$'), handler: controller.ping },
             { method: 'post', url: new RegExp('^\\/signin\\/?$'), handler: controller.signin },
             { method: 'post', url: new RegExp('^\\/signup\\/?$'), handler: controller.signup },
             { method: 'delete', url: new RegExp('^\\/user\\/?$'), handler: controller.remove },

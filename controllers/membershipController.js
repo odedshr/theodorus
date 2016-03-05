@@ -6,25 +6,30 @@
     var tryCatch = require('../helpers/tryCatch.js');
     var chain = require('../helpers/chain.js');
 
-    function add (authUser, email, communityId, db, callback) {
-        db.community.get(Encryption.unmask(communityId), chain.onLoad.bind(null, 'community', addOnCommunityLoaded.bind(null,db, callback, email, authUser), callback, true));
+    function add (authUser, email, name, communityId, db, callback) {
+        db.community.get(Encryption.unmask(communityId), chain.onLoad.bind(null, 'community', addOnCommunityLoaded.bind(null,db, callback, email, name, authUser), callback, true));
     }
 
-    function addOnCommunityLoaded (db, callback, email, authUser, community) {
+    function addOnCommunityLoaded (db, callback, email, name, authUser, community) {
         if (email === undefined) {
             email = authUser.email;
         }
-        db.membership.one({email: email, communityId: community.id}, onMembershipLoaded.bind(null, db, callback, authUser, community,email));
+        db.membership.one({email: email, communityId: community.id}, onMembershipLoaded.bind(null, db, callback, name, authUser, community,email));
     }
 
-    function onMembershipLoaded (db, callback, authUser, community, email, error, membership) {
+    function onMembershipLoaded (db, callback, name, authUser, community, email, error, membership) {
         if (error) {
             callback(new Error('failed-to-load-membership'));
-        } else if (membership) {
-            addOnMembershipAlreadyExists (db, callback, authUser, community, membership);
         } else {
-            membership = db.membership.model.getNew(undefined, (authUser.email === email ? authUser.id : undefined), community.id, email, community.join, undefined);
-            addOnMembershipNotExists (db, callback, authUser, community, membership);
+            if (membership) {
+                if (name !== undefined) {
+                    membership.name = name ;
+                }
+                addOnMembershipAlreadyExists (db, callback, authUser, community, membership);
+            } else {
+                membership = db.membership.model.getNew(undefined, (authUser.email === email ? authUser.id : undefined), community.id, name, email, community.type, undefined);
+                addOnMembershipNotExists (db, callback, authUser, community, membership);
+            }
         }
     }
 
@@ -51,11 +56,16 @@
                     callback(new Error('already-invited'));
                 }
                 break;
+                case db.membership.model.status.quit:
+                    dMembership.status = db.membership.model.status.active;
+                    dMembership.modified = new Date();
+                    dMembership.save(chain.onSaved.bind(null, callback));
+                    break;
             case db.membership.model.status.unfit:
                 //TODO: re-asses unfits
                 break;
             case db.membership.model.status.active:
-                callback (new Error(409));
+                callback (Errors.alreadyExists('membership'));
                 break;
             default:
                 callback (new Error(409));
@@ -76,10 +86,10 @@
         dMembership.save(chain.onSaved.bind(null, callback));
     }
     function addOnMembershipNotExists (db, callback, authUser, community, jMembership) {
-        if (authUser.email !== jMembership.email && (community.join === db.community.model.join.open || community.join === db.community.model.join.invite )) {
+        if (authUser.email !== jMembership.email && (community.type === db.community.model.type.public || community.type === db.community.model.type.secret )) {
             db.membership.one({userId: authUser.id, communityId: community.id}, chain.onLoad.bind(null, 'membership', addOnInviterLoaded.bind(null, db, callback, jMembership), callback, true));
         } else if (community.founderId === authUser.id) {
-            jMembership.join = db.community.model.join.open;
+            jMembership.type = db.community.model.type.public;
             db.membership.create(jMembership, chain.onSaved.bind(null, callback));
         } else {
             db.user.get(authUser.id, chain.onLoad.bind(null,'user', addOnUserLoaded.bind(null,db, callback,community, jMembership), callback, true));
@@ -87,21 +97,21 @@
     }
     function addOnUserLoaded (db, callback,community, jMembership, user) {
         if (community.isFit(user)) {
-            switch (community.join) {
-                case db.community.model.join.request:
-                    jMembership.join = db.community.model.join.request;
+            switch (community.type) {
+                case db.community.model.type.exclusive:
+                    jMembership.type = db.community.model.type.exclusive;
                     jMembership.status = db.membership.model.status.requested;
                     db.membership.create(jMembership, chain.onSaved.bind(null, callback));
                     break;
-                case db.community.model.join.open:
-                    jMembership.join = db.community.model.join.open;
+                case db.community.model.type.public:
+                    jMembership.type = db.community.model.type.public;
                     db.membership.create(jMembership, chain.onSaved.bind(null, callback));
                     break;
-                case db.community.model.join.invite:
-                    callback(new Error('cannot-join-invite-only-community'));
+                case db.community.model.type.secret:
+                    callback(new Error('cannot-join-secret-community'));
                     break;
                 default:
-                    callback(new Error('community-with-no-join-definition'));
+                    callback(new Error('community-with-no-type'));
                     break;
             }
         } else {
@@ -207,7 +217,7 @@
     }
 
     function listCanListMembers (db, data) {
-        return (data.community.join !== db.community.model.join.invite || (data.membership && data.membership.status === db.membership.model.status.active)) ? true : new Error('no-permissions') ;
+        return (data.community.type !== db.community.model.type.secret || (data.membership && data.membership.status === db.membership.model.status.active)) ? true : new Error('no-permissions') ;
     }
 
     function listOnDataLoaded (db, callback, data) {
@@ -232,7 +242,7 @@
     function invitations (authUser, communityId, db, callback) {
         var communitUnmaskedId = Encryption.unmask(communityId);
         chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communitUnmaskedId }, continueIf: invitationsUpdateQuery.bind (null, db)},
-                {name:'members', table:db.membership, parameters: {approverId: false, communityId: communitUnmaskedId , join: db.community.model.join.invite }, multiple: {} }
+                {name:'members', table:db.membership, parameters: {communityId: communitUnmaskedId , communityType: db.community.model.type.secret }, multiple: {} } //TODO , status: db.membership.model.status.invited ?
         ], listOnDataLoaded.bind(null, db, callback), callback);
     }
 
@@ -244,13 +254,13 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function listCommunities (authUser, membershipId, db, callback) {
-        var tasks = [];
+        var tasks;
         if (membershipId === undefined) {
             tasks = [{name:'memberships', table:db.membership, parameters: { userId: authUser.id }, multiple: {} }];
         } else {
             tasks =[{name:'membership', table:db.membership, parameters: Encryption.unmask(membershipId), continueIf: listCommunitiesIsListPublic.bind(null,authUser.id)},
                     {name:'memberships', table:db.membership, parameters: { userId: false }, multiple: {} }
-            ];
+            ]; //userId will be completed when first task completes
         }
         chain (tasks, listCommunitiesOnMembershipsLoaded.bind(null, db, callback), callback);
     }

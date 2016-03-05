@@ -19,11 +19,7 @@
             var task = tasks.pop();
 
             if ( task.table === undefined ) {
-                if ( task.data === undefined ) {
-                    onError('chain task with no table ('+task.name+')');
-                } else {
-                    chainOnLoad(output, tasks, task, chainNext.bind(null,tasks,output, onSuccess, onError), onError, undefined, task.data);
-                }
+                chainOnLoad(output, tasks, task, chainNext.bind(null,tasks,output, onSuccess, onError), onError, undefined, task.data);
             } else if (isNaN(task.parameters)) {
                 if (task.multiple) {
                     task.table.find (task.parameters, task.multiple, chainOnLoad.bind(null, output, tasks, task, chainNext.bind(null,tasks,output, onSuccess, onError), onError));
@@ -53,12 +49,12 @@
     }
 
     function onlyIfExists (repository, tasks, currentTask) {
-        return (repository[currentTask.name] !== undefined) ? true : new Error(currentTask.name+'-not-found') ;
+        return (repository[currentTask.name] !== null) ? true : new Error(currentTask.name+'-not-found') ;
     }
 
     function onLoad (itemName, onSuccess, onError, isRequired, error, item) {
         if (error) {
-            onError (error.message="Not found" ? Errors.notFound(itemName) : new LoadError('failed-to-load-'+itemName, error));
+            onError (error.message === "Not found" ? Errors.notFound(itemName) : new LoadError('failed-to-load-'+itemName, error));
         } else if (item || !isRequired) {
             onSuccess (item);
         } else {
