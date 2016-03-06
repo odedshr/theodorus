@@ -15,8 +15,7 @@
   "dependencies": {
     "backbone": "^1.2.3",
     "body-parser": "*",
-    "cookie-parser": "^1.4.0",
-    "enforce": "^0.1.6",
+    "cookie-parser": "^1.4.0"
     "express": "^5.0.0-alpha.2",
     "formidable": "^1.0.17",
     "imagemagick": "*",
