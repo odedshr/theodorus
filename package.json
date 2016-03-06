@@ -1,7 +1,7 @@
 {
   "name": "theodorus",
   "description": "Theodorus is a back-end for online democratic communite",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "index.js",
   "private": true,
   "engines": {
@@ -15,11 +15,12 @@
   "dependencies": {
     "backbone": "^1.2.3",
     "body-parser": "*",
-    "cookie-parser": "^1.4.0"
+    "cookie-parser": "^1.4.0",
     "express": "^5.0.0-alpha.2",
     "formidable": "^1.0.17",
     "imagemagick": "*",
     "jwt-simple": "*",
+    "lodash": "^4.6.1",
     "md5": "*",
     "minimatch": "*",
     "mysql": "^2.10.0",
