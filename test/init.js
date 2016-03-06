@@ -12,7 +12,7 @@
             }
         } else {
             browser.quit();
-            console.log('\x1b[40m\x1b[37m tests completed.\x1b[0m');
+            console.log('\x1b[40m\x1b[37m test completed.\x1b[0m');
         }
     }
 

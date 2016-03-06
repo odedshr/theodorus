@@ -6,6 +6,11 @@ app = (typeof app != "undefined") ? app:{};
     this.registry = this.registry || {};
     this.state = this.state || {};
 
+    this.registry.ping = (function registerPingButton (dElm, callback) {
+        dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,pong)).getDispatcher('ping');
+        callback();
+    }).bind(this);
+
     var renderApplication = (function renderApplication () {
         var token = O.COOKIE('authToken');
         var authenticated = (token.length > 0);
@@ -17,6 +22,18 @@ app = (typeof app != "undefined") ? app:{};
         this.register(O.ELM.appContainer);
     }).bind(this);
 
+    function pong () {
+        if (O.ELM.connectionError !== undefined) {
+            O.DOM.remove(O.ELM.connectionError);
+        }
+    }
+
+    this.onConnectionError = (function onConnectionError (){
+        if (O.ELM.connectionError === undefined) {
+            this.notify({notifyErrorConnection:{}});
+        }
+    }).bind(this);
+
     this.onComponentLoaded = (function onComponentLoaded () {
         if (!(--loadingInProgress)) {
             window.onhashchange = O.EVT.subscribe('window.onhashchange', this.onPageChanged)
@@ -24,6 +41,7 @@ app = (typeof app != "undefined") ? app:{};
 
             O.ELM.refresh();
             renderApplication();
+            this.api.ping(pong);
         }
     }).bind(this);
 
@@ -33,8 +51,9 @@ app = (typeof app != "undefined") ? app:{};
 
         O.EVT.subscribe('window.onload', this.onComponentLoaded)
             .subscribe('TPL.templatesLoaded', this.onComponentLoaded)
-            .subscribe('TPL.languageLoaded', this.onComponentLoaded);
-            //.subscribe('navLink.onclick', this.onNavLinkClicked);
+            .subscribe('TPL.languageLoaded', this.onComponentLoaded)
+            .subscribe('connection-error',this.onConnectionError);
+        //.subscribe('navLink.onclick', this.onNavLinkClicked);
         O.TPL.load('templates.html');
         O.TPL.setLocale('en-us');
         O.TPL.loadLanguage('i18n/en-us.json');
@@ -42,4 +61,4 @@ app = (typeof app != "undefined") ? app:{};
 
 
     this.init();
-return this;}).call(app);
+    return this;}).call(app);

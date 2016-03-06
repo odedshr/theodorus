@@ -17,7 +17,7 @@
                 <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
                 <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}" data-ico="sign-up"><span>{{#link.signUp}}</span></a>
                 <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}" data-ico="sign-in"><span></span></a>
-                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"  data-ico="bug"><span>{{#link.reportBug}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
             {{?showUserDetailsInHeader}}
@@ -25,10 +25,11 @@
                 <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
                 <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}" data-ico="message"><span>{{#link.messages}}</span></a>
                 <a href="#me" class="nav-link link-me" title="{{#link.me}}" data-ico="user"><span>{{#link.me}}</span></a>
-                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug"><span>{{#link.reportBug}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
         </header>
+        <div id="notifications" class="notifications"></div>
     </li>
 
     <li data-template="welcomePage">
@@ -105,15 +106,14 @@
         <div id="pageContainer" class="pageContainer">
             {{.:'loading'}}
         </div>
-        <div class="error-screen-too-small">
-            {{#error.screenTooSmall}}
-        </div>
+        <div class="error-screen-too-small">{{#error.screenTooSmall}}</div>
     </li>
 
 
     <li data-template="loading">
         <div class="loading">
-            {{#label.loading}}
+            <i data-ico="spinner"></i>
+            <span class="title">{{#label.loading}}</span>
         </div>
     </li>
 
@@ -172,17 +172,11 @@
         <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
     </li>
 
-    <li data-template="bugPage">
-        bug
-    </li>
-
-    <li data-template="addTopic">
-        <form class="add-community-form" data-register="frmAddTopic">
-            <div>
-                <button data-register="btnAddTopic">{{#btn.ok}}</button>
-                <button data-register="btnCancel">{{#btn.cancel}}</button>
-            </div>
-        </form>
+    <li data-template="notifyErrorConnection">
+        <div id="connectionError" class="notification system error">
+            <span class="message">{{#error.noConnection}}</span>
+            <a href="#" data-register="ping" title="{{#label.reconnect}}"><span>{{#label.reconnect}}</span></a>
+        </div>
     </li>
 </ul>
 </body>

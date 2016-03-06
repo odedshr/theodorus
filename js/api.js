@@ -3,7 +3,7 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
 
     this.api = this.api || {
-      backend : (this.isProduction ? 'http://theo-dorus.rhcloud.com/' : 'http://localhost:5000/'),
+      backend : (this.isProduction ? server : 'http://localhost:5000/'),
       cache : {},
       cacheExpiration : 3*1000*60 // 3 minutes;
     };
@@ -45,7 +45,6 @@ app = (typeof app != "undefined") ? app:{};
     this.api.ifNotError = (function ifNotError (callback, item) {
         if (item instanceof Error && item.message instanceof XMLHttpRequestProgressEvent & item.status === 0) {
             O.EVT.dispatch('connection-error', item.message);
-            alert ('connection error')
         } else {
             this.ifNotError(callback, item);
         }
@@ -69,7 +68,11 @@ app = (typeof app != "undefined") ? app:{};
         }
     }).bind(this);
     //==================
+    this.api.ping = (function ping (callback) {
+        O.AJAX.get(this.api.backend + 'ping', this.api.ifNotError.bind(this,callback));
+    }).bind(this);
 
+    //==================
     var authenticate = (function authenticate (action, email, password, callback) {
         this.api.ajax('post', action, {
             email: email,
@@ -155,4 +158,10 @@ app = (typeof app != "undefined") ? app:{};
             this.api.ajax('post', 'comment/' , data, callback);
         }
     }).bind(this);
+
+    //================= Feedback
+    this.api.feedback = (function feedback (data, callback) {
+        this.api.ajax('post', 'feedback/' , data, callback);
+    }).bind(this);
+
 return this;}).call(app);

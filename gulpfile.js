@@ -51,6 +51,7 @@
         }
     })();
 
+
     function onError (err) {
         if (err) {
             throw err;
@@ -166,6 +167,13 @@
         gulp.watch([allJsFiles], ['render-js']);
         gulp.watch([allLessFiles], ['render-less']);
         gulp.watch([allTemplatesFiles], ['render-index']);
+
+        var i = rootFolders.length;
+        var folders = [];
+        while (i--) {
+            folders[i] = ''.concat(root,'/',rootFolders[i],'/**/*');
+        }
+        gulp.watch(folders, ['copy-root']);
     }
 
     gulp.task('watch', watchTask);

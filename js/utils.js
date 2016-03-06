@@ -41,6 +41,13 @@ app = (typeof app != "undefined") ? app:{};
         return value;
     }).bind(this);
 
+    this.notify = (function notify (data) {
+        var dNotifications = O.ELM.notifications;
+        O.DOM.append(dNotifications,O.TPL.render(data));
+        O.ELM.refresh();
+        this.register(dNotifications.childNodes[dNotifications.childNodes.length-1]);
+    }).bind(this);
+
     //==================================/
 
     this.extend = (function extend(obj, src) {
@@ -115,14 +122,28 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     //==================================/
+    this.getFormFields = (function getFormFields (formElement) {
+        var formFields = formElement.elements;
+        var data = {};
+        for (var field in formFields) {
+            if (formFields.hasOwnProperty(field)) {
+                var element = formFields[field];
+                if (element.name) {
+                    data[element.name] = (element.type=="checkbox") ? (element.checked) : element.value;
+                }
+            }
+        }
+        return data;
+    }).bind(this);
+
+    //==================================/
     this.render = (function render (dElm,data) {
         try {
             dElm.innerHTML = O.TPL.render(data);
             O.ELM.refresh();
         }
         catch (err) {
-            console.log(err);
-            console.log(O.TPL.list());
+            this.log(err,this.logType.debug);
         }
 
     }).bind(this);

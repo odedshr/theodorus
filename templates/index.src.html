@@ -12,13 +12,20 @@
 
     {{stylesheet@stylesheets}}<link rel="stylesheet" href="{{.}}" />
     {{/stylesheet@stylesheets}}
+    <script>
+        var server = 'http://theo-dorus.rhcloud.com/';
+    </script>
     <script language="JavaScript" src="vendor/o.min.js"></script>
     <script language="JavaScript" src="vendor/moment.min.js"></script>
+    <script language="JavaScript" src="vendor/html2canvas.js"></script>
     {{script@scripts}}<script language="JavaScript" src="{{.}}"></script>
     {{/script@scripts}}
 </head>
 <body id="appContainer" data-register="appContainer" data-env="{{environment}}">
 <noscript>Please enable javascript to view this site.</noscript>
-<div>{{#label.loading}}</div>
+<div class="loading">
+    <i data-ico="spinner"></i>
+    <span class="title">{{#label.loading}}</span>
+</div>
 </body>
 </html>

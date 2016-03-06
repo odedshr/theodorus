@@ -74,9 +74,6 @@
 .icon-star-full:before {
   content: "\272d";
 }
-.icon-theodorus:before {
-  content: "\54";
-}
 .icon-add:before {
   content: "\2b";
 }
@@ -157,4 +154,19 @@
 }
 .icon-trash-empty:before {
   content: "\64";
+}
+.icon-pencil:before {
+  content: "\70";
+}
+.icon-spinner:before {
+  content: "\67";
+}
+.icon-exclamation-circle:before {
+  content: "\68";
+}
+.icon-exclamation-triangle:before {
+  content: "\69";
+}
+.icon-certificate:before {
+  content: "\6a";
 }
