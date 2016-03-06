@@ -8,13 +8,47 @@
 
 <ul>
     <li data-template="topicList">
-        <ul>
-            {{topic@topics}}<li class="topic">{{.:topicListItemTemplate}}</li>{{/topic@topics}}
-        </ul>
+        <ul class="list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic_{{id}}" class="topic">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
     </li>
 
     <li data-template="topicListItem">
-        <a href="#topic:{{id}}">{{name}}</a>
+        <div class="topic-content" data-type="topic" data-id="{{id}}">
+            <div class="author-image" data-ico="me"></div>
+            <div class="next-to-author-image">
+                <div class="content">{{content}}</div>
+                <div class="info attributes">
+                    <div class="attribute author-name">{{author.name}}</div>
+                    <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
+                    <div class="attribute" data-ico="history"></div>
+                    {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive"></div>{{/isArchivable}}
+                </div>
+                <div class="stats attributes">
+                    <div class="attribute opinion-count" data-ico="heart-empty" data-register="tglOpinion" data-toggle="opinions-{{id}}"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
+                    <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
+                    <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+                </div>
+            </div>
+            <div id="topic_{{id}}_opinion_list" class="opinions" data-hidden="true" data-role="opinions"></div>
+        </div>
+    </li>
+
+    <li data-template="frmAddTopic">
+        <form class="add-topic-form" data-register="frmAddTopic">
+            <div>
+                <label for="topicContent" class="required"></label><input type="text" name="topicContent" id="topicContent" required="required" />
+            </div>
+            <div>
+                <button data-register="btnAddSubmit"><span>{{#btn.ok}}</span></button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="communityTopicAddPage">
+        <div class="community-header">
+            <h2 class="community-name">{{communityName}}</h2>
+        </div>
+        {{.:frmAddTopic}}
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
     </li>
 </ul>
 
@@ -27,21 +61,22 @@
             </a>
             {{?!showUserDetailsInHeader}}
             <nav class="header-navigation">
-                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
-                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}"><span>{{#link.signUp}}</span></a>
-                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}"><span></span></a>
-                <a href="#bug" class="nav-link link-report-bug" title=""><span>{{#link.reportBug}}</span></a>
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
+                <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}" data-ico="sign-up"><span>{{#link.signUp}}</span></a>
+                <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}" data-ico="sign-in"><span></span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
             {{?showUserDetailsInHeader}}
             <nav class="header-navigation">
-                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}"><span>{{#link.communities}}</span></a>
-                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}"><span>{{#link.messages}}</span></a>
-                <a href="#me" class="nav-link link-me" title="{{#link.me}}"><span>{{#link.me}}</span></a>
-                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}"><span>{{#link.reportBug}}</span></a>
+                <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
+                <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}" data-ico="message"><span>{{#link.messages}}</span></a>
+                <a href="#me" class="nav-link link-me" title="{{#link.me}}" data-ico="user"><span>{{#link.me}}</span></a>
+                <a href="#bug" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
             </nav>
             {{/showUserDetailsInHeader}}
         </header>
+        <div id="notifications" class="notifications"></div>
     </li>
 
     <li data-template="welcomePage">
@@ -115,15 +150,17 @@
 
     <li data-template="application">
         {{.:'header'}}
-        <div id="pageContainer">
+        <div id="pageContainer" class="pageContainer">
             {{.:'loading'}}
         </div>
+        <div class="error-screen-too-small">{{#error.screenTooSmall}}</div>
     </li>
 
 
     <li data-template="loading">
         <div class="loading">
-            {{#label.loading}}
+            <i data-ico="spinner"></i>
+            <span class="title">{{#label.loading}}</span>
         </div>
     </li>
 
@@ -142,10 +179,30 @@
         </aside>
     </li>
 
+    <li data-template="notFoundPage">
+        <article>
+            <h2>404 page not found</h2>
+            <form id="frmPageNotFound">
+                <label for="pageNotFoundURL">I tried to access</label>
+                <input type="text" id="pageNotFoundURL" name="pageNotFoundURL" disabled="disabled">
+                <label for="pageNotFoundDescription">because I expect to find</label>
+                <textarea id="pageNotFoundDescription" name="pageNotFoundDescription"></textarea>
+                <button>{{#btn.ok}}</button>
+            </form>
+        </article>
+    </li>
+
+    <li data-template="errorPage">
+        <article>
+            <h2>Argh! Something went wrong!</h2>
+            <div>{{errorMessage}}</div>
+        </article>
+    </li>
+
     <li data-template="frmSearch">
         <form class="search" data-register="frmSearch">
-            <input type="text" placeholder="{{#label.search}}"/>
-            <button><i class="icon icon-search"></i><span>{{{{#label.search}}}}</span></button>
+            <input type="text" placeholder="{{#label.search}}" id="stringSearch" name="stringSearch" class="stringSearch"/>
+            <a href="#" data-ico="search" title="{{#label.search}}"><span>{{#label.search}}</span></a>
         </form>
     </li>
 
@@ -162,43 +219,37 @@
         <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
     </li>
 
-    <li data-template="bugPage">
-        bug
-    </li>
-
-    <li data-template="addTopic">
-        <form class="add-community-form" data-register="frmAddTopic">
-            <div>
-                <button data-register="btnAddTopic">{{#btn.ok}}</button>
-                <button data-register="btnCancel">{{#btn.cancel}}</button>
-            </div>
-        </form>
+    <li data-template="notifyErrorConnection">
+        <div id="connectionError" class="notification system error">
+            <span class="message">{{#error.noConnection}}</span>
+            <a href="#" data-register="ping" title="{{#label.reconnect}}"><span>{{#label.reconnect}}</span></a>
+        </div>
     </li>
 </ul>
 
 <ul>
     <li data-template="communitiesPage">
-        <div>
-            <a href="#community/add"><i class="icon-add"><span>{{#btn.add}}</span></i></a>
+        <div class="page-header">
+            <a href="#community/add" data-ico="add"><span>{{#btn.add}}</span></i></a>
             {{.:'frmSearch'}}
         </div>
-        <ul data-register="myCommunityList"></ul>
+        <div data-register="myCommunityList" class="community-list"></div>
     </li>
 
     <li data-template="communityAddPage">
         {{.:'addCommunity'}}
     </li>
 
-    <li data-template="communityList">
-        <ul>
-            {{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}
-        </ul>
+    <li data-template="communityList" class="community-list">
+        <ul class="list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
     </li>
 
     <li data-template="communityListItem">
-        <a href="#community:{{id}}">{{name}}</a>
-        <div class="statistics"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-        <div class="statistics"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+        <a href="#community:{{id}}" class="name">{{name}}</a>
+        <div class="statistics">
+            <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+            <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+        </div>
     </li>
 
     <li data-template="communityPage">
@@ -207,33 +258,38 @@
             <div class="community-actions">
             {{?isMember}}
                 <div class="member-name">{{memberName}}</div>
-                <a href="#community:{{communityId}}/topic/add"><i class="icon-add"><span>{{#btn.add}}</span></i></a>
-                <a href="#community:{{communityId}}/quit" data-register="btnLeave"><i class="icon-delete"><span>{{#btn.quit}}</span></i></a>
+                <a href="#community:{{communityId}}/topic/add" data-ico="add"><span>{{#btn.add}}</span></a>
+                <a href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></i></a>
+                {{.:'frmAddTopic'}}
             {{/isMember}}
             {{?!isMember}}
-                <a href="#community:{{communityId}}/join" data-register="btnJoin"><i class="icon-add"><span>{{#btn.join}}</span></i></a>
+                <a href="#community:{{communityId}}/join"><i class="icon-add"><span>{{#btn.join}}</span></i></a>
             {{/isMember}}
             </div>
         </div>
-        <div>
-            {{.:'frmSearch'}}
-        </div>
-        <ul data-register="communityTopicList"></ul>
+        <div id="communityTopics" data-register="communityTopicList"></div>
     </li>
 
     <li data-template="communityJoinPage">
         <div class="community-header">
             <h2 class="community-name">{{communityName}}</h2>
         </div>
+        {{?isAuthenticated}}
         <form class="join-community-form" data-register="frmJoinCommunity">
             <div>
                 <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label><input type="text" id="memberName" name="memberName" required="required" maxlength="100" placeholder="{{#placeholder.communityAddFounderName}}"/>
             </div>
             <div>
-                <button>{{#btn.ok}}</button>
+                <button data-register="btnJoinSubmit">{{#btn.ok}}</button>
                 <button data-register="btnCancel" >{{#btn.cancel}}</button>
             </div>
         </form>
+        {{/isAuthenticated}}
+        {{?!isAuthenticated}}
+        <a href="#signup">{{#link.signUp}}</a>
+        <a href="#signin">{{#link.signIn}}</a>
+        <a data-register="btnCancel">{{#btn.cancel}}</a>
+        {{/isAuthenticated}}
     </li>
 
     <li data-template="addCommunity">
@@ -252,6 +308,36 @@
                 <button data-register="btnCancel" >{{#btn.cancel}}</button>
             </div>
         </form>
+    </li>
+</ul>
+
+<ul>
+    <li data-template="bugPage">
+        <form class="form form-feedback" data-register="frmSendFeedback">
+            <input type="hidden" id="url" name="url" />
+
+            <h1 class="form-title title-feedback">{{#title.reportABug}}</h1>
+            <div>
+                <label for="content"></label>
+                <textarea id="content" name="content" placeholder="{{#placeholder.feedback}}" class="feedback-content" required="required"></textarea>
+            </div>
+            <div id="screenshotRow" data-hidden="true">
+                <img id="screenshotSample" class="feedbackScreenshot" src="" />
+                <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
+                <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
+                <input type="hidden" id="image" name="image" />
+            </div>
+            <div class="button-bar">
+                <button id="feedbackSend">{{#btn.ok}}</button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="notifySuccessFeedbackSent">
+        <div id="feedbackSent" class="notification system success">
+            <span class="message">{{#notify.feedbackSent}}</span>
+            <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+        </div>
     </li>
 </ul>
 

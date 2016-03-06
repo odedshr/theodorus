@@ -7,6 +7,7 @@
     "btn.cancel": "Cancel",
     "btn.join": "Join",
     "btn.quit": "Quit",
+    "btn.close": "Close",
     "label.search": "Search",
     "label.name": "Name",
     "label.topics": "Topic(s)",
@@ -24,6 +25,17 @@
     "placeholder.communityDescription": "What is your community about?",
     "label.communityAddFounderName": "In this community my name will be",
     "placeholder.communityAddFounderName": "(You can have a different alias)",
-    "label.communityJoinMemberName": "My name is"
+    "label.communityJoinMemberName": "My name is",
+    "post.xJoinedCommunity":"Hello! I'm {name}",
+    "label.noTopics":"No topics to show",
+    "label.noCommunities":"No communities to show",
+    "error.cannotJoinCommunityWithoutId" : "One cannot join community that has no ID",
+    "error.screenTooSmall": "Argh! The screen is too small!",
+    "error.noConnection": "Hmm... Cannot reach the server...",
+    "label.reconnect": "Try reconnecting",
+    "label.includeScreenshot": "Include screenshot",
+    "title.reportABug": "We'd love to hear your feedback!",
+    "placeholder.feedback": "Write your feedback",
+    "notify.feedbackSent": "Thank you for your feedback!"
   }
 }
