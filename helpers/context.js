@@ -28,12 +28,7 @@
     function write(res, data) {
         if (data instanceof Error) {
             log ('error in URL ' +  res.req.url);
-            if (data.details) {
-                log(JSON.stringify(data.details));
-            }
-            if (data.message) {
-                log(JSON.stringify(data.message));
-            }
+            log(data, 'fatal');
             var errorMessage = errorCodes[data.message];
             if (errorMessage === undefined) {
                 errorMessage = data.message;
