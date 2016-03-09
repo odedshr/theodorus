@@ -9,8 +9,7 @@
 
     function add (authUser, name, description, status, topicLength, opinionLength, commentLength, minAge, maxAge, gender, type, founderName, db, callback) {
         var community = db.community.model.getNew(undefined, authUser.id, name, description, status, topicLength, opinionLength, commentLength, minAge, maxAge, gender, type);
-        var founder = db.membership.model.getNew(undefined, authUser.id, undefined, authUser.email, community.type, undefined);
-        founder.name = founderName;
+        var founder = db.membership.model.getNew(undefined, authUser.id, undefined, founderName, authUser.email, community.type, undefined);
         validateValues(community, founder, valuesValidated.bind(null, db, callback), callback);
     }
 

@@ -13,6 +13,12 @@
         },callback);
     }
 
+    function getEmail (optionalUser, callback) {
+        tryCatch(function tryCatchPing() {
+            callback({'email': optionalUser ? optionalUser.email : ''});
+        },callback);
+    }
+
     function version (callback) {
         tryCatch(function tryCatchPing() {
             callback({'version': require('../package.json').version});
@@ -21,6 +27,7 @@
 
     exports.ping = ping;
     exports.version = version;
+    exports.getEmail = getEmail;
 
 
 })();

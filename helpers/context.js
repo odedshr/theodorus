@@ -29,12 +29,11 @@
         if (data instanceof Error) {
             log ('error in URL ' +  res.req.url);
             log(data, 'fatal');
-            var errorMessage = errorCodes[data.message];
-            if (errorMessage === undefined) {
-                errorMessage = data.message;
-                data = {message:500};
+            if (data.status === undefined) {
+                data.status = 500;
+                data.status = errorCodes[data.message];
             }
-            res.status(data.message).end(errorMessage);
+            res.status(data.status).end(JSON.stringify(data));
         } else {
             res.end(JSON.stringify(data));
         }

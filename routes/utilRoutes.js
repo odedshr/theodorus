@@ -8,8 +8,9 @@
        }
 
        return [
-            { method: 'get', url: new RegExp('^\\/ping\\/?$'), handler: controller.ping },
-            { method: 'get', url: new RegExp('^\\/version\\/?$'), handler: controller.version }
+           { method: 'get', url: new RegExp('^\\/email\\/?$'), handler: controller.getEmail },
+           { method: 'get', url: new RegExp('^\\/ping\\/?$'), handler: controller.ping },
+           { method: 'get', url: new RegExp('^\\/version\\/?$'), handler: controller.version }
        ];
    };
 })();

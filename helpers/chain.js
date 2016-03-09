@@ -66,8 +66,16 @@
         callback (err ? new Error(err) : item.toJSON());
     }
 
+    function andThenNothing (err) {
+        if (err) {
+            console.error ('andThenNothing produced an error:');
+            console.error (err);
+        }
+    }
+
     module.exports = chain;
     module.exports.onlyIfExists = onlyIfExists;
     module.exports.onLoad = onLoad;
     module.exports.onSaved = onSaved;
+    module.exports.andThenNothing = andThenNothing;
 })();
