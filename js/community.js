@@ -3,8 +3,11 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
     this.registry = this.registry || {};
 
+    O.EVT.subscribe('submit-add-community',onAddSubmitted.bind(this))
+         .subscribe('request-quit-community',onRequestQuitCommunity.bind(this));
+
     this.registry.frmAddCommunity = (function registerCreateCommunityForm (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-add-community',onAddSubmitted.bind(this)).getDispatcher('submit-add-community');
+        dElm.onsubmit = O.EVT.getDispatcher('submit-add-community');
         this.api.getMyCommunities (setDefaultFounderName.bind(this));
         callback();
     }).bind(this);
@@ -30,6 +33,7 @@ app = (typeof app != "undefined") ? app:{};
         var communityId = this.state.community;
         if (communityId !== undefined && communityId.length > 0) {
             this.api.async([
+                this.api.getEmail.bind(this),
                 this.api.getCommunity.bind(this,communityId),
                 this.api.getCommunityTopics.bind(this,communityId)
             ],
@@ -42,6 +46,7 @@ app = (typeof app != "undefined") ? app:{};
     function onDataLoaded (callback, data) {
         this.state.communityJSON = data.getCommunity;
         this.state.communityTopics = data.getCommunityTopics;
+        this.state.email = data.getEmail.email;
         var dataForDisplay  = {
             communityId : data.getCommunity.id,
             communityName : data.getCommunity.name,
@@ -51,16 +56,14 @@ app = (typeof app != "undefined") ? app:{};
         if (dataForDisplay.isMember) {
             dataForDisplay.memberName = data.getCommunity.membership.name ? data.getCommunity.membership.name : '';
         }
+        dataForDisplay.username = data.getEmail.email;
+        console.log(this.state);
+        console.log(dataForDisplay);
         this.render(O.ELM.pageContainer,{communityPage: dataForDisplay});
         callback();
     }
 
     //=================================//
-
-    this.registry.frmAddCommunity = (function registerBtnAdd (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-add-community',onAddSubmitted.bind(this)).getDispatcher('submit-add-community');
-        callback();
-    }).bind(this);
 
     function onAddSubmitted (evt) {
         var data = {
@@ -76,7 +79,7 @@ app = (typeof app != "undefined") ? app:{};
             this.api.addCommunity(data, onCommunityAdded.bind(this));
         }
 
-        return false;
+        evt.detail.preventDefault();
     }
 
     function onCommunityAdded (response) {
@@ -112,4 +115,68 @@ app = (typeof app != "undefined") ? app:{};
         this.render(dElm, {communityList: {communities:{community: response}}});
     }
 
+    //=================================// Joining a Community
+    this.registry.communityJoinPage = (function registerCommunityJoinPage (dElm, callback) {
+        var communityId = this.state.community;
+        this.api.getCommunity (communityId, onJoinCommunityDetailsLoaded.bind(this, callback));
+    }).bind(this);
+
+    function onJoinCommunityDetailsLoaded (callback, response) {
+        var data  = {
+            isAuthenticated : this.isAuthenticated(),
+            communityId : response.id,
+            communityName : response.name,
+            isMember : (response.membership && response.membership.status === 'active') ? true: false
+        };
+        this.render(O.ELM.pageContainer,{communityJoinPage: data});
+        callback();
+    }
+
+    this.registry.frmJoinCommunity = (function registerBtnJoin (dElm, callback) {
+        dElm.onsubmit = O.EVT.subscribe('submit-join-community',onJoinSubmitted.bind(this)).getDispatcher('submit-join-community');
+        callback();
+    }).bind(this);
+
+    function onJoinSubmitted (evt) {
+        var communityId = this.state.community;
+        var data = {
+            name: O.ELM.memberName.value
+        };
+        this.api.joinCommunity(communityId, data, onJoined.bind(this, communityId));
+        evt.detail.preventDefault();
+    }
+
+    function onJoined (communityId, response) {
+        if (response instanceof Error) {
+            if (response.status === 409) {
+                this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
+            } else {
+                this.log(response,this.logType.debug);
+                alert ('failed to join community');
+            }
+        } else {
+            this.updateURL('community:'+communityId+'/', O.TPL.translate('pageTitle.community'));
+        }
+    }
+
+    //=================================// Leaving a Community
+    this.registry.btnLeave = (function registerQuitCommunityButton (dElm, callback) {
+        dElm.onclick = O.EVT.getDispatcher('request-quit-community');
+        callback();
+    }).bind(this);
+
+    function onRequestQuitCommunity (evt) {
+        this.confirm (O.TPL.translate('confirm.leaveCommunity'),onLeaveCommunityConfirmed.bind(this));
+        evt.detail.preventDefault();
+    }
+
+    function onLeaveCommunityConfirmed (isConfirmed) {
+        if (isConfirmed) {
+            this.api.quitCommunity(this.state.community, onLeftCommunity.bind(this));
+        }
+    }
+
+    function onLeftCommunity () {
+        this.updateURL('community/', O.TPL.translate('pageTitle.community'));
+    }
 return this;}).call(app);

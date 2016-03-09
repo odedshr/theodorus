@@ -63,7 +63,7 @@
             .pipe(less({plugins : [autoprefix]}))
             .pipe(gulp.dest(cssDevDeployFolder));
 
-        return gulp.src(allLessFiles).pipe(concat(combinedCssFile)).pipe(less({plugins : [cleancss, autoprefix]})).pipe(gulp.dest(rootDeploy));
+        return gulp.src(allLessFiles).pipe(concat(combinedCssFile)).pipe(less({plugins : [cleancss, autoprefix]})).pipe(gulp.dest(''.concat(rootDeploy,'/',cssUrl)));
     });
 
     gulp.task('render-js', function () {
@@ -114,14 +114,16 @@
         fs.readFile ('./templates/index.src.html', 'utf-8', function (err, template) {
             var data = {
                 prod: {
-                    stylesheets:{ stylesheet: [ combinedCssFile ] },
+                    stylesheets:{ stylesheet: [ ''.concat (cssUrl,'/',combinedCssFile) ] },
                     scripts: { script: [ combinedJsFile ] },
-                    environment : 'prod'
+                    environment : 'prod',
+                    server : 'http://theo-dorus.rhcloud.com/'
                 },
                 dev: {
                     stylesheets:{stylesheet: getFileList (cssDevDeployFolder, cssUrl + '/')  },
                     scripts: { script: getFileList (jsFolder, jsUrl + '/') },
-                    environment : 'debug'
+                    environment : 'debug',
+                    server : 'http://localhost:5000/'
                 }
             };
 
@@ -173,7 +175,7 @@
         while (i--) {
             folders[i] = ''.concat(root,'/',rootFolders[i],'/**/*');
         }
-        gulp.watch(folders, ['copy-root']);
+        gulp.watch([allTemplatesFiles], ['render-index']);
     }
 
     gulp.task('watch', watchTask);

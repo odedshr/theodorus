@@ -3,7 +3,7 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
 
     this.api = this.api || {
-      backend : (this.isProduction ? server : 'http://localhost:5000/'),
+      backend : server,
       cache : {},
       cacheExpiration : 3*1000*60 // 3 minutes;
     };
@@ -46,7 +46,7 @@ app = (typeof app != "undefined") ? app:{};
         if (item instanceof Error && item.message instanceof XMLHttpRequestProgressEvent & item.status === 0) {
             O.EVT.dispatch('connection-error', item.message);
         } else {
-            this.ifNotError(callback, item);
+            callback(item);
         }
     }).bind(this);
 
@@ -83,7 +83,13 @@ app = (typeof app != "undefined") ? app:{};
     this.api.signIn = authenticate.bind(this, 'signin');
 
     this.api.signUp = authenticate.bind(this, 'signup');
-    //==================
+
+    //================= Topics
+    this.api.getEmail = (function getEmail (callback) {
+        this.api.ajax('get', 'email/', callback);
+    }).bind(this);
+
+    //================== Communities
     this.api.addCommunity = (function addCommunity (data, callback) {
         this.api.ajax('post', 'community/', data, callback);
     }).bind(this);

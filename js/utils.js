@@ -49,6 +49,10 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     //==================================/
+    this.confirm  = (function confirm (string, callback) {
+        callback(window.confirm(string));
+    }).bind(this);
+    //==================================/
 
     this.extend = (function extend(obj, src) {
         for (var key in src) {

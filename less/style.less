@@ -5,6 +5,7 @@
 @clr-lightblue : #00B7FF;
 @clr-red : red;
 @clr-white : white;
+@clr-black : black;
 /*=============================================== Colours */
 /* based on http://paletton.com/palette.php?uid=73v250k83tQ1BPs4qCjcqpjhcl7 */
 /* reds*/
@@ -67,13 +68,75 @@
 [data-hidden]  {
   display: none;
 }
-/*=============================================== button */
+/*=============================================== Less Shortcuts */
+.animation (@name, @duration, @iteration, @function) {
+  -webkit-animation-name: @name;
+  -webkit-animation-duration: @duration;
+  -webkit-animation-iteration-count: @iteration;
+  -webkit-animation-timing-function: @function;
+  -moz-animation-name: @name;
+  -moz-animation-duration: @duration;
+  -moz-animation-iteration-count: @iteration;
+  -moz-animation-timing-function: @function;
+  -ms-animation-name: @name;
+  -ms-animation-duration: @duration;
+  -ms-animation-iteration-count: @iteration;
+  -ms-animation-timing-function: @function;
+
+  animation-name: @name;
+  animation-duration: @duration;
+  animation-iteration-count: @iteration;
+  animation-timing-function: @function;
+}
+
 .box-shadow(@x-axis: 0, @y-axis: 1px, @blur: 2px, @color:rgba(0, 0, 0, 0.1)) {
   -webkit-box-shadow: @x-axis @y-axis @blur @color;
   -moz-box-shadow: @x-axis @y-axis @blur @color;
   box-shadow: @x-axis @y-axis @blur @color;
 }
 
+.flex (@direction, @wrap, @justifyContent, @alignContent, @alignItems) {
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: @direction;
+  -ms-flex-direction: @direction;
+  flex-direction: @direction;
+  -webkit-flex-wrap: @wrap;
+  -ms-flex-wrap: @wrap;
+  flex-wrap: @wrap;
+  -webkit-justify-content: @justifyContent;
+  -ms-flex-pack: start;
+  justify-content: f@justifyContent;
+  -webkit-align-content: @alignContent;
+  -ms-flex-line-pack: @alignContent;
+  align-content: @alignContent;
+  -webkit-align-items: @alignItems;
+  -ms-flex-align: start;
+  align-items: @alignItems;
+}
+
+.flex-item (@order, @flex, @alignSelf) {
+  -webkit-order: @order;
+  -ms-flex-order: @order;
+  order: @order;
+  -webkit-flex: @flex;
+  -ms-flex: @flex;
+  flex: @flex;
+  -webkit-align-self: @alignSelf;
+  -ms-flex-item-align: @alignSelf;
+  align-self: @alignSelf;
+}
+
+.outline-text(@color: @clr-lynch) {
+  text-shadow: 2px 2px 0 @color,
+    -1px -1px 0 @color,
+    1px -1px 0 @color,
+  -1px 1px 0 @color,
+  1px 1px 0 @color;
+}
+
+/*=============================================== button */
 button:not([data-ico]) {
   .rounded(4px);
   .box-shadow(1px, 5px, 2px, @clr-gull-grey);
@@ -100,13 +163,56 @@ button:not([data-ico]) {
     .box-shadow(1px, 1px, 2px, @clr-gull-grey);
   }
 }
+/*=============================================== Drop-down */
+.drop-down {
+  .drop-down-title {
+    cursor: pointer;
+  }
+  .drop-down-content {
+    background-color: @clr-white;
+    border: 1px solid @clr-border;
+    display: none;
+    min-width: 75px;
+    padding: 5px;
+    position: absolute;
 
+    [data-ico]  {
+      &:before {
+        vertical-align: bottom;
+      }
+
+      span {
+        display: inline-block;
+      }
+    }
+  }
+
+  &:focus {
+    outline: none;
+
+    .drop-down-content {
+      display: block;
+    }
+  }
+}
 /*=============================================== The rest */
 
 html body {
-  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAJklEQVQYV2NkIBIwEqmOYVQh1pC6fOvefwZGxgaCwXP59v16kAkA2+EHI+g+ze8AAAAASUVORK5CYII=) repeat;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2NkwAIYqSx4+dat/wAKMQOMnQkJRwAAAABJRU5ErkJggg==) repeat;
   font-family: 'Titillium Web', sans-serif;
   height: 100vh;
+  width: 100vw;
+}
+
+#appContainer {
+  background: white url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYV2NkIBIwEqmOYVQh3pAiKngu37r1HwAS9gOReD1V6wAAAABJRU5ErkJggg==) repeat;
+  height: 100vh;
+  @media only screen and (min-width: @screen-md-min) {
+    border: solid @clr-border;
+    border-width: 0 1px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
 }
 
 [data-env="debug"]:before {
@@ -173,13 +279,13 @@ html body {
       font-size: 2.5rem;
     }
   }
-  @media only screen and (min-width: @screen-sm-min) and (max-width: @screen-sm-max) { background-color: @clr-blumine; }
+/*  @media only screen and (min-width: @screen-sm-min) and (max-width: @screen-sm-max) { background-color: @clr-blumine; }
   @media only screen and (min-width: @screen-md-min) and (max-width: @screen-md-max) { background-color: @clr-muddy-waters; }
-  @media only screen and (min-width: @screen-lg-min) { background-color: @clr-hippie-pink; }
+  @media only screen and (min-width: @screen-lg-min) { background-color: @clr-hippie-pink; }*/
 
 }
 .app-logo {
-  background-image: url(/img/all.png);
+  background-image: url(../img/all.png);
   background-position: -8.8rem 0.5rem;
   background-repeat: no-repeat;
   clear: both;
@@ -194,20 +300,23 @@ html body {
   font-size: 2rem;
 }
 .app-quick-description {
-  font-size: 1rem;
+  font-size: 14px;
 }
 
 .header-navigation {
   float: right;
-  margin: 1rem;
+  margin: 10px 10px 0 0 ;
 }
+
 a[data-ico].nav-link, a[data-ico].nav-link:visited {
+  .outline-text;
   background: transparent;
   border: none;
-  color: @clr-link;
+  color: @clr-white;
   cursor: pointer;
   display: inline-block;
   height: 3rem;
+  text-align: center;
   text-decoration: none;
   width: 3rem;
 
@@ -226,89 +335,72 @@ a[data-ico].nav-link, a[data-ico].nav-link:visited {
 [data-section="bug"] .link-report-bug:before,
 [data-section="signup"] .link-sign-up:before,
 [data-section="signin"] .link-sign-in:before{
-  color: @clr-selected;
+  color: @clr-pattens-blue;
 }
 
+/*=============================================== pageHeader */
 .page-header {
-  margin: 0.5rem;
+  background-color: @clr-background;
+  border-bottom: 0.1rem solid @clr-border;
+  padding: 0.5rem;
+
+  .button[data-ico] {
+    .outline-text;
+    background-color: @clr-btn-background;
+    border: 1px solid @clr-border;
+    border-radius: 12px;
+    box-sizing: border-box;
+    color: @clr-white;
+    cursor: pointer;
+    font-size: 12px;
+    height: 24px;
+    text-align: center;
+    padding-top: 4px;
+    width: 24px;
+
+    span {
+      display: none;
+    }
+
+  }
+  .button:hover {
+    background-color: @clr-white;
+    color: @clr-title;
+    text-shadow: none;
+  }
+  .button:active {
+    background-color: @clr-white;
+    color: @clr-title;
+    padding-top: 5px;
+    text-shadow: none;
+  }
 }
+
 .search {
-  border: 0.1rem solid @clr-border;
   background-color: @clr-white;
+  border: 0.1rem solid @clr-border;
+  border-radius: 12px;
   display: inline-block;
-  height: 2.5rem;
+  height: 24px;
+  padding: 0 6px;
 
   .stringSearch {
     background: none;
     border: none;
     display: inline-block;
-    font-size: 1.3rem;
-    height: 2.5rem;
-    line-height: 1.3rem;
-    vertical-align: top;
+    font-size: 12px;
+    line-height: 20px;
+    outline: none;
+    vertical-align: middle;
   }
   [data-ico="search"] {
     background: none;
     border: none;
+    color: @clr-title;
+    font-size: 16px;
+    line-height: 24px;
+    vertical-align: middle;
   }
-}
-
-.community-list {
-  .community {
-    padding: 0.5rem;
-    border-bottom: 0.1rem solid @clr-border;
-    .name, .name:visited {
-      color: @clr-link;
-      cursor: pointer;
-      display: block;
-      font-weight: bold;
-      margin-bottom: 0.2rem;
-      text-decoration: none;
-    }
-    .statistics {
-      font-size: 0.8rem;
-
-      .stat {
-        display: inline-block;
-
-        .value {
-          margin-right: 0.1rem;
-        }
-        .label {
-          margin-right: 0.5rem;
-        }
-      }
-    }
-  }
-}
-
-[data-section="community"] {
-  .community-name {
-    background-color: @clr-border;
-    color: @clr-white;
-    font-size: 1.2rem;
-    padding: 0.5rem;
-  }
-}
-.newsfeed {
-  float: left;
-  min-height: 10rem;
-  width: 66%;
-}
-
-.visitors-info-what-is,
-.visitor-options {
-  float: right;
-  width: 33%;
-}
-
-.visitors-info-what-is,
-.visitor-options .sign-in,
-.visitor-options .sign-up {
-  border: 0.5rem solid @clr-lightgrey;
-  box-sizing: border-box;
-  background-color: @clr-white;
-  padding: 0.5rem;
 }
 
 .tag-color-0 { background-color:lightblue; }
@@ -350,10 +442,14 @@ a[data-ico], a[data-ico]:visited {
 }
 
 .topic {
+  background-color: @clr-white;
   border-bottom: 1px solid @clr-border;
   min-height: 32px; /* height of the image */
   padding: 5px;
 
+  &:last-child {
+    border-bottom: 2px solid @clr-border;
+  }
   .author-image {
     background-color: @clr-background;
     display:inline-block;
@@ -454,25 +550,6 @@ a[data-ico], a[data-ico]:visited {
   }
 }
 /*=============================================== Spinner */
-.animation (@name, @duration, @iteration, @function) {
-  -webkit-animation-name: @name;
-  -webkit-animation-duration: @duration;
-  -webkit-animation-iteration-count: @iteration;
-  -webkit-animation-timing-function: @function;
-  -moz-animation-name: @name;
-  -moz-animation-duration: @duration;
-  -moz-animation-iteration-count: @iteration;
-  -moz-animation-timing-function: @function;
-  -ms-animation-name: @name;
-  -ms-animation-duration: @duration;
-  -ms-animation-iteration-count: @iteration;
-  -ms-animation-timing-function: @function;
-
-  animation-name: @name;
-  animation-duration: @duration;
-  animation-iteration-count: @iteration;
-  animation-timing-function: @function;
-}
 
 [data-ico="spinner"] {
   .animation (spin, 2000ms, infinite, linear);
@@ -518,7 +595,7 @@ a[data-ico], a[data-ico]:visited {
     }
   }
 }
-/*=============================================== Notifications */
+/*=============================================== Feedback */
 .form-feedback {
   background: @clr-white;
   border: 1px solid @clr-border;
@@ -548,4 +625,130 @@ a[data-ico], a[data-ico]:visited {
   height: auto;
   vertical-align: top;
   width: 150px;
+}
+/*=============================================== Community Page */
+.community-list {
+  .community {
+    background-color: @clr-white;
+    border-bottom: 0.1rem solid @clr-border;
+    padding: 0.5rem;
+
+    .name, .name:visited {
+      color: @clr-link;
+      cursor: pointer;
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+      text-decoration: none;
+    }
+    .statistics {
+      font-size: 0.8rem;
+
+      .stat {
+        display: inline-block;
+
+        .value {
+          margin-right: 0.1rem;
+        }
+        .label {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+[data-section="community"] {
+  .community-header {
+    .flex (row, nowrap, flex-start, stretch, start);
+    background-color: @clr-border;
+    box-sizing: border-box;
+    color: @clr-white;
+    display: flex;
+    padding: 5px;
+    width: 100%;
+
+    .community-name {
+      .flex-item (0, 1 1 auto, auto);
+      font-size: 1.2rem;
+    }
+
+    .member-name {
+      .flex-item (0, 0 1 auto, flex-end);
+      font-size: 12px;
+      line-height: 18px;
+      margin-right: 5px;
+    }
+    .username:not(:empty) {
+      &:before { content: " ("; }
+      &:after { content: ")"; }
+    }
+    .community-actions {
+      .flex-item (0, 0 1 auto, flex-end);
+      position: relative;
+
+      .drop-down-title {
+        .outline-text(@clr-white);
+        color: @clr-border;
+
+        span {
+          display: none;
+        }
+      }
+      .drop-down-content {
+        padding :2px;
+        right: 0;
+      }
+      .action {
+        box-sizing: border-box;
+        color: @clr-border;
+        padding: 2px;
+        width: 100%;
+
+        &:hover {
+          background-color: @clr-border;
+          color: @clr-white;
+        }
+      }
+    }
+
+    .link-community-join {
+      .flex-item (0, 0 1 auto, flex-end);
+    }
+  }
+
+  .row-topic-content, .row-buttons {
+    display: inline-block;
+  }
+  .field-topic-content {
+    background-color: @clr-white;
+    border: 0.1rem solid @clr-border;
+    border-radius: 6px;
+    display: inline-block;
+    height: 24px;
+    padding: 0 6px;
+    outline: none;
+    min-width: 280px;
+  }
+}
+
+.newsfeed {
+  float: left;
+  min-height: 10rem;
+  width: 66%;
+}
+
+.visitors-info-what-is,
+.visitor-options {
+  float: right;
+  width: 33%;
+}
+
+.visitors-info-what-is,
+.visitor-options .sign-in,
+.visitor-options .sign-up {
+  border: 0.5rem solid @clr-lightgrey;
+  box-sizing: border-box;
+  background-color: @clr-white;
+  padding: 0.5rem;
 }

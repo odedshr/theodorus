@@ -22,12 +22,6 @@ app = (typeof app != "undefined") ? app:{};
         this.register(O.ELM.appContainer);
     }).bind(this);
 
-    function pong () {
-        if (O.ELM.connectionError !== undefined) {
-            O.DOM.remove(O.ELM.connectionError);
-        }
-    }
-
     this.onConnectionError = (function onConnectionError (){
         if (O.ELM.connectionError === undefined) {
             this.notify({notifyErrorConnection:{}});
@@ -41,7 +35,7 @@ app = (typeof app != "undefined") ? app:{};
 
             O.ELM.refresh();
             renderApplication();
-            this.api.ping(pong);
+            this.ping();
         }
     }).bind(this);
 

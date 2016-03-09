@@ -36,6 +36,9 @@
     "label.includeScreenshot": "Include screenshot",
     "title.reportABug": "We'd love to hear your feedback!",
     "placeholder.feedback": "Write your feedback",
-    "notify.feedbackSent": "Thank you for your feedback!"
+    "notify.feedbackSent": "Thank you for your feedback!",
+    "confirm.leaveCommunity": "Leave this community?",
+    "btn.settings": "Settings",
+    "placeholder.addTopic": "Add your own topic"
   }
 }

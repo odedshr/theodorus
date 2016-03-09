@@ -8,7 +8,7 @@
 <ul>
     <li data-template="communitiesPage">
         <div class="page-header">
-            <a href="#community/add" data-ico="add"><span>{{#btn.add}}</span></i></a>
+            <a href="#community/add" data-ico="add" class="button add"><span>{{#btn.add}}</span></i></a>
             {{.:'frmSearch'}}
         </div>
         <div data-register="myCommunityList" class="community-list"></div>
@@ -31,21 +31,29 @@
     </li>
 
     <li data-template="communityPage">
-        <div class="community-header">
+        <div class="page-header community-header">
             <h2 class="community-name">{{communityName}}</h2>
-            <div class="community-actions">
             {{?isMember}}
-                <div class="member-name">{{memberName}}</div>
-                <a href="#community:{{communityId}}/topic/add" data-ico="add"><span>{{#btn.add}}</span></a>
-                <a href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></i></a>
-                {{.:'frmAddTopic'}}
+            <div class="member-name">{{memberName}}<span class="username">{{username}}</span></div>
+            <div class="community-actions">
+                <div tabindex="1" class="community-actions drop-down">
+                    <div class="drop-down-title" data-ico="cog"><span>{{#btn.settings}}</span></div>
+                    <div class="community-actions-content drop-down-content">
+                        <a class="action" href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></a>
+                    </div>
+                </div>
+            </div>
             {{/isMember}}
             {{?!isMember}}
-                <a href="#community:{{communityId}}/join"><i class="icon-add"><span>{{#btn.join}}</span></i></a>
+            <a class="link-community-join" href="#community:{{communityId}}/join"><i class="icon-add"><span>{{#btn.join}}</span></i></a><span class="username">{{username}}</span>
             {{/isMember}}
-            </div>
         </div>
-        <div id="communityTopics" data-register="communityTopicList"></div>
+        {{?isMember}}
+        <div class="page-header">
+            {{.:'frmAddTopic'}}
+        </div>
+        {{/isMember}}
+        <div id="communityTopics" data-register="communityTopicList" class="community-topics-list"></div>
     </li>
 
     <li data-template="communityJoinPage">

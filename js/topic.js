@@ -3,7 +3,7 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
     this.registry = this.registry || {};
 
-
+    O.EVT.subscribe('submit-add-topic',addTopic.bind(this));
 
     this.registry.communityTopicList = (function registerCreateCommunityForm (dElm, callback) {
         loadTopicList.call(this, dElm);
@@ -28,13 +28,13 @@ app = (typeof app != "undefined") ? app:{};
     }
 
     this.registry.frmAddTopic = (function registerCreateCommunityForm (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-add-topic',addTopic.bind(this)).getDispatcher('submit-add-topic');
+        dElm.onsubmit = O.EVT.getDispatcher('submit-add-topic');
         callback();
     }).bind(this);
 
     //==========================
 
-    function addTopic () {
+    function addTopic (evt) {
         var content = O.ELM.topicContent.value;
         if (this.models.topic.content.validate(content, this.state.communityJSON)) {
             var data = {
@@ -44,7 +44,7 @@ app = (typeof app != "undefined") ? app:{};
             };
             this.api.addTopic(data, onTopicAdded.bind(this));
         }
-        return false;
+        evt.detail.preventDefault();
     }
 
     function onTopicAdded () {

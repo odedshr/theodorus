@@ -10,6 +10,7 @@ app = (typeof app != "undefined") ? app:{};
 
     function onSignOutClicked (evt) {
         O.COOKIE('authToken','');
+        this.state.email = '';
         this.api.clearCache();
         this.goToStateRedirect();
         return false;
