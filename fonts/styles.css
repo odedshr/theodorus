@@ -170,3 +170,6 @@
 .icon-certificate:before {
   content: "\6a";
 }
+.icon-cog:before {
+  content: "\2699";
+}
