@@ -137,7 +137,7 @@
 }
 
 /*=============================================== button */
-button:not([data-ico]) {
+button:not([data-ico]), a.button:not([data-ico]) {
   .rounded(4px);
   .box-shadow(1px, 5px, 2px, @clr-gull-grey);
   background: @clr-pattens-blue;
@@ -153,8 +153,16 @@ button:not([data-ico]) {
   min-width: 44px;
   padding: 5px 10px;
   text-align: center;
+  text-decoration: none;
   text-shadow: 0 1px 0 @clr-white;
 
+  &:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
   &:focus {
     outline:0;
   }
@@ -633,7 +641,7 @@ a[data-ico], a[data-ico]:visited {
     border-bottom: 0.1rem solid @clr-border;
     padding: 0.5rem;
 
-    .name, .name:visited {
+    .link-community, .link-community:visited {
       color: @clr-link;
       cursor: pointer;
       display: block;
@@ -714,6 +722,11 @@ a[data-ico], a[data-ico]:visited {
 
     .link-community-join {
       .flex-item (0, 0 1 auto, flex-end);
+      color: @clr-white;
+      text-decoration: none;
+
+      span { display: inline-block; }
+      [data-ico] { margin-left: 5px; }
     }
   }
 
@@ -729,6 +742,30 @@ a[data-ico], a[data-ico]:visited {
     padding: 0 6px;
     outline: none;
     min-width: 280px;
+  }
+}
+
+.dialog {
+  background: @clr-white;
+  border: 1px solid @clr-border;
+  box-sizing: content-box;
+  display: inline-block;
+  margin: 3vh 4vw;
+  min-width: @screen-xxs-max;
+  padding: 10px;
+
+  .dialog-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .dialog-content {
+    min-height: 50px;
+    width: 100%;
+  }
+
+  .dialog-buttons {
+    text-align: right;
   }
 }
 

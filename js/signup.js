@@ -26,7 +26,7 @@ app = (typeof app != "undefined") ? app:{};
         } else {
             this.log('illegal email',this.logType.error);
         }
-        return false;
+        evt.detail.preventDefault();
     }
 
     function onSignUpResponded (response) {

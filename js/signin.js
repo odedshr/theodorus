@@ -12,7 +12,7 @@ app = (typeof app != "undefined") ? app:{};
         var email = O.ELM.signInEmail.value;
         var password = O.ELM.signInPassword.value;
         this.api.signIn(email, password, onSignInResponded.bind(this,true));
-        return false;
+        evt.detail.preventDefault();
     }
 
     function onSignInResponded (rememberMe, response) {

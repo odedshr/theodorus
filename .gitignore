@@ -95,6 +95,5 @@ Temporary Items
 
 # Project Sepecific
 /.jekyll-metadata
-/_deploy
 /_deploy.dev
 /_deploy.bin

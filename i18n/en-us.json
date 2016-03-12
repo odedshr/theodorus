@@ -14,7 +14,9 @@
     "label.members": "Member(s)",
     "link.communities": "Communities",
     "link.signUp": "Sign Up",
+    "title.signUp": "Sign Up",
     "link.signIn": "Sign In",
+    "title.signIn": "Sign In",
     "link.signOut": "Sign Out",
     "link.messages": "Messages",
     "link.me": "Me",
@@ -39,6 +41,7 @@
     "notify.feedbackSent": "Thank you for your feedback!",
     "confirm.leaveCommunity": "Leave this community?",
     "btn.settings": "Settings",
-    "placeholder.addTopic": "Add your own topic"
+    "placeholder.addTopic": "Add your own topic",
+    "label.youMustSignUpInToJoin": "You must sign up/in to join a community"
   }
 }

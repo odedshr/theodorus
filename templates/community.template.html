@@ -8,7 +8,9 @@
 <ul>
     <li data-template="communitiesPage">
         <div class="page-header">
+            {{?isAuthenticated}}
             <a href="#community/add" data-ico="add" class="button add"><span>{{#btn.add}}</span></i></a>
+            {{/isAuthenticated}}
             {{.:'frmSearch'}}
         </div>
         <div data-register="myCommunityList" class="community-list"></div>
@@ -23,11 +25,13 @@
     </li>
 
     <li data-template="communityListItem">
-        <a href="#community:{{id}}" class="name">{{name}}</a>
-        <div class="statistics">
-            <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-            <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
-        </div>
+        <a href="#community:{{id}}" class="link-community">
+            <div class="name">{{name}}</div>
+            <div class="statistics">
+                <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+                <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+            </div>
+        </a>
     </li>
 
     <li data-template="communityPage">
@@ -45,7 +49,7 @@
             </div>
             {{/isMember}}
             {{?!isMember}}
-            <a class="link-community-join" href="#community:{{communityId}}/join"><i class="icon-add"><span>{{#btn.join}}</span></i></a><span class="username">{{username}}</span>
+            <a class="link-community-join" href="#community:{{communityId}}/join"><span>{{#btn.join}}</span></i><span class="username">{{username}}</span><i data-ico="sign-up"></i></a>
             {{/isMember}}
         </div>
         {{?isMember}}
@@ -72,9 +76,14 @@
         </form>
         {{/isAuthenticated}}
         {{?!isAuthenticated}}
-        <a href="#signup">{{#link.signUp}}</a>
-        <a href="#signin">{{#link.signIn}}</a>
-        <a data-register="btnCancel">{{#btn.cancel}}</a>
+        <div class="dialog">
+            <div class="dialog-title">{{#label.youMustSignUpInToJoin}}</div>
+            <div class="dialog-buttons">
+                <a class="button" href="#signup">{{#link.signUp}}</a>
+                <a class="button" href="#signin">{{#link.signIn}}</a>
+                <a class="button" data-register="btnCancel">{{#btn.cancel}}</a>
+            </div>
+        </div>
         {{/isAuthenticated}}
     </li>
 
