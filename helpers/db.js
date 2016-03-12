@@ -45,7 +45,7 @@
         }, function (err) {
             log(err);
             callback();
-        })
+        });
     }
 
     function useExpress (connectionString) {

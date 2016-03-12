@@ -14,8 +14,18 @@
                     variable = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || variables.port;
                     break;
                 case 'dbConnectionString':
-                    //TODO: remove the use of THEODORUS_MYSQL_SCHEMA
-                    variable = (process.env.OPENSHIFT_MYSQL_DB_URL + process.env.THEODORUS_MYSQL_SCHEMA) || variables.dbConnectionString;
+                    if (variable === undefined) {
+                        if (process.env.THEODORUS_MYSQL_HOST) {
+                            var host = process.env.THEODORUS_MYSQL_HOST;
+                            var password = process.env.THEODORUS_MYSQL_PASSWORD;
+                            var port = process.env.THEODORUS_MYSQL_PORT;
+                            var schema = process.env.THEODORUS_MYSQL_SCHEMA;
+                            var user = process.env.THEODORUS_MYSQL_USER;
+                            variable = ''.concat('mysql://',user,':',password,'@',host,':',port,'/',schema);
+                        } else {
+                            variable = variables.dbConnectionString;
+                        }
+                    }
                     break;
                 case 'environment':
                     variable = (getConfig('ipAddress') === '127.0.0.1') ? 'dev' : 'prod';
