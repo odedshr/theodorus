@@ -3,10 +3,7 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
     this.registry = this.registry || {};
 
-    this.registry.btnSignOut = (function registerSignInForm (dElm, callback) {
-        dElm.onclick = O.EVT.subscribe('sign-out',onSignOutClicked.bind(this)).getDispatcher('sign-out');
-        callback();
-    }).bind(this);
+    this.registry.btnSignOut = { attributes: { onclick : onSignOutClicked.bind(this)} };
 
     function onSignOutClicked (evt) {
         O.COOKIE('authToken','');

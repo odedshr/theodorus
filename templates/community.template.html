@@ -13,7 +13,7 @@
             {{/isAuthenticated}}
             {{.:'frmSearch'}}
         </div>
-        <div data-register="myCommunityList" class="community-list"></div>
+        <div data-register="communityList" class="community-list"></div>
     </li>
 
     <li data-template="communityAddPage">
@@ -38,11 +38,12 @@
         <div class="page-header community-header">
             <h2 class="community-name">{{communityName}}</h2>
             {{?isMember}}
-            <div class="member-name">{{memberName}}<span class="username">{{username}}</span></div>
+            <div class="member-name">{{memberName}}<span class="username">{{email}}</span></div>
             <div class="community-actions">
                 <div tabindex="1" class="community-actions drop-down">
                     <div class="drop-down-title" data-ico="cog"><span>{{#btn.settings}}</span></div>
                     <div class="community-actions-content drop-down-content">
+                        <a class="action" href="#community:{{communityId}}/settings" data-ico="cog"><span>{{#btn.settings}}</span></a>
                         <a class="action" href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></a>
                     </div>
                 </div>
@@ -57,7 +58,7 @@
             {{.:'frmAddTopic'}}
         </div>
         {{/isMember}}
-        <div id="communityTopics" data-register="communityTopicList" class="community-topics-list"></div>
+        <div id="communityTopics" data-register="topicList" class="community-topics-list"></div>
     </li>
 
     <li data-template="communityJoinPage">
@@ -102,6 +103,17 @@
                 <button data-register="btnAddCommunity">{{#btn.ok}}</button>
                 <button data-register="btnCancel" >{{#btn.cancel}}</button>
             </div>
+        </form>
+    </li>
+
+    <li data-template="communitySettingsPage">
+        <div class="community-header">
+            <h2 class="community-name">{{communityName}}</h2>
+        </div>
+        <form class="image-profile-form" data-register="uploadProfileImageForm">
+            <input type="file" id="imageProfileChooser" accept="image/*" />
+            <img src="{{profileImage}}" id="profileImagePreview" />
+            <button id="btnUpdateProfileImage">{{#btn.ok}}</button>
         </form>
     </li>
 </ul>

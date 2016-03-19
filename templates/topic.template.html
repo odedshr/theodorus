@@ -12,7 +12,7 @@
 
     <li data-template="topicListItem">
         <div class="topic-content" data-type="topic" data-id="{{id}}">
-            <div class="author-image" data-ico="me"></div>
+            <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
             <div class="next-to-author-image">
                 <div class="content">{{content}}</div>
                 <div class="info attributes">
@@ -22,12 +22,12 @@
                     {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive"></div>{{/isArchivable}}
                 </div>
                 <div class="stats attributes">
-                    <div class="attribute opinion-count" data-ico="heart-empty" data-register="tglOpinion" data-toggle="opinions-{{id}}"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
+                    <div class="attribute opinion-count" data-ico="heart-empty" data-register="tglOpinion"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
                     <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
                     <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
                 </div>
             </div>
-            <div id="topic_{{id}}_opinion_list" class="opinions" data-hidden="true" data-role="opinions"></div>
+            <div id="topic_{{id}}_opinion_list" class="opinions" data-role="opinions"></div>
         </div>
     </li>
 
@@ -37,7 +37,7 @@
                 <label for="topicContent" class="required"></label><input type="text" class="field-topic-content" name="topicContent" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}"/>
             </div>
             <div class="row-buttons">
-                <button data-register="btnAddSubmit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+                <button data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
             </div>
         </form>
     </li>

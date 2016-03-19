@@ -3,19 +3,12 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
     this.registry = this.registry || {};
 
-    O.EVT.subscribe('submit-add-topic',addTopic.bind(this));
-
-    this.registry.communityTopicList = (function registerCreateCommunityForm (dElm, callback) {
-        loadTopicList.call(this, dElm);
-        callback();
-    }).bind(this);
-
-    function loadTopicList (dElm) {
+    this.registry.topicList = { preprocess : (function loadTopicList (dElm, callback) {
         var communityId = this.state.community;
-        this.api.getCommunityTopics (communityId, renderTopicList.bind(this, dElm));
-    }
+        this.api.getCommunityTopics (communityId, topicListOnLoaded.bind(this, callback));
+    }).bind(this) };
 
-    function renderTopicList (dElm, topics) {
+    function topicListOnLoaded ( callback, topics) {
         var membershipId = this.state.communityJSON.membership ? this.state.communityJSON.membership.id : false;
         var topicCount = topics.length;
         while (topicCount--) {
@@ -23,15 +16,28 @@ app = (typeof app != "undefined") ? app:{};
             topic.time = moment(topic.modified).format("MMM Do YY, h:mma");
             topic.relativeTime = moment(topic.modified).fromNow();
             topic.isArchivable = (membershipId===topic.author.id) && (topic.opinions === 0) && (topic.endorse === 0);
+            topic.author.image = this.api.getProfileImageURL(topic.author.id);
         }
-        this.render(dElm, { topicList: { topics: { topic: topics } } });
+        callback( { topics: { topic: topics } } );
     }
 
-    this.registry.frmAddTopic = (function registerCreateCommunityForm (dElm, callback) {
-        dElm.onsubmit = O.EVT.getDispatcher('submit-add-topic');
-        callback();
-    }).bind(this);
+    this.registry.frmAddTopic = { attributes: { onsubmit : addTopic.bind(this)} };
 
+    //==========================
+    this.registry.tglOpinion = { attributes: { onclick : toggleOpinions.bind(this)} };
+
+    function toggleOpinions (evt) {
+        var topicElm = evt.target.closest('.topic');
+        var opinions = topicElm.querySelector('.opinions');
+        if (O.CSS.has (topicElm, 'hide-opinions')) {
+            O.CSS.remove (topicElm, 'hide-opinions');
+            opinions.setAttribute('data-register','opinionList');
+            this.register(opinions);
+        } else {
+            O.CSS.add (topicElm, 'hide-opinions');
+            opinions.removeAttribute('data-register');
+        }
+    }
     //==========================
 
     function addTopic (evt) {

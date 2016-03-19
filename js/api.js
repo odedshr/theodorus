@@ -16,26 +16,67 @@ app = (typeof app != "undefined") ? app:{};
         callback(response);
     }).bind(this);
 
-    this.api.ajax = (function ajax (method, url, data, callback) {
-        var key = method +'-'+ url;
-        this.log('api '+ key, this.logType.debug);
-        if (method === 'get') {
-            var cache = this.api.cache;
-            callback = data;
-            if (method === 'get' && cache[key] && cache[key].modified > ((new Date()).getTime() - this.api.cacheExpiration)) {
-                callback (cache[key].response);
-            } else {
-                O.AJAX.get(this.api.backend + url, this.api.ifNotError.bind(this,this.api.saveToCache.bind(this, key, callback)));
-            }
+    function getOptions (isAnonymous, callback) {
+        var token = O.COOKIE('authToken');
+        if (token !== undefined) {
+            return { credentials: token }
+        } if (isAnonymous) {
+            return {};
         } else {
-            this.api.clearCache();
-            if (method === 'post' || method === 'put') {
-                O.AJAX[method](this.api.backend + url, data, this.api.ifNotError.bind(this,callback));
-            } else { //delete
-                callback = data;
-                O.AJAX[method](this.api.backend + url, this.api.ifNotError.bind(this,this.api.saveToCache.bind(this, key, callback)));
-            }
+            var error = new Error('unauthorized');
+            callback(error);
+            return error;
         }
+    }
+    this.api.get = (function get (url, callback, isAnonymous) {
+        var options = getOptions(isAnonymous, callback);
+        if (options instanceof Error) {
+            return;
+        }
+
+        this.log('api get '+ url, this.logType.debug);
+        var cache = this.api.cache;
+        if (cache[url] && cache[url].modified > ((new Date()).getTime() - this.api.cacheExpiration)) {
+            callback (cache[url].response);
+        } else {
+            O.AJAX.get(this.api.backend + url, this.api.ifNotError.bind(this,this.api.saveToCache.bind(this, url, callback)), options);
+        }
+    }).bind(this);
+
+    this.api.delete = (function Delete (url, callback, isAnonymous) {
+        var options = getOptions(isAnonymous, callback);
+        if (options instanceof Error) {
+            return;
+        }
+
+        this.log('api delete '+ url, this.logType.debug);
+
+        this.api.clearCache();
+        O.AJAX.delete(this.api.backend + url, this.api.ifNotError.bind(this,this.api.saveToCache.bind(this, key, callback)), options);
+    }).bind(this);
+
+    this.api.post = (function post (url, data, callback, isAnonymous) {
+        var options = getOptions(isAnonymous, callback);
+        if (options instanceof Error) {
+            return;
+        }
+
+        this.log('api post '+ url + '\n' + JSON.stringify(data), this.logType.debug);
+
+        this.api.clearCache();
+        O.AJAX.post(this.api.backend + url, data, this.api.ifNotError.bind(this,callback), options);
+    }).bind(this);
+
+    this.api.put = (function put (url, data, callback, isAnonymous) {
+        var options = getOptions(isAnonymous, callback);
+        if (options instanceof Error) {
+            return;
+        }
+
+        this.log('api put '+ url + '\n' + JSON.stringify(data), this.logType.debug);
+
+        this.api.clearCache();
+        O.AJAX.put(this.api.backend + url, data, this.api.ifNotError.bind(this,callback), options);
     }).bind(this);
 
     this.api.clearCache = (function clearCache() {
@@ -67,82 +108,93 @@ app = (typeof app != "undefined") ? app:{};
             task(whenAsyncTaskIsDone.bind(this,taskName, tasks.length===0,callback, output));
         }
     }).bind(this);
+
     //==================
     this.api.ping = (function ping (callback) {
-        O.AJAX.get(this.api.backend + 'ping', this.api.ifNotError.bind(this,callback));
+        this.api.get ('ping', this.api.ifNotError.bind(this,callback), true);
     }).bind(this);
 
     //==================
     var authenticate = (function authenticate (action, email, password, callback) {
-        this.api.ajax('post', action, {
+        this.api.post (action, {
             email: email,
             password: password
-        }, callback );
+        }, callback, true );
     });
 
     this.api.signIn = authenticate.bind(this, 'signin');
 
     this.api.signUp = authenticate.bind(this, 'signup');
 
-    //================= Topics
+    //================= Email
     this.api.getEmail = (function getEmail (callback) {
-        this.api.ajax('get', 'email/', callback);
+        this.api.get ('email/', callback);
     }).bind(this);
+    //================== Membership
+    this.api.updateProfileImage = (function updateProfileImage (membershipId, data, callback) {
+        this.api.post (''.concat('membership/',membershipId,'/image'), data, callback);
+    }).bind(this);
+
+    this.api.getProfileImageURL = (function getProfileImageURL (membershipId) {
+        return ''.concat(this.api.backend,'membership/',membershipId,'/image');
+    }).bind(this);
+
+
 
     //================== Communities
     this.api.addCommunity = (function addCommunity (data, callback) {
-        this.api.ajax('post', 'community/', data, callback);
+        this.api.post ('community/', data, callback);
     }).bind(this);
+
     this.api.getCommunityList = (function getCommunityList (callback) {
-        this.api.ajax('get', 'community/', callback);
+        this.api.get ('community/', callback, true);
     }).bind(this);
 
     this.api.getMyCommunities = (function getMyCommunities (callback) {
-        this.api.ajax('get', 'membership/', callback);
+        this.api.get ('membership/', callback);
     }).bind(this);
 
     this.api.getCommunity = (function getCommunity (communityId, callback) {
-        this.api.ajax('get', 'community/' + communityId + '/', callback);
+        this.api.get ('community/' + communityId + '/', callback, true);
     }).bind(this);
 
     this.api.getCommunityTopics = (function getCommunityTopics (communityId, callback) {
-        this.api.ajax('get', 'community/' + communityId + '/topics/', callback);
+        this.api.get ('community/' + communityId + '/topics/', callback, true);
     }).bind(this);
 
-
     this.api.joinCommunity = (function joinCommunity (communityId, data ,callback) {
-        this.api.ajax('post', 'community/'+communityId+'/members/', data, callback);
+        this.api.post ('community/'+communityId+'/members/', data, callback);
     }).bind(this);
 
     this.api.quitCommunity = (function quitCommunity (communityId, callback) {
-        this.api.ajax('post', 'community/' + communityId + '/quit/', {}, callback);
+        this.api.post ('community/' + communityId + '/quit/', {}, callback);
     }).bind(this);
 
     //================= Posts - general
 
     this.api.archive = (function archive (type, id, callback) {
-        this.api.ajax('delete', type + '/' + id, callback);
+        this.api.delete (type + '/' + id, callback);
     }).bind(this);
 
     //================= Topics
     this.api.getCommunityTopics = (function getCommunityTopics (communityId, callback) {
-        this.api.ajax('get', 'community/' + communityId + '/topics/', callback);
+        this.api.get ('community/' + communityId + '/topics/', callback, true);
     }).bind(this);
 
     this.api.addTopic = (function addTopic (data, callback) {
-        this.api.ajax('post', 'topic/', data, callback);
+        this.api.post ('topic/', data, callback);
     }).bind(this);
 
     //================= Opinions
     this.api.getTopicOpinions = (function getTopicOpinions (topicId, callback) {
-        this.api.ajax('get', 'topic/' + topicId + '/opinions/', callback);
+        this.api.get ('topic/' + topicId + '/opinions/', callback, true);
     }).bind(this);
 
     this.api.setOpinion = (function setOpinion (data, callback) {
         if (data.id) {
-            this.api.ajax('post', 'opinion/' + data.id, data, callback);
+            this.api.post ('opinion/' + data.id, data, callback);
         } else if (data.topicId) {
-            this.api.ajax('post', 'topic/' + data.topicId + '/opinion/', data, callback);
+            this.api.post ('topic/' + data.topicId + '/opinion/', data, callback);
         } else {
             callback (new Error ('missing-details'));
         }
@@ -154,20 +206,20 @@ app = (typeof app != "undefined") ? app:{};
         if (parentType === 'opinion') {
             parentId = opinionId;
         }
-        this.api.ajax('get', parentType + '/' + parentId + '/comments/', callback);
+        this.api.get (parentType + '/' + parentId + '/comments/', callback, true);
     }).bind(this);
 
     this.api.setComment = (function setComment (data, callback) {
         if (data.id) {
-            this.api.ajax('post', 'comment/' + data.id, data, callback);
+            this.api.post ('comment/' + data.id, data, callback);
         } else {
-            this.api.ajax('post', 'comment/' , data, callback);
+            this.api.post ('comment/' , data, callback);
         }
     }).bind(this);
 
     //================= Feedback
     this.api.feedback = (function feedback (data, callback) {
-        this.api.ajax('post', 'feedback/' , data, callback);
+        this.api.post ('feedback/' , data, callback, true);
     }).bind(this);
 
 return this;}).call(app);

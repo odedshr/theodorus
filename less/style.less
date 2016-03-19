@@ -195,7 +195,7 @@ button:not([data-ico]), a.button:not([data-ico]) {
     }
   }
 
-  &:focus {
+  &:hover {
     outline: none;
 
     .drop-down-content {
@@ -459,8 +459,11 @@ a[data-ico], a[data-ico]:visited {
     border-bottom: 2px solid @clr-border;
   }
   .author-image {
-    background-color: @clr-background;
-    display:inline-block;
+    background-image: url(../img/all.png);
+    background-position: 0 -168px;
+    background-repeat: no-repeat;
+    border-radius: 16px;
+    display: inline-block;
     height: 32px;
     margin-right: 5px;
     vertical-align: top;
@@ -526,7 +529,7 @@ a[data-ico], a[data-ico]:visited {
 }
 .loading {
   text-align: center;
-  margin-top: 25vh;
+  padding-top: 25vh;
 
   [data-ico="spinner"] {
     display: inline-block;

@@ -3,10 +3,7 @@ app = (typeof app != "undefined") ? app:{};
     'use strict';
     this.registry = this.registry || {};
 
-    this.registry.frmSignIn = (function registerSignInForm (dElm, callback) {
-        dElm.onsubmit = O.EVT.subscribe('submit-sign-in',onSignInSubmitted.bind(this)).getDispatcher('submit-sign-in');
-        callback();
-    }).bind(this);
+    this.registry.frmSignIn = { attributes : { onsubmit : onSignInSubmitted.bind(this)}};
 
     function onSignInSubmitted (evt) {
         var email = O.ELM.signInEmail.value;

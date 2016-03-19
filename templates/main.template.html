@@ -111,9 +111,9 @@
         </form>
     </li>
 
-    <li data-template="application">
+    <li data-template="appContainer">
         {{.:'header'}}
-        <div id="pageContainer" class="pageContainer">
+        <div id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}">
             {{.:'loading'}}
         </div>
         <div class="error-screen-too-small">{{#error.screenTooSmall}}</div>

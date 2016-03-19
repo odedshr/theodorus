@@ -67,13 +67,19 @@
     });
 
     gulp.task('render-js', function () {
-        return gulpMerge(
-            gulp.src(allJsFiles)
-                .pipe(gulp.dest(jsDevDeployFolder))
-                .pipe(uglify())
-        )
-            .pipe(concat(combinedJsFile))
-            .pipe(gulp.dest(rootDeploy));
+        try {
+            return gulpMerge(
+                gulp.src(allJsFiles)
+                    .pipe(gulp.dest(jsDevDeployFolder))
+                    .pipe(uglify())
+            )
+                .pipe(concat(combinedJsFile))
+                .pipe(gulp.dest(rootDeploy));
+        }
+        catch (err) {
+            console.log(err);
+            throw err;
+        }
     });
 
     function getFileList (folder, prefix) {
