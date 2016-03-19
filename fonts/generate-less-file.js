@@ -4,9 +4,8 @@
     var string = fs.readFileSync ('styles.css', 'utf-8');
     var iconPattern = new RegExp('(\\.icon-)(.*)(:before {)','g'); // (.+?)(\)
     var item;
-    while (item = iconPattern.exec(string)) {
-        string = string.split(item[0]).join( '[data-ico="' + item[2] + '"]:before {' );
-        iconPattern.lastIndex = 0;
+    while ((item = iconPattern.exec(string)) !== null) {
+        string = string.split(item[0]).join( ''.concat('.icon-', item[2], ':before, .icon-', item[2], '-before, [data-ico="', item[2], '"]:before {') );
     }
     string = string
         .replace('[data-icon]','[data-ico]')

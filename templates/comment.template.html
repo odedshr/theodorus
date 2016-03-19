@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="commentList">
+      {{.:'frmSetComment'}}
+      <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
+  </template>
+
+  <template data-id="commentListItem">
+      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+      <div class="next-to-author-image">
+          {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
+          {{?!isEditable}}<div class="content">{{content}}</div>{{/isEditable}}
+          <div class="details">
+              <div class="detail author-name">{{author.name}}</div>
+              <div class="detail time" title="{{time}}">{{relativeTime}}</div>
+              {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
+          </div>
+      </div>
+      <div class="attributes">
+        <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
+        <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+        <div class="attribute follow-count" data-ico="bookmark-empty"><span id="comment_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
+        <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
+        <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
+      </div>
+      {{?isMember}}<div class="actions">
+      <div class="action action-comment" data-register="toggle" data-target="comment-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
+      <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
+      <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+      <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+      <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
+      <!-- div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div -->
+      {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+      </div>{{/isMember}}
+      <div id="comment-{{id}}-comments" class="comments js-list" data-role="comments" data-comment-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
+  </template>
+
+  <template data-id="frmSetComment">
+      <form class="form set add-comment-form" data-register="frmSetComment">
+          <input type="hidden" name="id" value="{{id}}"/>
+          <input type="hidden" name="opinionId" value="{{opinionId}}"/>
+          <input type="hidden" name="parentId" value="{{parentId}}"/>
+          <input type="text" class="field-comment-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" value="{{content}}"/>
+          <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+      </form>
+  </template>
+</body>
+</html>

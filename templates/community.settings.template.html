@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="communitySettingsPage">
+      <div class="community-header">
+          <h2 class="community-name">{{communityName}}</h2>
+          <div class="member-name">{{memberName}}<span class="email">{{email}}</span></div>
+      </div>
+      <form class="membership-settings-form" data-register="frmMembershipSettings">
+        {{.:'profileImageSelector'}}
+        <div class="field-memberName">
+          <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label>
+          <input type="text" id="memberName" name="name" data-register="uniqueMemberName" required="required" maxlength="100" placeholder="{{#placeholder.memberName}}" value="{{memberName}}" />
+          <div id="memberNameErrors" class="field-message"></div>
+        </div>
+        <div class="button">
+          <button type="submit"><span>{{#btn.ok}}</span></button>
+          <button data-register="btnCancel" >{{#btn.cancel}}</button>
+        </div>
+      </form>
+  </template>
+</body>
+</html>

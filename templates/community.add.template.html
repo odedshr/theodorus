@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="communityAddPage">
+    <h1></h1>
+    <form class="form form-addCommunity component" data-register="frmAddCommunity">
+
+      <h1 class="dialog-title title-addCommunity">{{#title.addCommunity}}</h1>
+      <div>
+        <label for="communityName" class="required">{{#label.communityAddName}}</label>
+        <input type="text" id="communityName" name="name" maxlength="100"
+          class="dialog-field community-name"
+          data-register="uniqueCommunityName" required="required"
+          placeholder="{{#placeholder.communityName}}"/>
+        <div id="communityNameErrors" class="field-message"></div>
+      </div>
+      <div>
+        <label for="communityDescription" class="required">{{#label.communityAddDescription}}</label>
+        <textarea id="communityDescription" name="description"
+          placeholder="{{#placeholder.communityDescription}}"
+          class="dialog-field community-description"></textarea>
+      </div>
+      <div>
+        <label for="founderName" class="required">{{#label.communityAddFounderName}}</label>
+        <input type="text" id="founderName" name="founderName" maxlength="100"
+          required="required" value="{{founderName}}"
+          class="dialog-field founder-name"
+          placeholder="{{#placeholder.communityAddFounderName}}"/>
+      </div>
+      {{.:'profileImageSelector'}}
+      <div class="dialog-buttons">
+        <button type="submit">{{#btn.ok}}</button>
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
+      </div>
+    </form>
+  </template>
+</body>
+</html>

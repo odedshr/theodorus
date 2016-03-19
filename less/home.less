@@ -1,0 +1,38 @@
+@import "definitions.less";
+
+[data-section="home"] {
+  .newsfeed {
+    display: block;
+
+    @media only screen and ( max-width: @screen-xs-max) {
+      width: 100%;
+      margin: 20px 0;
+    }
+    @media only screen and (min-width: @screen-sm-min) {
+      float: left;
+      min-height: 10rem;
+      width: 66%;
+    }
+  }
+
+  .side-bar-element {
+    display: block;
+
+    @media only screen and ( max-width: @screen-xs-max) {
+      border: none;
+      margin: 0;
+      width: 100%;
+      &:first-child {
+        border-bottom:1px solid @clr-border;
+      }
+      &:last-child {
+        border-top:1px solid @clr-border;
+      }
+    }
+
+    @media only screen and (min-width: @screen-sm-min) {
+      float: right;
+      width: 33%;
+    }
+  }
+}

@@ -1,0 +1,116 @@
+@import "definitions.less";
+
+/*=============================================== Community Page */
+.community-list {
+  .community {
+    background-color: @clr-white;
+    border-bottom: 0.1rem solid @clr-border;
+    padding: 0.5rem;
+
+    .link-community, .link-community:visited {
+      color: @clr-link;
+      cursor: pointer;
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+      text-decoration: none;
+    }
+    .statistics {
+      font-size: 0.8rem;
+
+      .stat {
+        display: inline-block;
+
+        .value {
+          margin-right: 0.1rem;
+        }
+        .label {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+[data-section="community"] {
+  .community-header {
+    .flex (row, nowrap, flex-start, stretch, start);
+    background-color: @clr-border;
+    box-sizing: border-box;
+    color: @clr-white;
+    display: flex;
+    padding: 5px;
+    width: 100%;
+
+    .community-name {
+      .flex-item (0, 1 1 auto, auto);
+      font-size: 1.2rem;
+    }
+
+    .member-name {
+      .flex-item (0, 0 1 auto, flex-end);
+      font-size: 12px;
+      line-height: 18px;
+      margin-right: 5px;
+    }
+    .email:not(:empty) {
+      &:before { content: " ("; }
+      &:after { content: ")"; }
+    }
+    .community-actions {
+      .flex-item (0, 0 1 auto, flex-end);
+      position: relative;
+
+      .drop-down-title {
+        .outline-text(@clr-white);
+        color: @clr-border;
+
+        span {
+          display: none;
+        }
+      }
+      .drop-down-content {
+        padding :2px;
+        right: 0;
+      }
+      .action {
+        box-sizing: border-box;
+        color: @clr-border;
+        padding: 2px;
+        width: 100%;
+
+        &:hover {
+          background-color: @clr-border;
+          color: @clr-white;
+        }
+      }
+    }
+
+    .link-community-join {
+      .flex-item (0, 0 1 auto, flex-end);
+      color: @clr-white;
+      text-decoration: none;
+
+      span { display: inline-block; }
+      [data-ico] { margin-left: 5px; }
+    }
+  }
+
+  .row-topic-content, .row-buttons {
+    display: inline-block;
+  }
+  .field-topic-content {
+    background-color: @clr-white;
+    border: 0.1rem solid @clr-border;
+    border-radius: 6px;
+    display: inline-block;
+    height: 24px;
+    padding: 0 6px;
+    outline: none;
+    min-width: 280px;
+  }
+}
+
+/*=============================================== Community Settings */
+[data-register="communitySettingsPage"] {
+}

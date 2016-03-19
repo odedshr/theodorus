@@ -1,0 +1,149 @@
+@import "elements.less";
+@import "theodorus.webfont.less";
+
+/*=============================================== Colours */
+/* based on http://paletton.com/palette.php?uid=73v250k83tQ1BPs4qCjcqpjhcl7 */
+@clr-theodorus: #748A98; // lynch
+@clr-white : white;
+@clr-black : black;
+/* reds*/
+@clr-red-brightest: #FCEFF1; /* lavender-blush */
+@clr-red-bright: #F8D6D9; /* pale-pink */
+@clr-red: #E6ACB2; /* blossom */
+@clr-red-dark: #C3777E; /* charm */
+@clr-red-darkest: #A34B53; /* hippie-pink */
+/* greens*/
+@clr-green-brightest: #E6F0E4; /* apple-green */
+@clr-green-bright: #C5DEC0; /* surf-crest */
+@clr-green: #9EC695; /* spring-rain */
+@clr-green-dark: #72A867; /* amulet */
+@clr-green-darkest: #4E8C41; /* fern-green */
+/* blues*/
+@clr-blue-brightest: #D3DADE; /* pattens-blue */
+@clr-blue-bright: #A0AFB8; /* gull-grey */
+@clr-blue: #748A98; /* bermuda-grey */
+@clr-blue-dark: #526E81; /* wedgewood */
+@clr-blue-darkest: #35566C; /* blumine */
+/* Yellows*/
+@clr-yellow-brightest: #FFF9F2; /* floral-white */
+@clr-yellow-bright: #FFEFDC; /* forget-me-not */
+@clr-yellow: #EEC2DA; /* pink-lady */
+@clr-yellow-dark: #CAA77B; /* cameo */
+@clr-yellow-darkest: #A8804E; /* muddy-waters */
+/* colours functions*/
+@clr-background: @clr-blue-brightest;
+@clr-background-dark: @clr-blue-bright;
+@clr-title: @clr-bermuda-grey;
+@clr-border: @clr-blue-bright;
+@clr-border-dark: @clr-blue-darkest;
+@clr-link: @clr-blumine;
+@clr-selected: @clr-bermuda-grey;
+/*=============================================== Colours - deprecated */
+/* reds*/
+@clr-lavender-blush: #FCEFF1;
+@clr-pale-pink: #F8D6D9;
+@clr-blossom: #E6ACB2;
+@clr-charm: #C3777E;
+@clr-hippie-pink: #A34B53;
+/* greens*/
+@clr-apple-green: #E6F0E4;
+@clr-surf-crest: #C5DEC0;
+@clr-spring-rain: #9EC695;
+@clr-amulet: #72A867;
+@clr-fern-green: #4E8C41;
+/* blues*/
+@clr-pattens-blue: #D3DADE;
+@clr-gull-grey: #A0AFB8;
+@clr-bermuda-grey: #748A98;
+@clr-wedgewood: #526E81;
+@clr-blumine: #35566C;
+/* Yellows*/
+@clr-floral-white: #FFF9F2;
+@clr-forget-me-not: #FFEFDC;
+@clr-pink-lady: #EEC2DA;
+@clr-cameo: #CAA77B;
+@clr-muddy-waters: #A8804E;
+/*=============================================== Screen Sizes */
+@screen-xxs-max: 319px;
+@screen-xs-min: 320px;
+@screen-xs-max: 767px;
+@screen-sm-min: 768px;
+@screen-sm-max: 991px;
+@screen-md-min: 992px;
+@screen-md-max: 1199px;
+@screen-lg-min: 1200px;
+
+@headerHeight : 4.5rem;
+
+/*=============================================== Font Size */
+@font-size-large: 18px; /* page-titles */
+@font-size-normal: 12px; /* list-item main text */
+@font-size-small: 10px; /* details */
+
+/*=============================================== Less Shortcuts */
+.animation (@name, @duration, @iteration, @function) {
+  -webkit-animation-name: @name;
+  -webkit-animation-duration: @duration;
+  -webkit-animation-iteration-count: @iteration;
+  -webkit-animation-timing-function: @function;
+  -moz-animation-name: @name;
+  -moz-animation-duration: @duration;
+  -moz-animation-iteration-count: @iteration;
+  -moz-animation-timing-function: @function;
+  -ms-animation-name: @name;
+  -ms-animation-duration: @duration;
+  -ms-animation-iteration-count: @iteration;
+  -ms-animation-timing-function: @function;
+
+  animation-name: @name;
+  animation-duration: @duration;
+  animation-iteration-count: @iteration;
+  animation-timing-function: @function;
+}
+
+.box-shadow(@x-axis: 0, @y-axis: 1px, @blur: 2px, @color: rgba(0, 0, 0, 0.1)) {
+  -webkit-box-shadow: @x-axis @y-axis @blur @color;
+  -moz-box-shadow: @x-axis @y-axis @blur @color;
+  box-shadow: @x-axis @y-axis @blur @color;
+}
+
+.flex (@direction, @wrap, @justifyContent, @alignContent, @alignItems) {
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: @direction;
+  -ms-flex-direction: @direction;
+  flex-direction: @direction;
+  -webkit-flex-wrap: @wrap;
+  -ms-flex-wrap: @wrap;
+  flex-wrap: @wrap;
+  -webkit-justify-content: @justifyContent;
+  -ms-flex-pack: start;
+  justify-content: f@justifyContent;
+  -webkit-align-content: @alignContent;
+  -ms-flex-line-pack: @alignContent;
+  align-content: @alignContent;
+  -webkit-align-items: @alignItems;
+  -ms-flex-align: start;
+  align-items: @alignItems;
+}
+
+.flex-item (@order, @flex, @alignSelf) {
+  -webkit-order: @order;
+  -ms-flex-order: @order;
+  order: @order;
+  -webkit-flex: @flex;
+  -ms-flex: @flex;
+  flex: @flex;
+  -webkit-align-self: @alignSelf;
+  -ms-flex-item-align: @alignSelf;
+  align-self: @alignSelf;
+}
+
+.outline-text(@color: @clr-theodorus) {
+  text-shadow: 2px 2px 0 @color,
+    -1px -1px 0 @color,
+    1px -1px 0 @color,
+  -1px 1px 0 @color,
+  1px 1px 0 @color;
+}

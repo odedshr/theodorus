@@ -1,0 +1,53 @@
+@import "definitions.less";
+
+[data-section="join"] {
+  @media only screen and ( max-width: @screen-xxs-max) {
+    .dialog {
+      border: none;
+      box-sizing: border-box;
+      padding: 5px;
+      margin: 0 auto;
+      min-width: 220px;
+      width: 100%;
+    }
+  }
+  @media only screen and (min-width: @screen-sm-min) {
+    .pageContainer {
+      -ms-flex-align: center;
+    	-webkit-align-items: center;
+    	-webkit-box-align: center;
+    	align-items: center;
+
+    	display: -ms-flexbox;
+    	display: -webkit-flex;
+    	display: flex;
+
+      height: 75%;
+    }
+    .dialog {
+      margin: 0 auto;
+      max-width: 500px;
+      min-width: 240px;
+      display: block;
+    }
+  }
+}
+
+.join-form {
+  .field-message:not(:empty) {
+    background-color: @clr-hippie-pink;
+    box-sizing: border-box;
+    color: @clr-white;
+    padding: 2px;
+    text-align: center;
+  }
+}
+.join-field-email {
+  margin: 5px 0 0 0;
+  width: 100%;
+}
+
+.text-agree-to-terms {
+  font-size: 12px;
+  margin: 5px 0;
+}
