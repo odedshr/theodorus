@@ -6,7 +6,7 @@
             var stack = '';
             if (string.stack !== undefined) {
                 if (typeof string.stack.replace === 'function') {
-                    stack = '\n'+ JSON.stringify(string.replace(/^[^\(]+?[\n$]/gm, '')
+                    stack = '\n'+ JSON.stringify(string.stack.replace(/^[^\(]+?[\n$]/gm, '')
                             .replace (/^\s+at\s+/gm, '')
                             .replace (/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
                             .split ('\n'),null,4);

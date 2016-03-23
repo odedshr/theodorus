@@ -30,6 +30,12 @@
                 case 'environment':
                     variable = (getConfig('ipAddress') === '127.0.0.1') ? 'dev' : 'prod';
                 break;
+                case 'storedFilesFolder':
+                    variable = process.env.OPENSHIFT_DATA_DIR;
+                    if (variable === undefined) {
+                        variable = variables.storedFilesFolder;
+                    }
+                break;
                 }
             }
             if (variable === undefined) {

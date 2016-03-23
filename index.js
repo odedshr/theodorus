@@ -8,14 +8,16 @@
     var log = require('./helpers/logger.js');
     var createContext = require('./helpers/context.js');
     var db = require('./helpers/db.js');
+    var FileManager = require('./helpers/FileManager.js')(config('storedFilesFolder'));
     var Errors = require('./helpers/Errors.js');
     var iterateFiles = require('./helpers/iterateFiles.js');
     var routesFolder = './routes';
 
     function setHeaders (req, res, next) {
-        // Website you wish to allow to connect
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-
+        if (req.headers.origin !== undefined) {
+            // Website you wish to allow to connect
+            res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+        }
         // Request methods you wish to allow
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
@@ -52,9 +54,13 @@
             while (routes.length) {
                 route = routes.pop();
                 if (route.method && route.url && route.handler) {
-                    app[route.method](route.url, createContext(route.handler, route.parameters));
+                    app[route.method](route.url, createContext(route.handler, route.parameters, FileManager));
                 } else {
-                    throw Errors.badInput('router',JSON.stringify(route));
+                    var missing = 'route';
+                    missing = route.method ? missing : 'route.method';
+                    missing = route.url ? missing : 'route.url';
+                    missing = route.handler ? missing : 'route.handler';
+                    throw Errors.badInput(missing,JSON.stringify(route));
                 }
             }
         });

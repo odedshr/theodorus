@@ -5,7 +5,6 @@
     var Encryption = require('../helpers/Encryption.js');
     var Errors = require('../helpers/Errors.js');
     var validators = require('../helpers/validators.js');
-    var membershipController = require('../controllers/membershipController');
 
     function add (authUser, name, description, status, topicLength, opinionLength, commentLength, minAge, maxAge, gender, type, founderName, db, callback) {
         var community = db.community.model.getNew(undefined, authUser.id, name, description, status, topicLength, opinionLength, commentLength, minAge, maxAge, gender, type);

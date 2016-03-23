@@ -26,15 +26,24 @@
     }
 
     function write(res, data) {
-        if (data instanceof Error) {
-            log ('error in URL ' +  res.req.url);
+        if (data === undefined || data === null) {
+            res.end();
+        } else if (data instanceof Error) {
+            log (''.concat('error in URL ' ,res.req.method, ':', res.req.url));
             log(data, 'fatal');
             if (data.status === undefined) {
-                data.status = 500;
                 data.status = errorCodes[data.message];
             }
             res.status(data.status).end(JSON.stringify(data));
-        } else {
+        } else if (data._file !== undefined) {
+            res.writeHead(200, {'Content-Type': data._file });
+            res.end(data.content, 'binary');
+        } else if (data._redirect !== undefined) {
+            res.writeHead(302, { 'Location': data._redirect });
+            res.end();
+        } else if (data._status !== undefined) {
+            res.status(data._status).end(JSON.stringify(data.content));
+        }  else {
             res.end(JSON.stringify(data));
         }
     }
@@ -46,7 +55,7 @@
         };
     }
 
-    module.exports = function ContextTemplate(action, parameterSettings) {
+    module.exports = function ContextTemplate(action, parameterSettings, FileManager) {
             var parameters = action.toString().match(/^function\s?[^\(]+\s?\(([^\)]+)\)+/),
                 parameterCount;
             parameters = (parameters !== null) ? parameters[1].replace(/\s/g, '').split(',') : [];
@@ -107,6 +116,9 @@
                                 break;
                             case 'isReturnJson':
                                 value = (req.get("accept").indexOf("json") !== -1);
+                                break;
+                            case 'files':
+                                value = FileManager;
                                 break;
                             }
                         }

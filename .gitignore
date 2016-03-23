@@ -46,3 +46,5 @@ Thumbs.db
 
 /node_modules/node_xslt/*.*
 environment_variables.json
+# user-files is the default folder for storing user files
+user-files
