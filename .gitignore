@@ -93,7 +93,6 @@ Temporary Items
 
 # Created by .ignore support plugin (hsz.mobi)
 
-# Project Sepecific
-/.jekyll-metadata
+# Project Specific
 /_deploy.dev
 /_deploy.bin

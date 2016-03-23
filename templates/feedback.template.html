@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+<ul>
+    <li data-template="feedbackPage">
+        <form class="form form-feedback" data-register="frmSendFeedback">
+            <input type="hidden" id="url" name="url" />
+
+            <h1 class="form-title title-feedback">{{#title.reportABug}}</h1>
+            <div>
+                <label for="content"></label>
+                <textarea id="content" name="content" placeholder="{{#placeholder.feedback}}" class="feedback-content" required="required"></textarea>
+            </div>
+            <div id="screenshotRow" data-hidden="true">
+                <img id="screenshotSample" class="feedbackScreenshot" src="" />
+                <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
+                <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
+                <input type="hidden" id="image" name="image" />
+            </div>
+            <div class="button-bar">
+                <button id="feedbackSend">{{#btn.ok}}</button>
+            </div>
+        </form>
+    </li>
+
+    <li data-template="notifySuccessFeedbackSent">
+        <div id="feedbackSent" class="notification system success">
+            <span class="message">{{#notify.feedbackSent}}</span>
+            <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+        </div>
+    </li>
+</ul>
+</body>
+</html>
