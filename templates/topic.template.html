@@ -7,28 +7,26 @@
 <body>
 <ul>
     <li data-template="topicList">
-        <ul class="list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic_{{id}}" class="topic">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
+        <ul class="list topic-list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic-{{id}}" class="js-item topic" data-type="topic" data-id="{{id}}">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
     </li>
 
     <li data-template="topicListItem">
-        <div class="topic-content" data-type="topic" data-id="{{id}}">
-            <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
-            <div class="next-to-author-image">
-                <div class="content">{{content}}</div>
-                <div class="info attributes">
-                    <div class="attribute author-name">{{author.name}}</div>
-                    <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
-                    <div class="attribute" data-ico="history"></div>
-                    {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive"></div>{{/isArchivable}}
-                </div>
-                <div class="stats attributes">
-                    <div class="attribute opinion-count" data-ico="heart-empty" data-register="tglOpinion"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
-                    <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-                    <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
-                </div>
+        <img class="author-image" src="{{author.image}}" title="{{author.name}}" alt="{{author.name}}"/>
+        <div class="next-to-author-image">
+            <div class="content">{{content}}</div>
+            <div class="info attributes">
+                <div class="attribute author-name">{{author.name}}</div>
+                <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
+                {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
+                {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive" data-type="topic" data-id="{{id}}"></div>{{/isArchivable}}
             </div>
-            <div id="topic_{{id}}_opinion_list" class="opinions" data-role="opinions"></div>
+            <div class="stats attributes">
+                <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
+                <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
+                <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+            </div>
         </div>
+        <div id="topic-{{id}}-opinions" class="opinions js-list" data-role="opinions" data-topic-id="{{id}}" data-on-toggle="opinionList" data-hidden="true"></div>
     </li>
 
     <li data-template="frmAddTopic">

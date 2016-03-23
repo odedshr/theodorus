@@ -6,10 +6,9 @@ app = (typeof app != "undefined") ? app:{};
     this.registry.frmSignIn = { attributes : { onsubmit : onSignInSubmitted.bind(this)}};
 
     function onSignInSubmitted (evt) {
-        var email = O.ELM.signInEmail.value;
-        var password = O.ELM.signInPassword.value;
-        this.api.signIn(email, password, onSignInResponded.bind(this,true));
-        evt.detail.preventDefault();
+        var formValues = this.getFormFields(evt.target);
+        this.api.signIn(formValues.email, formValues.password, onSignInResponded.bind(this,true));
+        return false;
     }
 
     function onSignInResponded (rememberMe, response) {

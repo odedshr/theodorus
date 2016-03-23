@@ -46,6 +46,9 @@ app = (typeof app != "undefined") ? app:{};
 
     this.notify = (function notify (data) {
         var dNotifications = O.ELM.notifications;
+        if (dNotifications === undefined) {
+            dNotifications = O.ELM.appContainer;
+        }
         O.DOM.append(dNotifications,O.TPL.render(data));
         O.ELM.refresh();
         this.register(dNotifications.childNodes[dNotifications.childNodes.length-1]);
@@ -66,7 +69,9 @@ app = (typeof app != "undefined") ? app:{};
 
     //==================================/
     this.goToStateRedirect =(function goToStateRedirect () {
-        location.href = location.href.split('#')[0] + (this.state.redirect ? this.state.redirect : '');
+        var hash =  (this.state.redirect ? this.state.redirect : '');
+        history.pushState({}, hash, location.href.split('#')[0]+'#'+ hash);
+        this.register(O.ELM.appContainer);
     }).bind(this);
 
 

@@ -30,6 +30,8 @@
     "label.communityJoinMemberName": "My name is",
     "post.xJoinedCommunity":"Hello! I'm {name}",
     "label.noTopics":"No topics to show",
+    "label.noOpinion":"No opinions to show",
+    "label.noComments":"No comments to show",
     "label.noCommunities":"No communities to show",
     "error.cannotJoinCommunityWithoutId" : "One cannot join community that has no ID",
     "error.screenTooSmall": "Argh! The screen is too small!",
@@ -42,6 +44,14 @@
     "confirm.leaveCommunity": "Leave this community?",
     "btn.settings": "Settings",
     "placeholder.addTopic": "Add your own topic",
-    "label.youMustSignUpInToJoin": "You must sign up/in to join a community"
+    "label.youMustSignUpInToJoin": "You must sign up/in to join a community",
+    "title.communities": "Communities",
+    "title.communitySettings": "Community Settings",
+    "title.messages": "Messages",
+    "title.settings": "Settings",
+    "title.feedback": "Feedback",
+    "title.pageNotFound": "Page Not Found!",
+    "placeholder.addOpinion": "What's your opinion on this?",
+    "placeholder.addComment": "Add your comment"
   }
 }

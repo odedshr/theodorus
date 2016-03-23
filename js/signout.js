@@ -10,7 +10,7 @@ app = (typeof app != "undefined") ? app:{};
         this.state.email = '';
         this.api.clearCache();
         this.goToStateRedirect();
-        evt.detail.preventDefault();
+        return false;
     }
 
 return this;}).call(app);

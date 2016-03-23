@@ -21,7 +21,7 @@
     </li>
 
     <li data-template="communityList" class="community-list">
-        <ul class="list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
+        <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
     </li>
 
     <li data-template="communityListItem">
@@ -58,7 +58,7 @@
             {{.:'frmAddTopic'}}
         </div>
         {{/isMember}}
-        <div id="communityTopics" data-register="topicList" class="community-topics-list"></div>
+        <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
     </li>
 
     <li data-template="communityJoinPage">
@@ -91,16 +91,16 @@
     <li data-template="addCommunity">
         <form class="add-community-form" data-register="frmAddCommunity">
             <div>
-                <label for="communityName" class="required">{{#label.communityAddName}}</label><input type="text" id="communityName" name="communityName" required="required" maxlength="100" placeholder="{{#placeholder.communityName}}"/>
+                <label for="communityName" class="required">{{#label.communityAddName}}</label><input type="text" id="communityName" name="name" required="required" maxlength="100" placeholder="{{#placeholder.communityName}}"/>
             </div>
             <div>
-                <label for="communityDescription" class="required">{{#label.communityAddDescription}}</label><input type="text" id="communityDescription" name="communityDescription" placeholder="{{#placeholder.communityDescription}}"/>
+                <label for="communityDescription" class="required">{{#label.communityAddDescription}}</label><input type="text" id="communityDescription" name="description" placeholder="{{#placeholder.communityDescription}}"/>
             </div>
             <div>
                 <label for="founderName" class="required">{{#label.communityAddFounderName}}</label><input type="text" id="founderName" name="founderName" required="required" maxlength="100" placeholder="{{#placeholder.communityAddFounderName}}"/>
             </div>
             <div>
-                <button data-register="btnAddCommunity">{{#btn.ok}}</button>
+                <button>{{#btn.ok}}</button>
                 <button data-register="btnCancel" >{{#btn.cancel}}</button>
             </div>
         </form>
@@ -110,10 +110,10 @@
         <div class="community-header">
             <h2 class="community-name">{{communityName}}</h2>
         </div>
-        <form class="image-profile-form" data-register="uploadProfileImageForm">
-            <input type="file" id="imageProfileChooser" accept="image/*" />
+        <form class="image-profile-form">
+            <input type="file" id="imageProfileChooser" accept="image/*" data-register="imageProfileChooser"/>
             <img src="{{profileImage}}" id="profileImagePreview" />
-            <button id="btnUpdateProfileImage">{{#btn.ok}}</button>
+            <button id="btnUpdateProfileImage" data-register="btnUpdateProfileImage">{{#btn.ok}}</button>
         </form>
     </li>
 </ul>

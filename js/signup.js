@@ -6,13 +6,14 @@ app = (typeof app != "undefined") ? app:{};
     this.registry.frmSignUp = { attributes: { onsubmit : onSignUpSubmitted.bind(this)} };
 
     function onSignUpSubmitted (evt) {
-        var email = O.ELM.signUpEmail.value;
-        var password = O.ELM.signUpPassword.value;
-        var retypePassword = O.ELM.signUpRetypePassword.value;
+        var formValues = this.getFormFields(evt.target);
+        var email = formValues.email;
+        var password = formValues.password;
         var userModel = this.models.user;
+
         if (userModel.email.validate(email)) {
             if (userModel.password.validate(password)) {
-                if (password === retypePassword) {
+                if (password === formValues.retypePassword) {
                     this.api.signUp(email, password, onSignUpResponded.bind(this));
                 } else {
                     this.log('retype password',this.logType.error)
@@ -23,7 +24,7 @@ app = (typeof app != "undefined") ? app:{};
         } else {
             this.log('illegal email',this.logType.error);
         }
-        evt.detail.preventDefault();
+        return false;
     }
 
     function onSignUpResponded (response) {

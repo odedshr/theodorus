@@ -12,13 +12,6 @@ app = (typeof app != "undefined") ? app:{};
         }
     }).bind(this);
 
-    this.registry.appContainer = { preprocess : (function (dElm, callback) {
-        callback({
-            showUserDetailsInHeader: this.isAuthenticated(),
-            pageTemplate: this.getPageTemplateName ()
-        });
-    }).bind(this)};
-
     function getTemplateMap (templates) {
         var count = templates.length;
         var map = {};

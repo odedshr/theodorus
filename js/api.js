@@ -16,7 +16,7 @@ app = (typeof app != "undefined") ? app:{};
         callback(response);
     }).bind(this);
 
-    function getOptions (isAnonymous, callback) {
+    function getAjaxOptions (isAnonymous, callback) {
         var token = O.COOKIE('authToken');
         if (token !== undefined) {
             return { credentials: token }
@@ -29,7 +29,7 @@ app = (typeof app != "undefined") ? app:{};
         }
     }
     this.api.get = (function get (url, callback, isAnonymous) {
-        var options = getOptions(isAnonymous, callback);
+        var options = getAjaxOptions(isAnonymous, callback);
         if (options instanceof Error) {
             return;
         }
@@ -44,7 +44,7 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     this.api.delete = (function Delete (url, callback, isAnonymous) {
-        var options = getOptions(isAnonymous, callback);
+        var options = getAjaxOptions(isAnonymous, callback);
         if (options instanceof Error) {
             return;
         }
@@ -52,11 +52,11 @@ app = (typeof app != "undefined") ? app:{};
         this.log('api delete '+ url, this.logType.debug);
 
         this.api.clearCache();
-        O.AJAX.delete(this.api.backend + url, this.api.ifNotError.bind(this,this.api.saveToCache.bind(this, key, callback)), options);
+        O.AJAX.delete(this.api.backend + url, this.api.ifNotError.bind(this,callback), options);
     }).bind(this);
 
     this.api.post = (function post (url, data, callback, isAnonymous) {
-        var options = getOptions(isAnonymous, callback);
+        var options = getAjaxOptions(isAnonymous, callback);
         if (options instanceof Error) {
             return;
         }
@@ -68,7 +68,7 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     this.api.put = (function put (url, data, callback, isAnonymous) {
-        var options = getOptions(isAnonymous, callback);
+        var options = getAjaxOptions(isAnonymous, callback);
         if (options instanceof Error) {
             return;
         }
@@ -130,6 +130,7 @@ app = (typeof app != "undefined") ? app:{};
     this.api.getEmail = (function getEmail (callback) {
         this.api.get ('email/', callback);
     }).bind(this);
+
     //================== Membership
     this.api.updateProfileImage = (function updateProfileImage (membershipId, data, callback) {
         this.api.post (''.concat('membership/',membershipId,'/image'), data, callback);
@@ -138,8 +139,6 @@ app = (typeof app != "undefined") ? app:{};
     this.api.getProfileImageURL = (function getProfileImageURL (membershipId) {
         return ''.concat(this.api.backend,'membership/',membershipId,'/image');
     }).bind(this);
-
-
 
     //================== Communities
     this.api.addCommunity = (function addCommunity (data, callback) {
@@ -186,23 +185,25 @@ app = (typeof app != "undefined") ? app:{};
     }).bind(this);
 
     //================= Opinions
-    this.api.getTopicOpinions = (function getTopicOpinions (topicId, callback) {
+    function getTopicOpinions (topicId, callback) {
         this.api.get ('topic/' + topicId + '/opinions/', callback, true);
-    }).bind(this);
+    }
+    this.api.getTopicOpinions = getTopicOpinions.bind(this);
 
-    this.api.setOpinion = (function setOpinion (data, callback) {
+    function setOpinion (data, callback) {
         if (data.id) {
-            this.api.post ('opinion/' + data.id, data, callback);
+            this.api.post ('opinion/' + data.id, { opinion : data }, callback);
         } else if (data.topicId) {
             this.api.post ('topic/' + data.topicId + '/opinion/', data, callback);
         } else {
             callback (new Error ('missing-details'));
         }
-    }).bind(this);
+    }
+    this.api.setOpinion = setOpinion.bind(this);
 
     //================= Comments
     this.api.getPostComments = (function getPostComments (opinionId, parentId, callback) {
-        var parentType = (parentId === undefined) ? 'opinion' : 'comment';
+        var parentType = (parentId === null) ? 'opinion' : 'comment';
         if (parentType === 'opinion') {
             parentId = opinionId;
         }
@@ -211,7 +212,7 @@ app = (typeof app != "undefined") ? app:{};
 
     this.api.setComment = (function setComment (data, callback) {
         if (data.id) {
-            this.api.post ('comment/' + data.id, data, callback);
+            this.api.post ('comment/' + data.id, { comment : data }, callback);
         } else {
             this.api.post ('comment/' , data, callback);
         }

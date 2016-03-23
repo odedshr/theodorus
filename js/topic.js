@@ -8,36 +8,21 @@ app = (typeof app != "undefined") ? app:{};
         this.api.getCommunityTopics (communityId, topicListOnLoaded.bind(this, callback));
     }).bind(this) };
 
-    function topicListOnLoaded ( callback, topics) {
+    function topicListOnLoaded ( callback, list) {
         var membershipId = this.state.communityJSON.membership ? this.state.communityJSON.membership.id : false;
-        var topicCount = topics.length;
-        while (topicCount--) {
-            var topic = topics[topicCount];
-            topic.time = moment(topic.modified).format("MMM Do YY, h:mma");
-            topic.relativeTime = moment(topic.modified).fromNow();
-            topic.isArchivable = (membershipId===topic.author.id) && (topic.opinions === 0) && (topic.endorse === 0);
-            topic.author.image = this.api.getProfileImageURL(topic.author.id);
+        var count = list.length;
+        while (count--) {
+            var item = list[count];
+            item.time = moment(item.modified).format("MMM Do YY, h:mma");
+            item.relativeTime = moment(item.modified).fromNow();
+            item.isArchivable = (membershipId===item.author.id) && (item.opinions === 0) && (item.endorse === 0);
+            item.author.image = this.api.getProfileImageURL(item.author.id);
         }
-        callback( { topics: { topic: topics } } );
+        callback( { topics: { topic: list } } );
     }
 
     this.registry.frmAddTopic = { attributes: { onsubmit : addTopic.bind(this)} };
 
-    //==========================
-    this.registry.tglOpinion = { attributes: { onclick : toggleOpinions.bind(this)} };
-
-    function toggleOpinions (evt) {
-        var topicElm = evt.target.closest('.topic');
-        var opinions = topicElm.querySelector('.opinions');
-        if (O.CSS.has (topicElm, 'hide-opinions')) {
-            O.CSS.remove (topicElm, 'hide-opinions');
-            opinions.setAttribute('data-register','opinionList');
-            this.register(opinions);
-        } else {
-            O.CSS.add (topicElm, 'hide-opinions');
-            opinions.removeAttribute('data-register');
-        }
-    }
     //==========================
 
     function addTopic (evt) {
@@ -50,11 +35,11 @@ app = (typeof app != "undefined") ? app:{};
             };
             this.api.addTopic(data, onTopicAdded.bind(this));
         }
-        evt.detail.preventDefault();
+        return false;
     }
 
     function onTopicAdded () {
-        loadTopicList.call(this, O.ELM.communityTopics);
+        this.register (O.ELM.communityTopics);
     }
 
 return this;}).call(app);
