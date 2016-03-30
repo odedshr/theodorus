@@ -89,7 +89,7 @@
             while (files.length) {
                 prefixed.push(prefix + files.pop());
             }
-            return prefixed
+            return prefixed;
         } else {
             return files;
         }

@@ -52,6 +52,16 @@
     "title.feedback": "Feedback",
     "title.pageNotFound": "Page Not Found!",
     "placeholder.addOpinion": "What's your opinion on this?",
-    "placeholder.addComment": "Add your comment"
+    "placeholder.addComment": "Add your comment",
+    "action.opinion": "Opinion",
+    "action.comment": "Comment",
+    "action.endorse": "Endorse",
+    "action.follow": "Follow Up",
+    "action.markAsRead": "Mark As Read",
+    "action.report": "Report",
+    "action.edit": "Edit",
+    "action.remove": "Remove",
+    "message.checkingIfNameBeingUsed": "Checking if name already being used...",
+    "message.namedAlreadyBeingUsed": "Name already being used"
   }
 }

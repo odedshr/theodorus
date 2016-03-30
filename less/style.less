@@ -1,4 +1,5 @@
 @import "elements.less";
+@import "theodorus.webfont.less";
 
 @clr-lynch: #748A98;
 @clr-lightgrey: lightgray;
@@ -68,6 +69,14 @@
 [data-hidden]  {
   display: none;
 }
+
+input:invalid {
+  border:1px solid red;
+  display: inline-block;
+}
+input:invalid:after {
+  content: attr(validationMessage);
+}
 /*=============================================== Less Shortcuts */
 .animation (@name, @duration, @iteration, @function) {
   -webkit-animation-name: @name;
@@ -89,7 +98,7 @@
   animation-timing-function: @function;
 }
 
-.box-shadow(@x-axis: 0, @y-axis: 1px, @blur: 2px, @color:rgba(0, 0, 0, 0.1)) {
+.box-shadow(@x-axis: 0, @y-axis: 1px, @blur: 2px, @color: rgba(0, 0, 0, 0.1)) {
   -webkit-box-shadow: @x-axis @y-axis @blur @color;
   -moz-box-shadow: @x-axis @y-axis @blur @color;
   box-shadow: @x-axis @y-axis @blur @color;
@@ -456,7 +465,6 @@ a[data-ico], a[data-ico]:visited {
   background-color: @clr-white;
   border-bottom: 1px solid @clr-border;
   min-height: 32px; /* height of the image */
-  padding: 5px;
 
   &:last-child {
     border-bottom: 2px solid @clr-border;
@@ -465,7 +473,7 @@ a[data-ico], a[data-ico]:visited {
     border-radius: 16px;
     display: inline-block;
     height: 32px;
-    margin-right: 5px;
+    margin: 5px;
     overflow: hidden;
     position: relative;
     vertical-align: top;
@@ -493,6 +501,7 @@ a[data-ico], a[data-ico]:visited {
   }
   .content {
     display: block;
+    margin-top: 5px;
   }
   .content:before {
     content: "“";
@@ -501,15 +510,41 @@ a[data-ico], a[data-ico]:visited {
     content: "”";
   }
 
-  .attributes {
+  .details {
+    color: @clr-title;
     font-size: @font-size-small;
-    margin: 2px 0 0 5px;
+    padding: 5px;
 
-    .attribute {
+    .detail {
       cursor: pointer;
       display: inline;
     }
-    .attribute:hover {
+    .detail:hover[data-register] {
+      text-decoration: underline;
+    }
+    .detail:before {
+      padding-right:2px;
+      vertical-align: bottom;
+    }
+    .detail:hover:before {
+      text-decoration: none;
+    }
+    .detail:not(:first-child):not(:empty):before {
+      content: "|";
+      margin: 0 5px;
+    }
+  }
+
+  .attributes {
+    background-color: rgba(0, 0, 0, 0.05);
+    font-size: @font-size-small;
+    padding: 5px;
+
+    .attribute {
+      display: inline;
+    }
+    .attribute:hover[data-register] {
+      cursor: pointer;
       text-decoration: underline;
     }
     .attribute:before {
@@ -523,15 +558,54 @@ a[data-ico], a[data-ico]:visited {
       content: "|";
       margin: 0 5px;
     }
-  }
-  .info {
-    color: @clr-title;
-  }
-  .stats {
+
     .value {
       color: @clr-border;
     }
   }
+
+  .actions {
+    background-color: rgba(0, 0, 0, 0.1);
+    font-size: @font-size-small;
+    font-weight: bold;
+    padding: 5px;
+
+    .action {
+      display: inline;
+      padding: 2px;
+    }
+    .action:hover[data-register] {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .action span {
+      border-radius: 2px;
+      display: inline-block;
+      padding: 2px;
+    }
+    .action[data-value="true"] span {
+      background-color: @clr-lynch;
+      color: @clr-white;
+    }
+    .action:before {
+      padding-right:2px;
+      vertical-align: bottom;
+    }
+    .action:hover:before {
+      text-decoration: none;
+    }
+    .action:not(:last-child):not(:empty):after {
+      content: "|";
+      margin: 0 5px;
+    }
+  }
+
+  .action span[data-ico]:before {
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .action-opinion[data-value="true"] span:before { .ico-comment-full; }
+  .action-endorse[data-value="true"] span:before { .ico-heart-full; }
 
   .opinions, .comments {
     border-left: 1px solid @clr-border;
@@ -709,7 +783,7 @@ a[data-ico], a[data-ico]:visited {
       line-height: 18px;
       margin-right: 5px;
     }
-    .username:not(:empty) {
+    .email:not(:empty) {
       &:before { content: " ("; }
       &:after { content: ")"; }
     }

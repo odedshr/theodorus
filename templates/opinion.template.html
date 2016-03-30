@@ -5,38 +5,35 @@
     <title>Templates</title>
 </head>
 <body>
-<ul>
-    <li data-template="opinionList">
-        <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
-    </li>
+  <template data-id="opinionList">
+      <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
+  </template>
 
-    <li data-template="opinionListItem">
-        <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
-        <div class="next-to-author-image">
-            {{?isMine}}<form data-register="frmSetOpinion">
-            <input type="hidden" name="id" value="{{id}}" />
-            <input type="hidden" name="topicId" value="{{topicId}}" />
-            <input type="text" class="field-opinion-content js-opinion-content" name="content" required="required" placeholder="{{#placeholder.addOpinion}}" value="{{content}}"/>
-            <button data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
-        </form>{{/isMine}}
-            {{?!isMine}}<div class="content">{{content}}</div>{{/isMine}}
-            {{?includeAttributes}}
-            <div class="info attributes">
-                <div class="attribute author-name">{{author.name}}</div>
-                <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
-                {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
-                {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive" data-type="opinion" data-id="{{id}}"></div>{{/isArchivable}}
-            </div>
-            <div class="stats attributes">
-                <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="opinion_{{id}}_comment_count" class="value" data-role="comment-count">{{comments}}</span> comments</div>
-                <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-                <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
-            </div>
-            {{/includeAttributes}}
-        </div>
-        <div id="opinion-{{id}}-comments" class="comments js-list" data-role="comments" data-opinion-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
-    </li>
-
-</ul>
+  <template data-id="opinionListItem">
+      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+      <div class="next-to-author-image">
+          {{?isMine}}<form data-register="frmSetOpinion">
+          <input type="hidden" name="id" value="{{id}}" />
+          <input type="hidden" name="topicId" value="{{topicId}}" />
+          <input type="text" class="field-opinion-content js-opinion-content" name="content" required="required" placeholder="{{#placeholder.addOpinion}}" value="{{content}}"/>
+          <button data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
+      </form>{{/isMine}}
+          {{?!isMine}}<div class="content">{{content}}</div>{{/isMine}}
+          {{?includeAttributes}}
+          <div class="info attributes">
+              <div class="attribute author-name">{{author.name}}</div>
+              <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
+              {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
+              {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive" data-type="opinion" data-id="{{id}}"></div>{{/isArchivable}}
+          </div>
+          <div class="stats attributes">
+              <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="opinion_{{id}}_comment_count" class="value" data-role="comment-count">{{comments}}</span> comments</div>
+              <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
+              <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+          </div>
+          {{/includeAttributes}}
+      </div>
+      <div id="opinion-{{id}}-comments" class="comments js-list" data-role="comments" data-opinion-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
+  </template>
 </body>
 </html>

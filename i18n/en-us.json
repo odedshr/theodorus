@@ -28,6 +28,7 @@
     "label.communityAddFounderName": "In this community my name will be",
     "placeholder.communityAddFounderName": "(You can have a different alias)",
     "label.communityJoinMemberName": "My name is",
+    "placeholder.memberName": "A member must have its name",
     "post.xJoinedCommunity":"Hello! I'm {name}",
     "label.noTopics":"No topics to show",
     "label.noOpinion":"No opinions to show",
@@ -52,6 +53,17 @@
     "title.feedback": "Feedback",
     "title.pageNotFound": "Page Not Found!",
     "placeholder.addOpinion": "What's your opinion on this?",
-    "placeholder.addComment": "Add your comment"
+    "placeholder.addComment": "Add your comment",
+    "action.opinion": "Opinion",
+    "action.comment": "Comment",
+    "action.endorse": "Endorse",
+    "action.follow": "Follow Up",
+    "action.markAsRead": "Mark As Read",
+    "action.report": "Report",
+    "action.edit": "Edit",
+    "action.remove": "Remove",
+    "message.thisFieldIsRequired": "This field is required",
+    "message.checkingIfNameBeingUsed": "Checking if name already being used...",
+    "message.namedAlreadyBeingUsed": "Name already being used"
   }
 }

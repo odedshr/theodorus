@@ -1,24 +1,25 @@
-app = (typeof app != "undefined") ? app:{};
+app = (typeof app !== 'undefined') ? app : {};
 (function signinEnclosure() {
-    'use strict';
-    this.registry = this.registry || {};
+  /*jshint validthis: true */
+  'use strict';
+  this.registry = this.registry || {};
 
-    this.registry.frmSignIn = { attributes : { onsubmit : onSignInSubmitted.bind(this)}};
+  this.registry.frmSignIn = { attributes : { onsubmit : onSignInSubmitted.bind(this)}};
 
-    function onSignInSubmitted (evt) {
-        var formValues = this.getFormFields(evt.target);
-        this.api.signIn(formValues.email, formValues.password, onSignInResponded.bind(this,true));
-        return false;
+  function onSignInSubmitted (evt) {
+    var formValues = this.getFormFields(evt.target);
+    this.api.signIn(formValues.email, formValues.password, onSignInResponded.bind(this,true));
+    return false;
+  }
+
+  function onSignInResponded (rememberMe, response) {
+    if (response instanceof Error) {
+      alert ('failed to sign in');
+    } else {
+      O.COOKIE('authToken', response, rememberMe ? 30 : 1);
+      this.api.clearCache();
+      this.goToStateRedirect();
     }
-
-    function onSignInResponded (rememberMe, response) {
-        if (response instanceof Error) {
-            alert ('failed to sign in');
-        } else {
-            O.COOKIE('authToken', response, rememberMe ? 30 : 1);
-            this.api.clearCache();
-            this.goToStateRedirect();
-        }
-    }
+  }
 
 return this;}).call(app);

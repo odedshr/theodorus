@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="notFoundPage">
+      <article>
+          <h2>404 page not found</h2>
+          <form id="frmPageNotFound">
+              <label for="pageNotFoundURL">I tried to access</label>
+              <input type="text" id="pageNotFoundURL" name="pageNotFoundURL" disabled="disabled">
+              <label for="pageNotFoundDescription">because I expect to find</label>
+              <textarea id="pageNotFoundDescription" name="pageNotFoundDescription"></textarea>
+              <button>{{#btn.ok}}</button>
+          </form>
+      </article>
+  </template>
+
+  <template data-id="errorPage">
+      <article>
+          <h2>Argh! Something went wrong!</h2>
+          <div>{{errorMessage}}</div>
+      </article>
+  </template>
+
+  <template data-id="notifyErrorConnection">
+      <div id="connectionError" class="notification system error">
+          <span class="message">{{#error.noConnection}}</span>
+          <a href="#" data-register="ping" title="{{#label.reconnect}}"><span>{{#label.reconnect}}</span></a>
+      </div>
+  </template>
+</body>
+</html>

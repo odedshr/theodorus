@@ -1,13 +1,13 @@
-app = (typeof app != "undefined") ? app:{};
+app = (typeof app !== 'undefined') ? app : {};
 (function bugReportEnclosure() {
-    'use strict';
-    this.registry = this.registry || {};
+  'use strict';
+  this.registry = this.registry || {};
 
-    this.registry.mePage = { preprocess: loadUserSettings };
+  this.registry.mePage = { preprocess: loadUserSettings };
 
-    function loadUserSettings (dElm, callback) {
-        document.title = O.TPL.translate('title.settings');
-        callback();
-    }
+  function loadUserSettings (dElm, callback) {
+    document.title = O.TPL.translate('title.settings');
+    callback();
+  }
 
 return this;}).call(app);
