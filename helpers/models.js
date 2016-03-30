@@ -1,15 +1,15 @@
 ;(function modelsClosure () {
-    'use strict';
+  'use strict';
 
-    var iterateFiles = require('../helpers/iterateFiles.js');
-    var modelsFolder = './models';
-    var models = {};
+  var iterateFiles = require('../helpers/iterateFiles.js');
+  var modelsFolder = './models';
+  var models = {};
 
-    iterateFiles (modelsFolder, function perModel(model) {
-        if (model.name) {
-            models[model.name] = model;
-        }
-    });
+  iterateFiles (modelsFolder, function perModel(model) {
+    if (model.name) {
+      models[model.name] = model;
+    }
+  });
 
-    module.exports = models;
+  module.exports = models;
 })();

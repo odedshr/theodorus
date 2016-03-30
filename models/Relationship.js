@@ -12,28 +12,28 @@
  */
 
 ;(function RatingClosure() {
-    'use strict';
+  'use strict';
 
-    var status = { active: "active", suspended: "suspended", archived: "archived"};
+  var status = { active: "active", suspended: "suspended", archived: "archived"};
 
-    module.exports = {
-        name: 'relationship',
-        status: status,
-        schema: {
-            status: Object.keys(status),
-            created: Date,
-            modified: Date,
-            endorse: Boolean,
-            follow: Boolean,
-            report: Boolean,
-            block: Boolean
-        },
-        relations: function (model, models) {
-            model.hasOne('member',models.membership, { field: 'memberId', required: true});
-            model.hasOne('subject',models.membership, { field: 'subjectId', required: true});
-        },
-        methods: {},
-        validations: {}
-    };
+  module.exports = {
+    name: 'relationship',
+    status: status,
+    schema: {
+      status: Object.keys(status),
+      created: Date,
+      modified: Date,
+      endorse: Boolean,
+      follow: Boolean,
+      report: Boolean,
+      block: Boolean
+    },
+    relations: function (model, models) {
+      model.hasOne('member',models.membership, { field: 'memberId', required: true});
+      model.hasOne('subject',models.membership, { field: 'subjectId', required: true});
+    },
+    methods: {},
+    validations: {}
+  };
 
 })();

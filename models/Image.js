@@ -18,24 +18,24 @@
  */
 
 ;(function ImageClosure() {
-    'use strict';
+  'use strict';
 
-    var status = { active: "active", suspended: "suspended", archived: "archived"};
+  var status = { active: "active", suspended: "suspended", archived: "archived"};
 
-    module.exports = {
-        name: 'image',
-        status: status,
-        schema: {
-            status: Object.keys(status),
-            created: Date,
-            slug: String,
-            content: Buffer
-        },
-        relations: function (model, models) {
-            model.hasOne('member',models.membership, { field: 'memberId', required: true});
-        },
-        methods: {},
-        validations: {}
-    };
+  module.exports = {
+    name: 'image',
+    status: status,
+    schema: {
+      status: Object.keys(status),
+      created: Date,
+      slug: String,
+      content: Buffer
+    },
+    relations: function (model, models) {
+      model.hasOne('member',models.membership, { field: 'memberId', required: true});
+    },
+    methods: {},
+    validations: {}
+  };
 
 })();

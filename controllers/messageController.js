@@ -1,9 +1,9 @@
 ;(function messageControllerEnclosure() {
-    'use strict';
+  'use strict';
 
-    // addComment
-    // getComments
-    // endorse
-    // report
-    //
+  // addComment
+  // getComments
+  // endorse
+  // report
+  //
 })();

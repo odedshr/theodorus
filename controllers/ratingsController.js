@@ -1,12 +1,12 @@
 ;(function topicRoutesEnclosure() {
-    'use strict';
+  'use strict';
 
-    // addTopic
-    // updateTopic
-    // getTopics
-    // getTopic
+  // addTopic
+  // updateTopic
+  // getTopics
+  // getTopic
 
-    // endorse
-    // report
+  // endorse
+  // report
 
 })();

@@ -1,40 +1,40 @@
 ;(function FileManagerClosure() {
-    'use strict';
+  'use strict';
 
-    var fs = require('fs');
-    var folder;
+  var fs = require('fs');
+  var folder;
 
-    function init (fileStorageFolder) {
-        folder = fileStorageFolder;
+  function init (fileStorageFolder) {
+    folder = fileStorageFolder;
 
-        if (!fs.existsSync(folder)) {
-            fs.mkdirSync(folder);
-        }
-
-        return {
-            exists: exists,
-            get: get,
-            set: set
-        };
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
     }
 
-    function exists (fileName) {
-        return fs.existsSync(''.concat(folder,'/',fileName));
-    }
+    return {
+      exists: exists,
+      get: get,
+      set: set
+    };
+  }
 
-    function set (fileName, data, callback) {
-        var base64Data = data.replace(/^data:image\/png;base64,/, "");
+  function exists (fileName) {
+    return fs.existsSync(''.concat(folder,'/',fileName));
+  }
 
-        fs.writeFile(''.concat(folder,'/',fileName), base64Data, 'base64', callback);
-    }
+  function set (fileName, data, callback) {
+    var base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-    function get (fileName, callback) {
-        fs.readFile(''.concat(folder,'/',fileName), gotFile.bind(null,callback));
-    }
+    fs.writeFile(''.concat(folder,'/',fileName), base64Data, 'base64', callback);
+  }
 
-    function gotFile (callback, err, file) {
-        callback (err? err: file);
-    }
+  function get (fileName, callback) {
+    fs.readFile(''.concat(folder,'/',fileName), gotFile.bind(null,callback));
+  }
 
-    module.exports = init;
+  function gotFile (callback, err, file) {
+    callback (err? err: file);
+  }
+
+  module.exports = init;
 })();

@@ -1,14 +1,14 @@
 (function iterateFilesEnclosure() {
-    'use strict';
+  'use strict';
 
-    var fs = require('fs');
+  var fs = require('fs');
 
-    module.exports = function perFileInFolder (folder, perFile) {
-        var files = fs.readdirSync (folder);
-        while (files.length) {
-            while (files.length) {
-                perFile(require('.'+folder + '/' + files.pop()));
-            }
-        }
-    };
+  module.exports = function perFileInFolder (folder, perFile) {
+    var files = fs.readdirSync (folder);
+    while (files.length) {
+      while (files.length) {
+        perFile(require('.'+folder + '/' + files.pop()));
+      }
+    }
+  };
 })();
