@@ -6,8 +6,15 @@
 
   var status = { published: "published", draft: "draft", archived: "archived", history: "history"};
 
-  function toJSON (post) {
-    return {
+  var editableFields = ['content'];
+
+  function toJSON (post, isMinimal) {
+    return isMinimal ? {
+      id: Encryption.mask(post.id),
+      status: post.status,
+      content: post.content,
+      authorId: Encryption.mask(post.authorId)
+    } :{
       id: Encryption.mask(post.id),
       status: post.status,
       created: post.created,
@@ -16,12 +23,14 @@
       endorse: post.endorse,
       report: post.report,
       comments: post.comments,
-      author: post.authorJSON ? post.authorJSON : (post.author && post.author.toJSON ? post.author.toJSON() : undefined),
       authorId: Encryption.mask(post.authorId),
-      community: post.communityJSON ? post.communityJSON : (post.community && post.community.toJSON ? post.community.toJSON() : undefined),
       communityId: Encryption.mask(post.communityId),
       history: post.history ? utils.toList(post.history) : undefined
     };
+  }
+
+  function getEditables () {
+    return editableFields;
   }
 
   module.exports = {
@@ -42,12 +51,10 @@
       model.hasOne('topic',models.topic, { field: 'topicId' });
     },
     methods: {
-      toJSON: function thisToJSON() { return toJSON(this); }
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
     },
     validations: {},
-    manualFields: ['status','content'],
-    toJSON: toJSON,
-    toList: utils.toList,
     getNew: function getNew (membershipId, communityId, topicId, content, iStatus) {
       var now = new Date ();
       return {

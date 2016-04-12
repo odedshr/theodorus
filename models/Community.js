@@ -1,20 +1,29 @@
 ;(function communityModelClosure() {
   'use strict';
   var Encryption = require ( '../helpers/Encryption.js' );
+  var Errors = require ( '../helpers/Errors.js' );
   var validators = require ( '../helpers/validators.js' );
 
-  var status = { active: "active", suspended: "suspended", archived: "archived"};
-  var gender = { male: "male", female: "female", neutral: "neutral"};
-  var type = { public: "public", exclusive: "exclusive", secret: "secret"};
+  var status = { active: 'active', suspended: 'suspended', archived: 'archived'};
+  var gender = { male: 'male', female: 'female', neutral: 'neutral'};
+  var type = { public: 'public', exclusive: 'exclusive', secret: 'secret'};
 
-  function toJSON (community) {
-    return {
+  var editableFields = ['name','description','topicLength', 'opinionLength','commentLength','minAge','maxAge','gender','type'];
+
+  function toJSON (community, isMinimal) {
+    return isMinimal ? {
+      id: Encryption.mask(community.id),
+      name: community.name,
+      description: community.description,
+      type: community.type
+    } :{
       id: Encryption.mask(community.id),
       status: community.status,
       created: community.created,
       modified: community.modified,
       name: community.name,
       description: community.description,
+      founderId: Encryption.mask(community.founderId),
       members: community.members,
       topicLength: community.topicLength,
       opinionLength: community.opinionLength,
@@ -27,6 +36,12 @@
     };
   }
 
+  function getEditables () {
+    return editableFields;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   function isPostLengthOK (message, comparedTo) {
     if (comparedTo === 0) {
       return true;
@@ -34,6 +49,25 @@
       return (comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message)) <= Math.abs(comparedTo);
     }
   }
+
+  //------------------------------------------------------------------------------------------------------------//
+
+  function isCommunityValid (community) {
+    return isValidCommunityName(community.name);
+  }
+
+  function isValidCommunityName (name) {
+    if (name === undefined) {
+      return Errors.missingInput('name');
+    }
+    if (name === 0) {
+      return Errors.tooShort('name');
+    }
+    return true;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   module.exports = {
     name: 'community',
     schema: {
@@ -53,7 +87,7 @@
       topics: Number
     },
     relations: function (model, models) {
-      model.hasOne('founder',models.membership, { field: 'founderId', required: true});
+      model.hasOne('founder',models.membership, { field: 'founderId', required: false});
     },
     methods : {
       isFit: function isFit (user) {
@@ -79,34 +113,37 @@
       isCommentLengthOk: function isCommentLengthOk (message) {
         return isPostLengthOK(message, this.commentLength);
       },
-      toJSON: function () {
-        return toJSON(this);
-      }
+      isValid: function () {
+        return isCommunityValid(this);
+      },
+      toJSON: function (isMinimal) {
+        return toJSON(this, isMinimal);
+      },
+      getEditables: getEditables
     },
     validations: {},
     status : status,
     gender : gender,
     type : type,
-    toJSON: toJSON,
-    getNew: function getNew (communityId, founderId, name, description, iStatus, topicLength, opinionLength, commentLength, minAge, maxAge, iGender, iType) {
+    getNew: function getNew ( community) {
       var now = new Date ();
       return {
-        id : communityId,
-        founderId : founderId,
-        name: name,
-        description: description,
+        id : community.communityId,
+        founderId : community.founderId,
+        name: community.name,
+        description: community.description,
         topics: 0,
         members: 1, // at least the founder is a member
-        status: status[iStatus] ? status[iStatus] : status.active,
+        status: status[community.status] ? status[community.status] : status.active,
         created: now,
         modified: now,
-        topicLength: (topicLength !== undefined) ? +topicLength : -140,
-        opinionLength: (opinionLength !== undefined) ? +opinionLength : -140,
-        commentLength: (commentLength !== undefined) ? +commentLength : 100,
-        minAge: (minAge !== undefined) ? +minAge : -1,
-        maxAge: (maxAge !== undefined) ? +maxAge : -1,
-        gender: gender[iGender] ? gender[iGender] : gender.neutral,
-        type: type[iType] ? type[iType]: type.public
+        topicLength: (community.topicLength !== undefined) ? +community.topicLength : -140,
+        opinionLength: (community.opinionLength !== undefined) ? +community.opinionLength : -140,
+        commentLength: (community.commentLength !== undefined) ? +community.commentLength : 100,
+        minAge: (community.minAge !== undefined) ? +community.minAge : -1,
+        maxAge: (community.maxAge !== undefined) ? +community.maxAge : -1,
+        gender: gender[community.gender] ? gender[community.gender] : gender.neutral,
+        type: type[community.type] ? type[community.type]: type.public
       };
     }
   };

@@ -3,11 +3,20 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
-  var status = { sent: "sent", handled: "handled", archived: "archived" };
 
-  function toJSON (feedback) {
-    return {
+  var status = { sent: "sent", handled: "handled", archived: "archived" };
+  var editableFields = ['content', 'image','url'];
+
+  function getEditables () {
+    return editableFields;
+  }
+
+  function toJSON (feedback, isMinimal) {
+    return isMinimal ? {
+      content: feedback.content,
+      image: feedback.image ? feedback.image.toString('base64') : '',
+      url: feedback.url
+    } :{
       id: Encryption.mask(feedback.id),
       status: feedback.status,
       created: feedback.created,
@@ -15,7 +24,6 @@
       content: feedback.content,
       image: feedback.image ? feedback.image.toString('base64') : '',
       url: feedback.url,
-      user: feedback.userJSON ? feedback.userJSON : (feedback.user && feedback.user.toJSON ? feedback.user.toJSON() : undefined),
       userId: Encryption.mask(feedback.userId)
     };
   }
@@ -35,12 +43,10 @@
       model.hasOne('user',models.user, { field: 'userId' });
     },
     methods: {
-      toJSON:function thisToJSON() { return toJSON(this); }
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
     },
     validations: {},
-    manualFields: [],
-    toJSON: toJSON,
-    toList: utils.toList,
     getNew: function getNew (content, image, url, userId) {
       var now = new Date ();
       return {

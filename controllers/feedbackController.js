@@ -14,6 +14,16 @@
   function onFeedbackSaved (callback, dFeedback) {
     callback({created:dFeedback.created});
   }
-  exports.feedback = feedback;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
+  }
+  module.exports.setControllers = setControllers;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  exports.set = feedback;
 
 })();

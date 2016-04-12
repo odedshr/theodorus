@@ -1,53 +1,64 @@
 (function ErrorsEnclosure () {
   'use strict';
 
-  function DetailedError (message, stack) {
+  function DetailedError (message, status, details, stack) {
     this.message = message;
     this.stack = stack;
+    this.status = status;
+    this.details = details;
   }
 
   DetailedError.prototype = Object.create(Error.prototype);
   DetailedError.prototype.constructor = DetailedError;
 
+  function systemError (err, args, url) {
+    var error =  new DetailedError ('system-error', 500, {
+      args: args,
+      url: url
+    }, err);
+    return error;
+  }
+
   function unauthorized () {
-    return new DetailedError (401);
+    return new DetailedError ('unauthorized',401);
   }
   function notFound (type,id) {
-    var error = new DetailedError (type+'-not-found');
-    error.value = {key: type, value: id};
-    error.status = 404;
-    return error;
+    return new DetailedError ('not-found', 404, {key: type, value: id});
   }
 
   function noPermissions (actionName) {
-    var error = new DetailedError ('no-permissions-to-'+actionName);
-    error.status = 401;
-    return error;
+    return new DetailedError ('no-permissions',401,{action: actionName});
   }
 
   function badInput (key, value) {
-    var error = new DetailedError ('bad-input-'+key);
-    error.value = {key: key, value: value};;
-    error.status = 406;
-    return error;
+    return new DetailedError ('bad-input', 406, {key: key, value: value});
   }
 
-  function tooLong (varName) {
-    return new DetailedError (varName+'-too-long');
+  function tooLong (varName, value) {
+    return new DetailedError ('too-long',406, {key: varName, value: value});
+  }
+
+  function tooShort (varName, value) {
+    return new DetailedError ('too-short',406, {key: varName, value: value});
   }
 
   function immutable (varType) {
-    return new DetailedError ('immutable-' + varType);
+    return new DetailedError ('immutable', 406, {key: varType});
   }
 
-  function alreadyExists (varType) {
-    var error = new DetailedError ('already-exists-' + varType);
-    error.status = 409;
-    return error;
+  function alreadyExists (varType, value) {
+    return new DetailedError ('already-exists', 409, {key: varType, value: value});
   }
 
   function missingInput (varName) {
-    return new DetailedError (varName+'-too-long');
+    return new DetailedError ('missing-input',406, {key: varName});
+  }
+
+  function expired (varName) {
+    return new DetailedError ('expired',406, {key: varName});
+  }
+  function saveFailed (varName, content, error) {
+    return new DetailedError ('save-failed', 500, {key: varName, value: content}, error);
   }
 
   module.exports.unauthorized = unauthorized;
@@ -55,7 +66,12 @@
   module.exports.noPermissions = noPermissions;
   module.exports.badInput = badInput;
   module.exports.tooLong = tooLong;
+  module.exports.tooShort = tooShort;
   module.exports.immutable = immutable;
   module.exports.alreadyExists = alreadyExists;
   module.exports.missingInput =  missingInput;
+  module.exports.expired =  expired;
+  module.exports.saveFailed =  saveFailed;
+  module.exports.systemError =  systemError;
+  module.exports.DetailedError = DetailedError;
 })();

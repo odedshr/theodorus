@@ -2,12 +2,16 @@
 ;(function commentModelClosure() {
   'use strict';
   var Encryption = require ( '../helpers/Encryption.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
 
   var status = { published: "published", archived: "archived", blocked: "blocked" };
+  var editableFields = ['content'];
 
-  function toJSON (post) {
-    return {
+  function toJSON (post, isMinimal) {
+    return isMinimal ? {
+      id: Encryption.mask(post.id),
+      content: post.content,
+      authorId: Encryption.mask(post.authorId)
+    } : {
       id: Encryption.mask(post.id),
       status: post.status,
       created: post.created,
@@ -16,11 +20,13 @@
       endorse: post.endorse,
       report: post.report,
       comments: post.comments,
-      author: post.authorJSON ? post.authorJSON : (post.author && post.author.toJSON ? post.author.toJSON() : undefined),
       authorId: Encryption.mask(post.authorId),
-      community: post.communityJSON ? post.communityJSON : (post.community && post.community.toJSON ? post.community.toJSON() : undefined),
       communityId: Encryption.mask(post.communityId)
     };
+  }
+
+  function getEditables () {
+    return editableFields;
   }
 
   module.exports = {
@@ -43,12 +49,10 @@
       model.hasOne('parent',models.comment, { field: 'parentId' });
     },
     methods: {
-      toJSON:function thisToJSON() { return toJSON(this); }
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
     },
     validations: {},
-    manualFields: ['status','content'],
-    toJSON: toJSON,
-    toList: utils.toList,
     getNew: function getNew (membershipId, communityId, opinionId, parentId, content, iStatus) {
       var now = new Date ();
       return {

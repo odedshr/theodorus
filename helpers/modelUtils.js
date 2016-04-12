@@ -1,9 +1,16 @@
 (function modelUtilsEnclosure() {
-  function toList (list) {
+  'use strict';
+
+  function toList (list, jsonFunction) {
     var items = [];
-    var i, listLength = list.length;
-    for ( i = 0; i < listLength; i++) {
-      items.push(list[i].toJSON());
+    var listLength = list.length;
+
+    if (jsonFunction === undefined) {
+      jsonFunction = 'toJSON';
+    }
+
+    while (listLength--) {
+      items[listLength] = list[listLength][jsonFunction]();
     }
     return items;
   }
@@ -16,7 +23,7 @@
     var map = {};
     while (count--) {
       var item = list[count];
-      map[item[indexedBy]] = item.toJSON();
+      map[item[indexedBy]] = item;
     }
     return  map;
   }

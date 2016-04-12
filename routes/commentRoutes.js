@@ -1,22 +1,64 @@
 (function commentRoutesClosure() {
-   'use strict';
+  'use strict';
 
-   module.exports = function (controller, validators) {
-       if (validators === undefined) {
-           validators = require('../helpers/validators.js');
-       }
-
-       if (controller === undefined) {
-           controller = require('../controllers/commentController');
-       }
-
-       return [
-           { method: 'post', url: new RegExp('^\\/comment\\/?$'), handler: controller.add },
-            { method: 'post', url: new RegExp('^\\/comment\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.update, parameters: { commentId: {alias: '0' }} },
-            { method: 'get', url: new RegExp('^\\/comment\\/' + validators.maskedIdPattern +'\\/?$'), handler: controller.get, parameters: { commentId: {alias: '0' }} },
-            { method: 'delete', url: new RegExp('^\\/comment\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.archive, parameters: { commentId: {alias: '0' }} },
-            { method: 'get', url: new RegExp('^\\/comment\\/' + validators.maskedIdPattern +'\\/comments\\/?$'), handler: controller.list, parameters: { commentId: {alias: '0' }} },
-            { method: 'get', url: new RegExp('^\\/opinion\\/' + validators.maskedIdPattern +'\\/comments\\/?$'), handler: controller.list, parameters: { opinionId: {alias: '0' }} }
-       ];
-   };
+  module.exports = function (controllers) {
+    return {
+      '/opinion/[opinionId]/comments': {
+        get: {
+          description: 'get opinion\'s comment',
+          parameters: { opinionId: 'id'},
+          response: {'200': {comments: 'array[comment]'}},
+          handler: controllers.comment.list
+        },
+        post: {
+          description: 'add a comment',
+          parameters: {comment: 'comment', opinionId: 'id'},
+          response: {'200': {comment: 'comment'}},
+          handler: controllers.comment.set
+        }
+      },
+      '/comment': {
+        post: {
+          description: 'Update a comment',
+          parameters: {comment: 'comment'},
+          response: {'200': {comment: 'comment'}},
+          handler: controllers.comment.set
+        }
+      },
+      '/comment/[commentId]': {
+        get: {
+          description: 'Get a comment',
+          parameters: { commentId: 'id'},
+          response: {'200': {comment: 'comment', author: 'membership', hasImage: 'boolean'}},
+          handler: controllers.comment.get
+        },
+        post: {
+          description: 'Update a comment',
+          parameters: { comment: 'comment', commentId: 'id'},
+          response: {'200': {comment: 'comment'}},
+          handler: controllers.comment.set
+        },
+        delete: {
+          description: 'Delete a comment',
+          parameters: { commentId: 'id'},
+          response: {'200': { comment: 'comment'}},
+          handler: controllers.comment.archive
+        }
+      },
+      '/comment/[commentId]/comments': {
+        get: {
+          description: 'get comment\'s comment',
+          parameters: {commentId: 'id'},
+          response: {'200': { comments: 'array[comment]'}},
+          handler: controllers.comment.list
+        },
+        post: {
+          description: 'add a comment',
+          parameters: {comment: 'comment', commentId: 'id'},
+          response: {'200': {comment: 'comment'}},
+          handler: controllers.comment.set
+        }
+      }
+    };
+  };
 })();

@@ -7,6 +7,32 @@
 ;(function OpinionViewpointClosure() {
   'use strict';
 
+  var Encryption = require ( '../helpers/Encryption.js' );
+  var editableFields = ['read','follow','endorse', 'report'];
+
+  function toJSON (viewPoint, isMinimal) {
+    return isMinimal ? {
+      read: viewPoint.read,
+      follow: viewPoint.follow,
+      endorse: viewPoint.endorse,
+      report: viewPoint.report
+    } : {
+      id: Encryption.mask (viewPoint.id),
+      memberId: Encryption.mask (viewPoint.memberId),
+      opinionId: Encryption.mask (viewPoint.opinionId),
+      created: viewPoint.created,
+      modified: viewPoint.modified,
+      read: viewPoint.read,
+      follow: viewPoint.follow,
+      endorse: viewPoint.endorse,
+      report: viewPoint.report
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
+
   module.exports = {
     name: 'opinionViewpoint',
     schema: {
@@ -21,8 +47,23 @@
       model.hasOne('member',models.membership, { field: 'memberId', required: true});
       model.hasOne('opinion',models.opinion, { field: 'opinionId', required: true});
     },
-    methods: {},
-    validations: {}
+    methods: {
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
+    },
+    validations: {},
+    getNew: function getNew (membershipId, opinionId) {
+      var now = new Date ();
+      return {
+        memberId : membershipId,
+        opinionId: opinionId,
+        created: now,
+        modified: now,
+        read: false,
+        follow: false,
+        endorse: false
+      };
+    }
   };
 
 })();

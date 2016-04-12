@@ -3,5 +3,6 @@
   "ipAddress": "127.0.0.1",
   "port": "5000",
   "dbConnectionString": "sqlite://theodorus.db",
-  "storedFilesFolder": "user-files"
+  "storedFilesFolder": "user-files",
+  "testsURL": "http://127.0.0.1:5000"
 }

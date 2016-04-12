@@ -7,148 +7,139 @@
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
 
-  function add (authUser, communityId, content, status, db, callback) {
-    var communityUnmaskedId = Encryption.unmask(communityId);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    var tasks = [ {name:'community', table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-            {name:'author', table:db.membership, parameters: {userId: authUser.id, communityId: communityUnmaskedId }, continueIf: authorExistsAndCanSuggest }
-    ];
-    chain (tasks, addOnDataLoaded.bind(null, content, status, db, callback), callback);
+  function isImmutable (topic) {
+    return topic.opinions > 0 || topic.follow > 0 || topic.endorse > 0 > topic.report > 0;
   }
 
-  function authorExistsAndCanSuggest (repository) {
-    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
-  }
-
-  function addOnDataLoaded (content, status, db, callback, data) {
-    if (data.community.isTopicLengthOk(content)) {
-      var topic = db.topic.model.getNew(data.author.id, data.community.id, validators.sanitizeString(content), status ? status : db.topic.model.status.published);
-      db.topic.create(
-        topic,
-        chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
-    } else {
-      callback(Errors.tooLong('topic'));
-    }
-  }
-
-  function addOnDataSaved (callback, data, topicJSON) {
-    if (!(data instanceof Error)) {
-      var now = new Date();
-      data.community.topics = data.community.topics + 1;
-      data.community.modified = now;
-      data.community.save();
-      topicJSON.author = data.author.toJSON();
-      topicJSON.community = data.community.toJSON();
-    }
-    callback(topicJSON);
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, topicId, db, callback) {
-    update( authUser, { id: topicId, status: db.topic.model.status.archived }, db, callback );
-  }
-
-  function update (authUser, topic, db, callback) {
-    if (topic.id) {
-      db.topic.get(Encryption.unmask(topic.id), chain.onLoad.bind(null,'post',updateOnPostLoaded.bind(null, authUser, topic, db, callback),callback,true));
-    } else {
-      callback(404);
+    var unmaskedTopicId = Encryption.unmask (topicId);
+    if (isNaN(unmaskedTopicId)) {
+      callback(Errors.badInput('topicId',topicId));
+      return;
     }
-  }
-  function updateOnPostLoaded (authUser, newTopic, db, callback, oldTopic) {
-    chain ([{name:'author', table:db.membership, parameters: oldTopic.authorId, continueIf: isPostBelongsToAuthor.bind(null, authUser.id) },
-        {name:'community', table:db.community, parameters: oldTopic.communityId, continueIf: chain.onlyIfExists }
-    ], updateOnCommunityLoaded.bind(null, oldTopic, newTopic, db.topic.model.status.archived, callback), callback);
-  }
-
-  function isPostBelongsToAuthor(userId, repository) {
-    return (repository.author !== undefined) ? (repository.author.userId === userId ? true : Errors.noPermissions('update-topic')) : Errors.notFound('author');
+    chain.load ({ topic : { table:db.topic, parameters: unmaskedTopicId, continueIf: archiveUpdateAuthorQuery },
+                  author: { table:db.membership, parameters: { userId : authUser.id}, continueIf: chain.onlyIfExists },
+                  community: { table:db.community, parameters: {}, continueIf: chain.onlyIfExists }},
+      ['topic', 'author', 'community'], archiveOnDataLoaded.bind(null, authUser.id, db, callback), callback);
   }
 
-  function updateOnCommunityLoaded (oldTopic, newTopic, archivedStatus, callback, data) {
-    if (oldTopic.opinions === 0 && oldTopic.follow === 0 && oldTopic.endorse === 0 && oldTopic.report === 0) {
-      if ((oldTopic.status === archivedStatus) !== (newTopic.status === archivedStatus)) {
-        data.community.topics = +data.community.topics + ((newTopic.status === archivedStatus) ? -1 : 1);
-        data.community.save();
-      }
-      if (newTopic.content !== undefined) {
-        if (data.community.isTopicLengthOk(newTopic.content)) {
-          oldTopic.content = newTopic.content;
-        } else {
-          callback(Errors.tooLong('topic-content'));
-          return;
-        }
-      }
-      oldTopic.status = newTopic.status ? newTopic.status : oldTopic.status;
-      oldTopic.modified = new Date();
-      oldTopic.save(chain.onSaved.bind(null, updatedOnSaved.bind(null, callback, data)));
-    } else {
+  function archiveUpdateAuthorQuery (repository, tasks) {
+    if (repository.topic) {
+      tasks.authors.parameters.authorId = repository.topic.authorId;
+      tasks.community.parameters = repository.topic.communityId;
+    }
+    return (repository.topic !== null);
+  }
+
+  function archiveOnDataLoaded (db, callback, data) {
+    var topic = data.topic;
+    if (isImmutable (topic)) {
       callback(Errors.immutable('topic'));
+      return;
     }
+
+    topic.status = db.topic.model.status.archived;
+    topic.modified = new Date();
+    topic.save(chain.andThenPass('topic',callback));
+
+    var community = data.community;
+    community.topics--;
+    community.save(callback ? callback :chain.andThenNothing);
   }
 
-  function updatedOnSaved (callback, data, topicJSON) {
-    topicJSON.author = data.author.toJSON();
-    topicJSON.community = data.community.toJSON();
-    callback(topicJSON);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function get (optionalUser, topicId, db, files, callback) {
+    var tasks = {
+      topic: { table: db.topic, parameters: Encryption.unmask(topicId), continueIf: getAddTopicToQueries },
+      community: { table: db.community, continueIf: chain.onlyIfExists },
+      author: { table: db.author, continueIf: chain.onlyIfExists },
+      member: { table: db.membership, data: null },
+      viewpoint: {  table: db.topicViewpoint, data: null }
+    };
+    if (optionalUser) {
+      tasks.member.parameters = { userId: optionalUser.id };
+      delete tasks.member.data;
+    }
+    chain.load ( tasks, ['topic','community','author','member','viewpoint'], getOnDataLoaded.bind(null, db ,files, callback));
   }
 
-  function get (authUser, topicId, db, callback) {
-    db.topic.get(Encryption.unmask(topicId), chain.onLoad.bind(null, 'topic',getOnTopicLoaded.bind(null, authUser, db, callback), callback, true));
+  function getAddTopicToQueries (repository, tasks) {
+    var topic = repository.topic;
+    if (topic === null) {
+      return false;
+    }
+    tasks.community.parameters = topic.communityId;
+    tasks.author.parameters = topic.authorId;
+    tasks.member.parameters.communityId = topic.communityId;
+    tasks.member.continueIf = addMemberToViewpointQuery ;
+    tasks.viewpoint.parameters = { topicId: topic.id };
+    return true;
   }
 
-  function getOnTopicLoaded (authUser, db, callback, topic) {
-    chain ([{name:'topic', data: topic},
-      {name:'community', table:db.community, parameters: topic.communityId, continueIf: chain.onlyIfExists},
-      {name:'author', table:db.membership, parameters: topic.authorId},
-      {name:'member', table:db.membership, parameters:
-      { userId: authUser.id,
-        communityId: topic.communityId
-      }}
-    ], getOnDataLoaded.bind(null, db, callback), callback);
+  function addMemberToViewpointQuery (repository, tasks) {
+    var member = repository.member;
+    if (member !== null) {
+      tasks.viewpoint.parameters.memberId = member.id;
+    }
+    return true;
   }
 
-  function getOnDataLoaded (db, callback, data) {
+  function getOnDataLoaded (db, files, callback, data) {
     if (data.member || data.community.type !== db.community.model.type.exclusive) {
-      data.topic.author = data.author;
-      data.topic.community = data.community;
-      callback(data.topic.toJSON());
+      callback({
+        topic: data.topic.toJSON(),
+        author: data.author.toMinJSON(),
+        hasImage: controllers.profileImage.existsSync (files,data.author.id),
+        community: data.community.toMinJSON(),
+        viewpoint: data.viewpoint.toJSON()
+      });
     } else {
       callback (Errors.noPermissions('get-topic'));
     }
   }
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   function list (optionalUser, communityId, db, callback) {
     var communityUnmaskedId = Encryption.unmask(communityId);
     if (isNaN(communityUnmaskedId)) {
       callback(Errors.badInput('communityId',communityId));
-    } else {
-      var tasks = [
-        { name:'community', table: db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-        { name:'member', data: undefined, continueIf: onlyIfExistsOrPublicCommunity.bind(null,db.community.model.type.exclusive)},
-        { name:'topics', table: db.topic, parameters: { communityId: communityUnmaskedId, status: db.topic.model.status.published }, multiple: { order: 'modified' }, continueIf: listAddAuthorsTask.bind(null,db.membership) },
-        { name: 'viewpoints', table: db.topicViewpoint, data: {}, multiple: {} }
-      ];
-
-      if (optionalUser !== undefined)  {
-        var memberTask = tasks[1];
-        memberTask.table = db.membership;
-        memberTask.parameters = {userId: optionalUser.id, communityId: communityUnmaskedId };
-        delete memberTask.data;
-      }
-      chain(tasks, listOnDataLoaded.bind(null,db,callback),callback);
+      return;
     }
+
+    var tasks = {
+      community: { table: db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
+      topics: { table: db.topic, parameters: {communityId: communityUnmaskedId, status: db.topic.model.status.published}, multiple: {order: 'modified'}, continueIf: listAddAuthorsTask },
+      authors: { table: db.membership, multiple: {} },
+      member: { continueIf: listOnlyIfExistsOrPublicCommunity.bind(null,db.community.model.type.exclusive) },
+      viewpoints: { table: db.topicViewpoint, data: [], multiple: {}}
+    };
+
+    if (optionalUser !== undefined)  {
+      tasks.member.table = db.membership;
+      tasks.member.parameters = { userId: optionalUser.id, communityId: communityUnmaskedId };
+    } else {
+      tasks.member.data = undefined;
+    }
+
+    chain.load(tasks, ['community','member','topics','viewpoints'], listOnDataLoaded.bind(null,db,callback),callback);
   }
 
-  function onlyIfExistsOrPublicCommunity (communityTypeExclusive, repository, tasks) {
+  function listOnlyIfExistsOrPublicCommunity (communityTypeExclusive, repository, tasks) {
     if (repository.member) {
-      tasks[0].parameters = { memberId : repository.member.id };
-      delete tasks[0].data;
+      tasks.viewpoints.parameters = { memberId : repository.member.id };
+      delete tasks.viewpoints.data;
       return true;
     }
     return (repository.community.type !== communityTypeExclusive) ? true : Errors.noPermissions('topics') ;
   }
 
-  function listAddAuthorsTask (membershipTable, repository, tasks) {
+  function listAddAuthorsTask (repository, tasks) {
     repository.topics.reverse(); // changing to descending order
     var topicCount = repository.topics.length;
     var topicIdList = [];
@@ -162,31 +153,146 @@
       tasks[0].parameters.topicId = topicIdList;
     }
     authors = Object.keys(authors);
+
     if (authors.length > 0) {
-      tasks.push ( {name:'authors', table: membershipTable, parameters: { id: authors }, multiple: {}});
+      tasks.authors.parameters.id = authors;
+    } else {
+      tasks.authors.data = [];
+      delete tasks.authors.table;
     }
     return true;
   }
 
   function listOnDataLoaded (db,callback, data) {
-    var topicsLength = data.topics.length;
-    if (topicsLength > 0) {
-      //var communityJSON = data.community.toJSON();
-      var authorsMap = db.membership.model.toMap(data.authors);
-      var viewPointMap = db.topicViewpoint.model.toMap(data.viewpoints, 'topicId');
-      while (topicsLength--) {
-        var topic = data.topics[topicsLength];
-        //topic.communityJSON = communityJSON; // it's one community, no need to load it per item
-        topic.authorJSON = authorsMap[topic.authorId];
-        topic.viewpointJSON = viewPointMap[topic.id];
-      }
-    }
-    callback(db.topic.model.toList(data.topics));
+    callback({
+      topics: db.topic.model.toList(data.topics),
+      viewpoints : db.topicViewpoint.model.toMap(data.viewpoints, 'topicId'),
+      authors : db.membership.model.toMap(data.authors,'id','toMinJSON'),
+      communities : db.community.model.toMap(data.communities,'id','toMinJSON')
+    });
   }
 
-  module.exports.add = add;
-  module.exports.update = update;
-  module.exports.get = get;  // get topic content
-  module.exports.list = list;  // get topics list of a community
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function set (authUser, communityId, topicId, topic, db, callback) {
+    if (communityId !== undefined) {
+      topic.communityId = communityId;
+    }
+    if (topicId !== undefined) {
+      topic.id = topicId;
+    }
+
+    if (topic.id !== undefined) {
+      update (authUser, topic, db, callback);
+    } else if (topic.communityId !== undefined) {
+      add (authUser, topic, db, callback);
+    } else {
+      callback (Errors.missingInput('membership.communityId'));
+    }
+  }
+
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function add (authUser, topic, db, callback) {
+    var communityUnmaskedId = Encryption.unmask(topic.communityId);
+
+    chain.load ({
+      community: { table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
+      author: { table:db.membership, parameters: { userId: authUser.id, communityId: communityUnmaskedId }, continueIf: authorExistsAndCanSuggest }
+    }, ['community','author'], addOnDataLoaded.bind(null, topic, db, callback), callback);
+  }
+
+  function authorExistsAndCanSuggest (repository) {
+    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
+  }
+
+  function addOnDataLoaded (topic, db, callback, data) {
+    var sanitizedString = validators.sanitizeString(topic.content);
+
+    if (!data.community.isTopicLengthOk(sanitizedString)) {
+      callback(Errors.tooLong('topic'));
+      return;
+    }
+
+    topic = db.topic.model.getNew(data.author.id, data.community.id, sanitizedString, topic.status ? topic.status : db.topic.model.status.published);
+    db.topic.create (topic, chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
+  }
+
+  function addOnDataSaved (callback, data, topicJSON) {
+    if (!(topicJSON instanceof Error)) {
+      var community = data.community;
+      community.topics = data.community.topics + 1;
+      community.modified = new Date();
+      community.save();
+    }
+    callback({
+      topic: topicJSON,
+      author: data.author.toJSON(),
+      community: data.community.toJSON()
+    });
+  }
+
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function update (authUser, topic, db, callback) {
+    chain.load ({
+      topic: { table:db.topic, parameters: Encryption.unmask(topic.id), continueIf: setUpdateQueries },
+      community: { table:db.community, continueIf: chain.onlyIfExists },
+      author: { table:db.membership, parameters: { userId: authUser.id}, continueIf: isPostBelongsToAuthor }
+    }, ['topic', 'community','author'], updateOnDataLoaded.bind(null, topic, callback), callback);
+  }
+
+  function setUpdateQueries (repository, tasks) {
+    var topic = repository.topic;
+    if (topic) {
+      tasks.community.parameters = topic.communityId;
+      tasks.author.parameters.id = topic.authorId;
+    }
+
+    return (topic !== null);
+  }
+
+  function isPostBelongsToAuthor(repository) {
+    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
+  }
+
+  function updateOnDataLoaded (jTopic, callback, data) {
+    var topic = data.topic;
+    jTopic.content = validators.sanitizeString(jTopic.content);
+    chain.update(jTopic, topic);
+
+    if (isImmutable(topic)) {
+      callback(Errors.immutable('topic'));
+      return;
+    } else if (!data.community.isTopicLengthOk(topic.content)) {
+      callback(Errors.tooLong('topic-content'));
+      return;
+    }
+
+    topic.modified = new Date();
+    topic.save(chain.onSaved.bind(null, updateOnSaved.bind(null, callback, data)));
+  }
+
+  function updateOnSaved (callback, data, topicJSON) {
+    callback({
+      topic: topicJSON,
+      author: data.author.toMinJSON(),
+      community: data.community.toMinJSON()
+    });
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
+  }
+  module.exports.setControllers = setControllers;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   module.exports.archive = archive;
+  module.exports.get = get;
+  module.exports.list = list;
+  module.exports.set = set;
 })();

@@ -3,48 +3,78 @@
 
   var _ = require('underscore');
   var url = require('url');
+
   var config = require('../helpers/config.js');
   var Encryption = require ('../helpers/Encryption.js');
-  var log = require('../helpers/logger.js');
   var Errors = require('../helpers/Errors.js');
-  var errorCodes = {
-    400: 'bad-request',
-    401: 'unauthorized',
-    403: 'forbidden',
-    404: 'not-found',
-    409: 'conflict'
-  };
+  var log = require('../helpers/logger.js');
 
-  function read(req) {
+  var validators = require('../helpers/validators.js');
+  var urlParameterPattern = validators.urlParameterPattern;
+  var idPattern = validators.maskedIdPattern;
+  var emailPattern = validators.emailPatternString;
+
+  function read(req, urlFormat, reURL) {
     var output = {};
     try {
       _.extend(output, url.parse(req.url, true).query,  req.params, req.body);
     } catch (err) {
       log(err);
     }
+
+    var values = reURL.exec(req.url.toString());
+    // urlParameterPattern for some reason return null at the second /community/[communityId] run
+    var keys = (new RegExp('\\[([^#]+?)\\]','g')).exec(urlFormat);
+    if (keys !== null & values !== null) {
+      var count = Math.min(keys.length, values.length);
+      for (var i=1; i < count ;i++) {
+        output[keys[i]] = values[i];
+      }
+    }
+
     return output;
   }
 
-  function write(res, data) {
+  function addObjectSizes (data) {
+    var keys = Object.keys(data);
+    var keyCount = keys.length;
+    while (keyCount--) {
+      var key = keys[keyCount];
+      var value = data[key];
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(data[key])) {
+          data[key+'Length'] = data[key].length;
+        } else if (typeof data[key] === 'object' && key !== 'error') {
+          data[key+'Size'] = Object.keys(data[key]).length;
+        }
+      }
+    }
+  }
+
+  function write (res, startTime, data) {
     if (data === undefined || data === null) {
       res.end();
+      return;
     } else if (data instanceof Error) {
-      log (''.concat('error in URL ' ,res.req.method, ':', res.req.url));
-      log(data, 'fatal');
-      if (data.status === undefined) {
-        data.status = errorCodes[data.message];
-      }
-      res.status(data.status).end(JSON.stringify(data));
+      res.status(data.status ? data.status : 500).end(JSON.stringify({ message: data.message, details: data.details}));
+      return;
     } else if (data._file !== undefined) {
       res.writeHead(200, {'Content-Type': data._file });
       res.end(data.content, 'binary');
     } else if (data._redirect !== undefined) {
       res.writeHead(302, { 'Location': data._redirect });
       res.end();
-    } else if (data._status !== undefined) {
-      res.status(data._status).end(JSON.stringify(data.content));
-    }  else {
-      res.end(JSON.stringify(data));
+    } else {
+      if (data._status !== undefined) {
+        res.status(data._status);
+      }
+
+      if (typeof data !== 'object') {
+        data = {'result' : data };
+      }
+      addObjectSizes(data);
+      data.processTime = (new Date() - startTime)/1000;
+      res.end(data ? JSON.stringify(data) : '');
     }
   }
 
@@ -55,30 +85,60 @@
     };
   }
 
-  module.exports = function ContextTemplate(action, parameterSettings, FileManager) {
-      var parameters = action.toString().match(/^function\s?[^\(]+\s?\(([^\)]+)\)+/),
-        parameterCount;
-      parameters = (parameters !== null) ? parameters[1].replace(/\s/g, '').split(',') : [];
-      parameterCount = parameters.length;
+  function getURLPattern (url, parametersMeta) {
+    var item;
+    while ((item = urlParameterPattern.exec(url)) !== null) {
+      if (parametersMeta === undefined) {
+        throw Errors.badInput(url,item[1]);
+      }
+      var actually;
+      var key = parametersMeta[item[1]];
+      if (Array.isArray(key)) {
+        actually ='(['+key.join('|')+']+)';
+      } else {
+        switch (key) {
+          case 'id':
+            actually = idPattern;
+            break;
+          case 'email':
+            actually = emailPattern;
+            break;
+          case 'string':
+            actually = '(.+)';
+            break;
+          default:
+            throw Errors.badInput(url,key);
+        }
+      }
+      url = url.split(item[0]).join( actually );
+    }
+    return new RegExp ('^' + url + '\\/?');
+  }
 
-      return function Context(req, res, next) {
+  module.exports = function ContextTemplate(url, def, FileManager, Mailer) {
+      var action = def.handler;
+      var urlParameters = def.parameters;
+      var urlPattern = getURLPattern(url, urlParameters);
+      var parameters = action.toString().match(/^function\s?[^\(]+\s?\(([^\)]+)\)+/);
+      parameters = (parameters !== null) ? parameters[1].replace(/\s/g, '').split(',') : [];
+      var parameterCount = parameters.length;
+
+      var context = function Context(req, res, next) {
         var args = [];
-        var input = read(req);
+        var input = read(req, url, urlPattern);
         var i;
         var parameter;
         var value;
         var settings;
         var isHandlerAsync = false;
 
-        var writeToRes = function writeToResponse(value) {
-          write(res, value);
-        };
+        var writeToRes = write.bind({}, res, new Date());
 
         try {
           for (i = 0; i < parameterCount; i += 1) {
             parameter = parameters[i];
             value = input[parameter];
-            settings = parameterSettings ? parameterSettings[parameter] : false;
+            settings = urlParameters ? urlParameters[parameter] : false;
 
             if (value === undefined) {
               switch (parameter) {
@@ -96,14 +156,17 @@
                 try {
                   value = JSON.parse(Encryption.decode(req.headers.authorization));
                 } catch (err) {
-                  throw Errors.unauthorized();
+                  writeToRes (Errors.unauthorized());
+                  return;
                 }
                 if (value.expires instanceof Date && value.expires < (new Date())) {
-                  throw Errors.unauthorized();
+                  writeToRes (Errors.unauthorized());
+                  return;
                 }
                 var token = getAuthToken(req);
                 if (token.localIP !== value.localIP || token.serverIP !== value.serverIP) {
-                  throw Errors.unauthorized();
+                  writeToRes (Errors.unauthorized());
+                  return;
                 }
                 value = value.user;
                 break;
@@ -119,6 +182,9 @@
                 break;
               case 'files':
                 value = FileManager;
+                break;
+              case 'mailer':
+                value = Mailer;
                 break;
               }
             }
@@ -137,12 +203,7 @@
           try {
             value = action.apply(this, args);
           } catch (err) {
-            err.details = {
-              args: args,
-              url: req.url,
-              message: err.message
-            };
-            writeToRes(err);
+            writeToRes(Errors.systemError(err, args, req.url));
             return false;
           }
           if (!isHandlerAsync) {
@@ -156,9 +217,28 @@
             url: req.method+':'+req.url,
             message: err.message
           };
-          writeToRes(err);
+          log (''.concat('error in URL ' ,res.req.method, ':', res.req.url));
+          log (err, 'fatal');
+
+          try {
+            writeToRes(err);
+          }
+          catch (err) {
+            try {
+              log('failed to use writeToRes');
+              res.status(500).end(err);
+            }
+            catch (err) {
+              log('failed to send any response','fatal');
+            }
+          }
           return false;
         }
       };
+
+      context.getURL = function getURL () {
+        return urlPattern;
+      };
+      return context;
     };
 })();

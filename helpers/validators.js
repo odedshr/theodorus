@@ -3,6 +3,7 @@
 
   var emailPatternString = '((([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,})))';
   var maskedIdPattern  = '([\\w\\d]+)';
+  var urlParameterPattern = new RegExp('\\[([^#]+?)\\]','g');
   var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
   var tagOrComment = new RegExp('<(?:' + '!--(?:(?:-*[^->])*--+|-?)' + '|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*' + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*' + '|/?[a-z]' + ')>','gi');
     // Comment body. + Special "raw text" elements whose content should be elided. + Regular name
@@ -41,6 +42,7 @@
 
   exports.emailPatternString = emailPatternString;
   exports.maskedIdPattern = maskedIdPattern;
+  exports.urlParameterPattern = urlParameterPattern;
   exports.isValidEmail = isValidEmail;
   exports.isValidPassword = isValidPassword;
   exports.isValidCommunityName = isValidCommunityName;

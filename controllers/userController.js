@@ -1,214 +1,144 @@
 (function userControllerClosure() {
   'use strict';
 
-  var md5 = require ('md5');
+  var nodemailer = require('nodemailer');
+
+  var sergeant = require ('../helpers/sergeant.js');
   var Encryption = require ('../helpers/Encryption.js');
-  var validators = require('../helpers/validators.js');
+  var Errors = require('../helpers/Errors.js');
   var tryCatch = require('../helpers/tryCatch.js');
-  var models = require('../helpers/models.js');
+  var log = require('../helpers/logger.js');
 
-  function load (email, password, db, onSuccess, onError) {
-    tryCatch(function tryCatchLoad() {
-      db.user.one({email:email}, loadOnFound.bind(null, password, onSuccess, onError) );
-    },onError);
-  }
-  function loadOnFound (password,onSuccess, onError, err, user) {
-    tryCatch(function tryCatchLoadOnFound() {
-      if (err) {
-        onError(new Error(err));
-      } else if (user === null) {
-        onError (new Error(404));
-      } else if (((password !== false) && user.password !== md5(password)) || (user.status === models.user.status.archived)) {
-        onError (new Error(401));
-      } else {
-        onSuccess(user);
+  var tokenExpiration = 1000 * 60 * 60;// == 1 HOUR
+
+  function connect (email, subject, content, authToken, mailer, files, callback) {
+    tryCatch (function tryCatchConnect () {
+      if (email === undefined ) {
+        callback (Errors.missingInput('email'));
+        return;
       }
-    },onError);
-  }
-  function onSaved (callback, err) {
-    callback(err ? new Error(err) : true);
-  }
 
-  function signin (email, password, authToken, db, callback) {
-    tryCatch(function tryCatchSignin() {
-      load (email, password, db, signinOnLoaded.bind(null,authToken, callback), callback);
+      authToken.time = (new Date()).getTime();
+      authToken.email = email;
+      var encodedToken = Encryption.encode (authToken);
+
+      if (content === undefined || content.indexOf('[authToken]')) {
+        content = encodedToken;
+      } else {
+        content = content.replace (/\[authToken]/g, encodedToken);
+      }
+      var text = content.replace(/(<br(\s?\/)?>|<\/p>|<\/div>)/gm, '\n').replace(/<(?:.|\n)*?>/gm, '');
+      if (email.indexOf('@test.suite.') > -1) {
+        files.set('debug_'+email+'.json', JSON.stringify({
+          email: email,
+          subject: subject,
+          text: text,
+          html: content
+        }), callback);
+      } else {
+        mailer.send(email, '', subject, text, content, callback);
+        log('token sent to ' + email + ': '+ encodedToken);
+      }
     },callback);
   }
-  function signinOnLoaded (authToken, callback, user) {
+  exports.connect = connect;
+
+  function authenticate (token, authToken, db, callback) {
+    tryCatch (function tryCatchConnect () {
+      var decryptedToken;
+      if (token === undefined) {
+        callback (Errors.missingInput('token'));
+        return;
+      }
+      try {
+        decryptedToken = Encryption.decode(token);
+      }
+      catch (err) {
+        callback (Errors.badInput('token',token));
+        return;
+      }
+      if ((new Date()).getTime() - tokenExpiration > decryptedToken.time) {
+        callback (Errors.expired('token'));
+        return;
+      }
+      if (decryptedToken.localIP !== authToken.localIP || decryptedToken.serverIP !== authToken.serverIP) {
+        callback (Errors.unauthorized());
+        return;
+      }
+
+      db.user.one({email:decryptedToken.email}, sergeant.onLoad.bind({}, 'user', onAuthenticateUserLoaded.bind(null, decryptedToken, db, callback), callback, false) );
+
+    },callback);
+  }
+
+  function onAuthenticateUserLoaded (token, db, callback, user) {
     tryCatch(function tryCatchSigninOnLoaded() {
-      authToken.user = {
+    if (user !== null) {
+      token.user = {
         id : user.id,
         email: user.email,
         lastLogin: user.lastLogin
       };
       user.lastLogin = new Date();
-      user.save(function (err) {
-        callback(err ? (new Error(err)) : Encryption.encode(JSON.stringify(authToken)));
-      });
+      user.save();
+      callback({ token: Encryption.encode(JSON.stringify(token)) });
+    } else {
+      var oUser = db.user.model.getNew({ email : token.email });
+      db.user.create(oUser, onAuthenticateUserAdded.bind(null, token, callback));
+    }
+
     },callback);
   }
-  function signup(email, password, authToken, db, callback) {
-    if (email === undefined || !validators.isValidEmail(email)) {
-      callback (new Error ('email-invalid'));
-    }
-    if (password === undefined || !validators.isValidPassword(password)) {
-      callback (new Error ('password-invalid'));
-    }
-    exists(email, db, signUpOnCheckIfExists.bind(null, email, password, authToken, db, callback) );
-  }
-  function signUpOnCheckIfExists (email, password, authToken, db, callback, isExists) {
-    if (isExists instanceof Error) {
-      callback(isExists);
-    } else if (isExists) {
-      callback(new Error(409));
-    } else {
-      var now = new Date();
-      var oUser = {
-        email: email,
-        password: md5(password),
-        status: models.user.status.active,
-        created: now,
-        modified: now,
-        lastLogin: now
-      };
-      authToken.user = {
-        email: email
-      };
-      db.user.create(oUser, signUpOnCreated.bind(null, authToken, callback));
-    }
-  }
-  function signUpOnCreated (authToken, callback, err,user) {
+
+  function onAuthenticateUserAdded (authToken, callback, err, user) {
     if (err) {
       callback (new Error(err));
     } else {
+      if (authToken.user === undefined) {
+        authToken.user = {};
+      }
       authToken.user.id = user.id;
-      callback(Encryption.encode(JSON.stringify(authToken)));
+      authToken.user.email = user.email;
+      callback({ token: Encryption.encode(JSON.stringify(authToken)) });
     }
   }
-  function archive(authUser, db,  callback ) {
-    db.user.get(authUser.id, archiveOnLoaded.bind(null, callback));
+  exports.authenticate = authenticate;
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function get (authUser, db, callback) {
+    sergeant({ user: { table: db.user, load: authUser.id, json:true }}, 'user',callback);
   }
 
-  function archiveOnLoaded(db,  callback, user) {
-    tryCatch(function tryCatchRemoveOnLoaded (callback, err, user) {
-      if (err) {
-        callback (new Error(err));
-      } if (user === null) {
-        callback (new Error(404));
-      } else {
-        user.status = models.user.status.archived;
-        user.modified = new Date();
-        user.save(onSaved.bind(null,callback));
-      }
-    }, callback);
+  exports.get = get;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function set (authUser, user, db, callback) {
+    sergeant({ loadUser: { table: db.user, load: authUser.id, after:sergeant.stopIfNotFound },
+               user: { before: setUser.bind(null, user), save:true, json:true }
+    }, 'loadUser,user',callback);
   }
 
-  function remove(authUser, db,  callback ) {
-    db.user.get(authUser.id, removeOnLoaded.bind(null, callback));
-  }
-  function removeOnLoaded(callback, err, user) {
-    tryCatch(function tryCatchRemoveOnLoaded () {
-      if (err) {
-        callback (new Error(err));
-      } else if (user === null) {
-        callback (new Error(404));
-      } else {
-        user.remove(onSaved.bind(null,callback));
-      }
-    }, callback);
+  function setUser (jUser, data, tasks, currentTaskName) {
+    var user = data.loadUser;
+    delete data.loadUser;
+    tasks[currentTaskName].save = (sergeant.update(jUser, user) > 0);
+    tasks[currentTaskName].data = user;
+    return true;
   }
 
-  function exists(email, db, callback) {
-    db.user.exists({email:email}, existsOnFound.bind(null,callback) );
-  }
-  function existsOnFound (callback, err, isExists) {
-    callback(err ? new Error(err) : isExists);
-  }
+  exports.set = set;
 
-  function generateResetPasswordToken(email, db, callback) {
-    load (email, false, db, generateResetPasswordTokenOnLoaded.bind(null, email, callback));
-  }
-  function generateResetPasswordTokenOnLoaded (email, callback, user) {
-    callback(Encryption.encode(JSON.stringify({
-      email: email,
-      lastLogin: user.lastLogin.toString(),
-      modified: user.modified.toString()
-    })));
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function resetPassword(email, token, newPassword, db, callback) {
-    var decryptedToken = JSON.parse(Encryption.decode(token));
-    if (decryptedToken.email !== email) {
-      callback (new Error(404));
-    }
-    load (email, false, db, resetPasswordOnLoaded.bind(null,decryptedToken,newPassword, callback), callback);
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
   }
-  function resetPasswordOnLoaded (decryptedToken,newPassword, callback, user) {
-    if ((decryptedToken.lastLogin !== user.lastLogin.toString()) || (decryptedToken.modified !== user.modified.toString())) {
-      callback (new Error(403));
-    }
-    user.password = md5(newPassword);
-    user.modified = new Date();
-    user.save(function saved (err) {
-      callback(err ? new Error(err) : true);
-    });
-  }
+  module.exports.setControllers = setControllers;
 
-  function changePassword(authUser, oldPassword, newPassword, db, callback) {
-    db.user.get(authUser.id, changePasswordOnLoaded.bind(null, oldPassword, newPassword, callback));
-  }
-  function changePasswordOnLoaded(oldPassword, newPassword, callback, err, user) {
-    tryCatch(function tryCatchChangePasswordOnLoaded() {
-      if (err) {
-        callback (new Error(err));
-      } else if (user.password !== md5(oldPassword)) {
-        callback (new Error(401));
-      } else if (user === null ) {
-        callback (new Error(404));
-      } else {
-        user.password = md5(newPassword);
-        user.modified = new Date();
-        user.save(function saved (err) {
-          callback(err ? new Error(err) : true);
-        });
-      }
-    }, callback);
-  }
-
-  function update (authUser, birthDate, isFemale, db, callback) {
-    db.user.get(authUser.id, updateOnLoaded.bind(null, birthDate, isFemale, callback));
-  }
-  function updateOnLoaded (birthDate, isFemale, callback, err, user) {
-    tryCatch(function tryCatchChangePasswordOnLoaded() {
-      if (err) {
-        callback (new Error(err));
-      } else if (user === null ) {
-        callback (new Error(404));
-      } else if (birthDate === undefined && isFemale === undefined) {
-        callback(new Error('nothing-changed'));
-      } else {
-        if (birthDate !== undefined) {
-          user.birthDate = new Date(birthDate);
-        }
-        if (isFemale !== undefined) {
-          user.isFemale = JSON.parse(isFemale);
-        }
-        user.modified = new Date();
-        user.save(function saved (err) {
-          callback(err ? new Error(err) : true);
-        });
-      }
-    }, callback);
-  }
-
-  exports.signin = signin;
-  exports.signup = signup;
-  exports.archive = archive;
-  exports.remove = remove;
-  exports.exists = exists;
-  exports.generateResetPasswordToken = generateResetPasswordToken;
-  exports.resetPassword = resetPassword;
-  exports.changePassword = changePassword;
-  exports.update = update;
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 })();

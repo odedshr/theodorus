@@ -3,6 +3,15 @@
 
   var status = { active: "active", suspended: "suspended", archived: "archived"};
 
+  var editableFields = ['content'];
+
+  function toJSON (isMinimal) {
+    return {};
+  }
+  function getEditables () {
+    return editableFields;
+  }
+
   module.exports = {
     name: 'proposal',
     status: status,
@@ -15,7 +24,10 @@
     },
     relations: function (model, models) {
     },
-    methods: {},
+    methods: {
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
+    },
     validations: {}
   };
 

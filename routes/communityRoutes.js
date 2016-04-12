@@ -1,22 +1,49 @@
 (function topicRoutesClosure() {
-   'use strict';
+  'use strict';
 
-   module.exports = function (controller, validators) {
-       if (validators === undefined) {
-           validators = require('../helpers/validators.js');
-       }
-
-       if (controller === undefined) {
-           controller = require('../controllers/communityController');
-       }
-
-       return [
-           { method: 'post', url: new RegExp('^\\/community\\/?$'), handler: controller.add },
-           { method: 'post', url: new RegExp('^\\/community\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.update, parameters: { communityId: {alias: '0' }} },
-           { method: 'get', url: new RegExp('^\\/community\\/' + validators.maskedIdPattern +'\\/?$'), handler: controller.get, parameters: { communityId: {alias: '0' }} },
-           { method: 'delete', url: new RegExp('^\\/community\\/' + validators.maskedIdPattern +'\\/?$') , handler: controller.archive, parameters: { communityId: {alias: '0' }} },
-           { method: 'get', url: new RegExp('^\\/community\\/?$'), handler: controller.list, parameters: {} },
-           { method: 'post', url: new RegExp('^\\/community\\/exists\\/?$'), handler: controller.exists }
-       ];
-   };
+  module.exports = function (controllers) {
+    return {
+      '/community/exists': {
+        post: {
+          description: 'Return true if community exists',
+          parameters: {community: 'community'},
+          response: {'200': {type: 'string', exists: 'boolean', parameters: 'object'}},
+          handler: controllers.community.exists
+        }
+      },
+      '/community/[communityId]': {
+        get: {
+          description: 'Get a community',
+          parameters: { communityId: 'id'},
+          response: {'200': {community: 'community', member: 'membership', hasImage: 'boolean'}},
+          handler: controllers.community.get
+        },
+        post: {
+          description: 'Update community',
+          parameters: {community: 'community', communityId: 'id'},
+          response: {'200': {community: 'community', founder: 'membership'}},
+          handler: controllers.community.set
+        },
+        delete: {
+          description: 'Delete a community',
+          parameters: {communityId: 'id'},
+          response: {'200': {community: 'community'}},
+          handler: controllers.community.archive
+        }
+      },
+      '/community': {
+        get: {
+          description: 'Get community list',
+          response: {'200': {communities: 'array[community]'}},
+          handler: controllers.community.list
+        },
+        put: {
+          description: 'Add a community',
+          parameters: {community: 'community', founder: 'membership', founderImage: 'image'},
+          response: {'200': {community: 'community', founder: 'membership'}},
+          handler: controllers.community.set
+        }
+      }
+    };
+  };
 })();

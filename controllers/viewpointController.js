@@ -110,10 +110,21 @@
     updateViewpoint(authUser,  subjectType, subjectId, 'endorse', false, db, callback);
   }
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
+  }
+  module.exports.setControllers = setControllers;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   module.exports.read = read;
   module.exports.unread = unread;
   module.exports.endorse = endorse;
   module.exports.unendorse = unendorse;
   module.exports.follow = follow;
   module.exports.unfollow = unfollow;
+  module.exports.report = function () {};
 })();

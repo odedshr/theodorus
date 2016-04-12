@@ -3,201 +3,338 @@
 
   var Encryption = require ('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
+  var sergeant = require('../helpers/sergeant.js');
   var chain = require('../helpers/chain.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
 
-  function add (authUser, opinionId, parentId, content, status, db, callback) {
-    if ((opinionId === undefined) === (parentId === undefined)) {
-      callback (Errors.badInput('must-have-opinionId-OR-commentId'));
-    } else if (parentId === undefined) {
-      db.opinion.get(Encryption.unmask(opinionId), chain.onLoad.bind(null,'opinion',addOnOpinionLoaded.bind(null, authUser, 'opinion', content, status, db, callback),callback,true));
-    } else {
-      db.comment.get(Encryption.unmask(parentId), chain.onLoad.bind(null,'comment',addOnOpinionLoaded.bind(null, authUser, 'parent', content, status, db, callback),callback,true));
-    }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function isImmutable (comment) {
+    return comment.comments > 0 || comment.follow > 0 || comment.endorse > 0 > comment.report > 0;
   }
-
-  function addOnOpinionLoaded (authUser, findBy, content, status, db, callback, root) {
-    var tasks = [ {name:  findBy, data: root },
-      {name:'community', table:db.community, parameters: root.communityId, continueIf: chain.onlyIfExists },
-      {name:'author', table:db.membership, parameters: {userId: authUser.id, communityId: root.communityId }, continueIf: chain.onlyIfExists }
-    ];
-    if (findBy === 'parent') {
-      tasks.push ({name:'opinion', table:db.opinion, parameters: root.opinionId , continueIf: chain.onlyIfExists });
-    }
-    chain (tasks, addOnDataLoaded.bind(null, content, status, db, callback), callback);
-  }
-
-  function addOnDataLoaded (content, status, db, callback, data) {
-    if (data.author.can ('comment')) {
-      if (data.community.isCommentLengthOk(content)) {
-        db.comment.create(db.comment.model.getNew(data.author.id, data.community.id, data.opinion.id, data.parent ? data.parent.id : undefined, validators.sanitizeString(content), status ? status : db.comment.model.status.published),
-                  chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
-      } else {
-        callback(Errors.tooLong('comment'));
-      }
-    } else {
-      callback(Errors.noPermissions('comment'));
-    }
-  }
-
-  function addOnDataSaved (callback, data, commentJSON) {
-    var now = new Date();
-    var parent = data.parent ? data.parent : data.opinion;
-    parent.comments = parent.comments + 1;
-    parent.modified = now;
-    parent.save();
-
-    commentJSON.author = data.author.toJSON();
-    commentJSON.community = data.community.toJSON();
-    callback(commentJSON);
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, commentId, db, callback) {
-    update( authUser, { id: commentId, status: db.comment.model.status.archived }, db, callback );
-  }
-
-  function update (authUser, comment, db, callback) {
-    if (comment.id) {
-      db.comment.get(Encryption.unmask(comment.id), chain.onLoad.bind(null,'comment',updateOnPostLoaded.bind(null, authUser, comment, db, callback),callback,true));
-    } else {
-      callback(404);
+    var unmaskedCommentId = Encryption.unmask (commentId);
+    if (isNaN(unmaskedCommentId)) {
+      callback(Errors.badInput('commentId',commentId));
+      return;
     }
-  }
-  function updateOnPostLoaded (authUser, newComment, db, callback, oldComment) {
-    chain ([{name:'comment', data: oldComment},
-        {name:'newComment', data: newComment},
-        {name:'author', table:db.membership, parameters: oldComment.authorId, continueIf: isPostBelongsToAuthor.bind(null, authUser.id) },
-        {name:'community', table:db.community, parameters: oldComment.communityId, continueIf: chain.onlyIfExists }
-    ], updateOnCommunityLoaded.bind(null, db, callback), callback);
-  }
-
-  function isPostBelongsToAuthor(userId, repository, tasks, currentTask) {
-    return (repository.author!== undefined) ? (repository.author.userId === userId ? true : Errors.noPermissions('update-comment')) : Errors.notFound();
+    sergeant ({ comment : { table:db.comment, parameters: unmaskedCommentId, after: archiveUpdateQueries.bind(null, db) },
+                author:   { table:db.membership, parameters: { userId : authUser.id}, after: sergeant.onlyIfExists },
+                community:{ table:db.community, parameters: {}, after: sergeant.onlyIfExists },
+                parent:   { table:db.opinion, after: sergeant.onlyIfExists },
+                updateComment:   { before: archiveUpdateComment.bind(null,db), data: {} },
+                updateParent:   { before: archiveUpdateParent, data: {} },
+                json: { before: archivePrepareForJSON.bind(null, authUser.id, db), json: true}
+             },
+      ['topic', 'author', 'community','parent', 'json'], callback );
   }
 
-  function updateOnCommunityLoaded (db, callback, data) {
-    if (data.comment.comments === 0 && data.comment.endorse === 0 && data.comment.report === 0) {
-      var archivedStatus =  db.comment.model.status.archived;
-      if (data.newComment.status !== archivedStatus && data.newComment.content) {
-        if (data.community.isCommentLengthOk(data.newComment.content )) {
-          data.comment.content = data.newComment.content ? data.newComment.content : data.comment.content;
-        } else {
-          callback( Errors.tooLong('comment' ));
-          return;
-        }
+  function archiveUpdateQueries (db, repository, tasks) {
+    var comment = repository.comment;
+    if (comment) {
+      if (isImmutable(comment)) {
+        return Errors.immutable('comment');
       }
-      if ((data.comment.status === archivedStatus) !== (data.newComment.status === archivedStatus)) {
-        var commentCountDelta = (data.newComment.status === archivedStatus) ? -1 : 1;
-        if (data.comment.parentId) {
-          // update parent comment
-          db.comment.get(data.comment.parentId, chain.onLoad.bind(null,'comment',updateCommentCount.bind(null, commentCountDelta),callback,false));
-        } else {
-          // update parent opinion
-          db.opinion.get(data.comment.opinionId, chain.onLoad.bind(null,'opinion',updateCommentCount.bind(null, commentCountDelta),callback,false));
-        }
+
+      tasks.authors.parameters.authorId = comment.authorId;
+      tasks.community.parameters = comment.communityId;
+      if (comment.opinionId) {
+        tasks.parent.table = db.opinion;
+        tasks.parent.parameters = comment.opinionId;
+      } else if (comment.parentId) {
+        tasks.parent.table = db.comment;
+        tasks.parent.parameters = comment.parentId;
+      } else {
+        return Errors.notFound('comment-parent',Encryption.mask(comment.id));
       }
-      data.comment.status = data.newComment.status ? data.newComment.status : data.comment.status;
-      data.comment.modified = new Date();
-      data.comment.save(chain.onSaved.bind(null, updatedOnSaved.bind(null, callback, data)));
-    } else {
-      callback( Errors.immutable('comment' ));
     }
+    return (repository.comment !== null);
   }
 
-  function updateCommentCount (delta, item) {
-    item.comments = +item.comments + delta;
-    item.save();
-  }
-  function updatedOnSaved (callback, data, commentJSON) {
-    commentJSON.author = data.author.toJSON();
-    commentJSON.community = data.community.toJSON();
-    callback(commentJSON);
+  function archiveUpdateComment (db, repository) {
+    var comment = repository.comment;
+    comment.status = db.comment.model.status.archived;
+    comment.modified = new Date();
+    repository.updateComment = comment;
+    return true;
   }
 
-  function get (authUser, commentId, db, callback) {
-    db.comment.get(Encryption.unmask(commentId), chain.onLoad.bind(null, 'comment',getOnCommentLoaded.bind(null, authUser, db, callback), callback, true));
+  function archiveUpdateParent (repository) {
+    var parent = repository.parent;
+    parent.comments--;
+    repository.updateParent = parent;
+    return true;
   }
 
-  function getOnCommentLoaded (authUser, db, callback, comment) {
-    chain ([{name:'comment', data: comment},
-      {name:'community', table:db.community, parameters: comment.communityId, continueIf: chain.onlyIfExists},
-      {name:'author', table:db.membership, parameters: comment.authorId},
-      {name:'member', table:db.membership, parameters:
-      { userId: authUser.id,
-        communityId: comment.communityId
-      }}
-    ], getOnDataLoaded.bind(null, db, callback), callback);
+  function archivePrepareForJSON (repository) {
+    repository.comment = repository.updateComment;
+    delete repository.updateComment;
+    repository.parent = repository.udpateParent;
+    delete repository.parent;
+    delete repository.author;
+    delete repository.community;
+    return true;
   }
 
-  function getOnDataLoaded (db, callback, data) {
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function get (optionalUser, commentId, db, files, callback) {
+    var unmaskedCommentId = Encryption.unmask(commentId);
+    if (isNaN(unmaskedCommentId)) {
+      callback(Errors.badInput('commentId',commentId));
+      return;
+    }
+    var tasks = {
+      comment: { table: db.comment, parameters: unmaskedCommentId, continueIf: getUpdateQueries },
+      community: { table: db.community, continueIf: sergeant.onlyIfExists },
+      author: { table: db.author, continueIf: sergeant.onlyIfExists },
+      member: { table: db.membership, data: null },
+      viewpoint: {  table: db.commentViewpoint, data: null }
+    };
+    if (optionalUser) {
+      tasks.member.parameters = { userId: optionalUser.id };
+      delete tasks.member.data;
+    }
+    chain.load ( tasks, ['comment','community','author','member','viewpoint'], getOnDataLoaded.bind(null, db ,files, callback));
+  }
+
+  function getUpdateQueries (repository, tasks) {
+    var comment = repository.comment;
+    if (comment === null) {
+      return false;
+    }
+    tasks.community.parameters = comment.communityId;
+    tasks.author.parameters = comment.authorId;
+    tasks.member.parameters.communityId = comment.communityId;
+    tasks.member.continueIf = getAddMemberToViewpointQuery ;
+    tasks.viewpoint.parameters = { commentId: comment.id };
+    return true;
+  }
+
+  function getAddMemberToViewpointQuery (repository, tasks) {
+    var member = repository.member;
+    if (member === null) {
+      return false;
+    }
+    tasks.viewpoint.parameters.memberId = member.id;
+    return true;
+  }
+
+  function getOnDataLoaded (db, files, callback, data) {
     if (data.member || data.community.type !== db.community.model.type.exclusive) {
-      data.comment.author = data.author;
-      data.comment.community = data.community;
-      callback(data.comment.toJSON());
+      callback({
+        comment: data.comment.toJSON(),
+        author: data.author.toMinJSON(),
+        hasImage: controllers.profileImage.existsSync (files,data.author.id),
+        community: data.community.toMinJSON(),
+        viewpoint: data.viewpoint.toJSON()
+      });
     } else {
       callback (Errors.noPermissions('get-comment'));
     }
   }
 
-  function list (authUser, opinionId, commentId, db, callback) {
-    if ((opinionId === undefined) === (commentId === undefined)) {
-      callback(Errors.badInput());
-    } else if (opinionId !== undefined) {
-      db.opinion.get(Encryption.unmask(opinionId), chain.onLoad.bind(null, 'opinion', listOnParentLoaded.bind(null, authUser, db, callback, 'opinion'), callback, 'parent'));
-    } else if (commentId !== undefined) {
-      db.comment.get(Encryption.unmask(commentId), chain.onLoad.bind(null, 'comment', listOnParentLoaded.bind(null, authUser, db, callback, 'parent'), callback, 'opinion'));
-    }
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function listOnParentLoaded (authUser, db, callback, findBy, root) {
-    chain([{name: 'findBy', data: findBy}, {name: findBy, data: root},
-      { name: 'community', table: db.community, parameters: root.communityId, continueIf: chain.onlyIfExists},
-      { name: 'member', table: db.membership, parameters: { userId: authUser.id, communityId: root.communityId } }
-    ], listOnMemberLoaded.bind(null, db, callback), callback);
-  }
-
-  function listOnMemberLoaded (db, callback, data) {
-    if (data.member  || data.community.type !== db.community.model.type.exclusive) {
-      var query = { status: db.comment.model.status.published };
-      if (data.findBy === 'parent') {
-        query.parentId = data.parent.id;
-      } else if (data.opinion) {
-        query.opinionId = data.opinion.id;
-      }
-      db.comment.find( query, { order: 'created' }, chain.onLoad.bind(null, 'comments',listOnCommentsLoaded.bind(null, data, db, callback), callback, false));
+  function list (optionalUser, opinionId, commentId, db, callback) {
+    var tasks = {
+      comments : { table: db.comments, parameters: { status: db.comment.model.status.published }, continueIf: listUpdateAuthorsQuery, multiple: { order: 'created' } },
+      community : { table: db.community, continueIf: chain.onlyIfExists},
+      authors: { table: db.membership, multiple: {}},
+      member : { continueIf: listOnlyIfExistsOrPublicCommunity.bind(null,db.community.model.type.exclusive)},
+      viewpoints: { table: db.topicViewpoint, data: [], multiple: {}}
+    };
+    if (commentId) {
+      commentId = Encryption.unmask(commentId);
+      tasks.root = { table: db.comment, parameters: commentId };
+      tasks.comments.parameters.parentId = commentId;
+    } else if (opinionId) {
+      opinionId = Encryption.unmask(opinionId);
+      tasks.root = { table: db.comment, parameters: opinionId};
+      tasks.comments.parameters.opinionId = opinionId;
     } else {
-      callback (Errors.noPermissions('list-comments'));
+      callback(Errors.missingInput('opinionId'));
+      return;
     }
+
+    tasks.root.continueIf = listUpdateQueries;
+    if (optionalUser !== undefined)  {
+      tasks.member.table = db.membership;
+      tasks.member.parameters = { userId: optionalUser.id};
+    } else {
+      tasks.member.data = undefined;
+    }
+
+    chain.load(tasks, ['comments','community','member','authors'], listOnDataLoaded.bind(null, db, callback), callback);
   }
-  function listOnCommentsLoaded (data, db, callback, comments) {
-    data.comments = comments;
+
+  function listUpdateQueries (repository, tasks) {
+    var root = repository.root;
+    if (root) {
+      tasks.community.parameters = root.communityId;
+      tasks.member.parameters.communityId = root.communityId;
+    }
+    return (root !== null);
+  }
+
+  function listUpdateAuthorsQuery (repository, tasks) {
+    var comments = repository.comments;
     var count = comments.length, authorIdMap = {};
     if (count > 0) {
       while (count--) {
         authorIdMap[comments[count].authorId] = true;
       }
-      db.membership.find({id: Object.keys(authorIdMap)}, chain.onLoad.bind(null, 'authors',listOnAuthorsLoaded.bind(null, data, db, callback), callback, false));
+      tasks.authors.parameters = {id: Object.keys(authorIdMap)};
     } else {
-      callback([]);
+      tasks.authors = { data: {} };
     }
-  }
-  function listOnAuthorsLoaded (data, db, callback, authors) {
-    var commentsLength = data.comments.length;
-    if (commentsLength > 0) {
-      var authorsMap = db.membership.model.toMap(authors);
-      while (commentsLength--) {
-        var comment = data.comments[commentsLength];
-        comment.authorJSON = authorsMap[Encryption.mask(comment.authorId)];
-      }
-    }
-    callback(db.comment.model.toList(data.comments));
   }
 
-  module.exports.add = add;
-  module.exports.update = update;
-  module.exports.get = get;  // get post content
-  module.exports.list = list;  // get comment list of opinion/comment
+  function listOnlyIfExistsOrPublicCommunity (communityTypeExclusive, repository, tasks) {
+    if (repository.member) {
+      tasks.viewpoints.parameters = { memberId : repository.member.id };
+      delete tasks.viewpoints.data;
+      return true;
+    }
+    return (repository.community.type !== communityTypeExclusive) ? true : Errors.noPermissions('topics') ;
+  }
+  function listOnDataLoaded (db, callback, data) {
+    callback({
+      comments: db.comment.model.toList(data.comments),
+      authors : db.membership.model.toMap(data.authors,'id','toMinJSON')
+    });
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function set (authUser, opinionId, parentId, commentId, comment, db, callback) {
+    if (opinionId !== undefined) {
+      comment.opinionId = Encryption.unmask(opinionId);
+    }
+    if (parentId !== undefined) {
+      comment.commentId = Encryption.unmask(parentId);
+    }
+    if (commentId !== undefined) {
+      comment.id = commentId;
+    }
+
+    if (comment.id !== undefined) {
+      update (authUser, comment, db, callback);
+    } else if (comment.opinionId !== undefined || comment.parentId !== undefined) {
+      add (authUser, comment, db, callback);
+    } else {
+      callback (Errors.missingInput('membership.communityId'));
+    }
+  }
+
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function add (authUser, comment, db, callback) {
+    var isCommentOnComment = (comment.parentId !== undefined);
+    chain.load ({
+      parent: { table: (isCommentOnComment ? db.comment : db.opinion), parameters: isCommentOnComment ? comment.parentId : comment.opinionId, continueIf: addUpdateQueries},
+      community : { table:db.community, continueIf: chain.onlyIfExists },
+      author : { table:db.membership, parameters: { userId: authUser.id }, continueIf: authorExistsAndCanComment }
+    }, ['parent', 'community','author'], addOnDataLoaded.bind(comment, db, callback));
+  }
+
+  function addUpdateQueries (repository, tasks) {
+    var parent = repository.parent;
+    if (parent === null) {
+      return false;
+    }
+    tasks.community.parameters = parent.communityId;
+    tasks.author.parameters.communityId = parent.communityId;
+    return true;
+  }
+
+  function authorExistsAndCanComment (repository) {
+    return (repository.author ? (repository.author.can ('comment') ? true : Errors.noPermissions('comment')) : Errors.notFound('member'));
+  }
+
+  function addOnDataLoaded (jComment, db, callback, data) {
+    var sanitizeContent = validators.sanitizeString(jComment.content);
+    if (!data.community.isCommentLengthOk(sanitizeContent)) {
+      callback(Errors.tooLong('comment'));
+      return;
+    }
+
+    var comment = db.comment.model.getNew(data.author.id, data.community.id, jComment.opinionId, jComment.parentId, sanitizeContent, status ? status : db.comment.model.status.published);
+    db.comment.create(comment, chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
+  }
+
+  function addOnDataSaved (callback, data, commentJSON) {
+    var parent = data.parent;
+
+    if (parent && !(commentJSON instanceof Error)) {
+      parent.comments++;
+      parent.modified = new Date();
+      parent.save();
+    }
+    callback({
+      comment: commentJSON,
+      author : data.author.toMinJSON(),
+      community : data.community.toMinJSON()
+    });
+  }
+
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function update (authUser, comment, db, callback) {
+    chain.load({
+      comment: { table: db.comment, parameters: Encryption.unmask(comment.id), continueIf: updateUpdateQueries},
+      author: { table: db.membership, parameters: { userId: authUser.id }, continueIf: isPostBelongsToAuthor },
+      community: { table: db.community, continueIf: chain.onlyIfExists }
+    },['comment','newComment','author','community'], updateOnDataLoaded.bind (comment, callback));
+  }
+
+  function updateUpdateQueries (repository, tasks) {
+    var comment = repository.comment;
+    if (comment === null) {
+      return false;
+    }
+    tasks.community.parameters = comment.communityId;
+    tasks.author.parameters.id = comment.authorId;
+    return true;
+  }
+
+  function isPostBelongsToAuthor(repository) {
+    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
+  }
+
+  function updateOnDataLoaded (jComment, callback, data) {
+    if (isImmutable(data.comment)) {
+      callback(Errors.immutable('comment'));
+      return;
+    }
+
+    var sanitizeContent = validators.sanitizeString(jComment.content);
+    if (data.community.isCommentLengthOk(sanitizeContent )) {
+      data.comment.content = sanitizeContent;
+      data.comment.modified = new Date();
+      data.comment.save(chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
+    } else {
+      callback( Errors.tooLong('comment'));
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
+  }
+  module.exports.setControllers = setControllers;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   module.exports.archive = archive;
+  module.exports.get = get;
+  module.exports.list = list;
+  module.exports.set = set;
+
+
 })();

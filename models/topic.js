@@ -3,11 +3,18 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
-  var status = { published: "published", draft: "draft", archived: "archived" };
 
-  function toJSON (topic) {
-    return {
+  var status = { published: "published", draft: "draft", archived: "archived" };
+  var editableFields = ['content'];
+
+  function toJSON (topic, isMinimal) {
+    return isMinimal ? {
+      id: Encryption.mask(topic.id),
+      created: topic.created,
+      modified: topic.modified,
+      content: topic.content,
+      authorId: Encryption.mask(topic.authorId)
+    } :{
       id: Encryption.mask(topic.id),
       status: topic.status,
       created: topic.created,
@@ -17,12 +24,13 @@
       endorse: topic.endorse,
       report: topic.report,
       opinions: topic.opinions,
-      author: topic.authorJSON ? topic.authorJSON : (topic.author && topic.author.toJSON ? topic.author.toJSON() : undefined),
       authorId: Encryption.mask(topic.authorId),
-      community: topic.communityJSON ? topic.communityJSON : (topic.community && topic.community.toJSON ? topic.community.toJSON() : undefined),
-      communityId: Encryption.mask(topic.communityId),
-      viewpoint: topic.viewpointJSON ? topic.viewpointJSON : (topic.viewpoint && topic.viewpoint.toJSON ? topic.viewpoint.toJSON() : undefined)
+      communityId: Encryption.mask(topic.communityId)
     };
+  }
+
+  function getEditables () {
+    return editableFields;
   }
 
   module.exports = {
@@ -43,12 +51,10 @@
       model.hasOne('community',models.community, { field: 'communityId', required: true });
     },
     methods: {
-      toJSON:function thisToJSON() { return toJSON(this); }
+      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
     },
     validations: {},
-    manualFields: ['status','content'],
-    toJSON: toJSON,
-    toList: utils.toList,
     getNew: function getNew (membershipId, communityId, content, iStatus) {
       var now = new Date ();
       return {

@@ -7,200 +7,329 @@
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
 
-  function add (authUser, topicId, content, status, db, callback) {
-    if (topicId !== undefined) {
-      var unmasked = Encryption.unmask(topicId);
-      db.topic.get(Encryption.unmask(topicId), chain.onLoad.bind(null,'topic',addOnTopicLoaded.bind(null, authUser, content, status, db, callback),callback,true));
-    }else {
-      callback(Errors.missingInput('topicId'));
-    }
-
-  }
-
-  function addOnTopicLoaded (authUser, content, status, db, callback, topic) {
-    chain ([{name:'topic', data: topic },
-      {name:'community', table:db.community, parameters: topic.communityId, continueIf: chain.onlyIfExists },
-      {name:'author', table:db.membership, parameters: {userId: authUser.id, communityId: topic.communityId }, continueIf: chain.onlyIfExists }
-    ], addLoadHistory.bind(null, content, status, db, callback), callback);
-  }
-
-  function addLoadHistory (content, status, db, callback, data) {
-    if (data.author.can('opinionate')) {
-      if (data.community.isOpinionLengthOk(content)) {
-        db.opinion.one({authorId: data.author.id, topicId: data.topic.id, status: db.opinion.model.status.published}, chain.onLoad.bind(null,'history',addOnDataLoaded.bind(null, content, status, db, callback, data),callback,false));
-      } else {
-        callback(Errors.tooLong('opinion'));
-      }
-    } else {
-      callback(Errors.noPermissions('opinionate'));
-    }
-  }
-
-  function addOnDataLoaded (content, status, db, callback, data, history) {
-    data.history = history;
-    db.opinion.create(db.opinion.model.getNew(data.author.id, data.community.id, data.topic.id, validators.sanitizeString(content), status ? status :  db.opinion.model.status.published),
-      chain.onSaved.bind(null, addOnDataSaved.bind(null, db, callback, data)));
-  }
-
-  function addOnDataSaved (db, callback, data, opinionJSON) {
-    var now = new Date();
-    if (data.history) {
-      data.history.status = db.opinion.model.status.history;
-      data.history.modified = now;
-      data.history.save();
-
-      opinionJSON.history = { id: data.history.id, created: data.history.created };
-    } else {
-      data.topic.opinions = +data.topic.opinions + (opinionJSON.status === db.opinion.model.status.published);
-      data.topic.modified = now;
-      data.topic.save();
-    }
-
-    opinionJSON.author = data.author.toJSON();
-    callback(opinionJSON);
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, opinionId, db, callback) {
-    update( authUser, { id: opinionId, status: db.opinion.model.status.archived }, db, callback );
-  }
-
-  function update (authUser, opinion, db, callback) {
-    if (opinion && opinion.id) {
-      db.opinion.get(Encryption.unmask(opinion.id), chain.onLoad.bind(null,'opinion',updateOnOpinionLoaded.bind(null, authUser, opinion, db, callback),callback,true));
-    } else {
-      callback(Errors.notFound());
+    var unmaskedOpinionId = Encryption.unmask (opinionId);
+    if (isNaN(unmaskedOpinionId)) {
+      callback(Errors.badInput('opinionId',opinionId));
+      return;
     }
-  }
-  function updateOnOpinionLoaded (authUser, newOpinion, db, callback, opinion) {
-    chain ([{name: 'opinion', data: opinion },
-        {name: 'newOpinion', data: newOpinion },
-        {name: 'topic', table: db.topic, parameters: opinion.topicId },
-        {name:'author', table:db.membership, parameters: opinion.authorId, continueIf: isOpinionBelongsToAuthor.bind(null, authUser.id) },
-        {name:'community', table:db.community, parameters: opinion.communityId, continueIf: chain.onlyIfExists }
-    ], updateOnCommunityLoaded.bind(null, db, callback), callback);
+    chain.load ({ opinion : { table:db.opinion, parameters: unmaskedOpinionId, continueIf: archiveUpdateQueries.bind(null, db) },
+        author: { table: db.membership, parameters: { userId : authUser.id}, continueIf: chain.onlyIfExists },
+        community: { table: db.community, parameters: {}, continueIf: chain.onlyIfExists },
+        topic: { table: db.topic, continueIf: chain.onlyIfExists }},
+      ['topic', 'author', 'community','parent'], archiveOnDataLoaded.bind(null, authUser.id, db, callback), callback);
   }
 
-  function isOpinionBelongsToAuthor(userId, repository) {
-    return (repository.author !== undefined) ? (repository.author.userId === userId ? true : Errors.noPermissions('opinionate')) : Errors.notFound('author');
-  }
-
-  function updateOnCommunityLoaded (db, callback, data) {
-    if (data.opinion.comments === 0 && data.opinion.endorse === 0 && data.opinion.report === 0) {
-      var archivedStatus = db.opinion.model.status.archived;
-      if (data.newOpinion.content !== undefined) {
-        if (data.community.isOpinionLengthOk(data.newOpinion.content)) {
-          data.opinion.content = data.newOpinion.content ;
-        } else {
-          callback(Errors.tooLong('opinion'));
-          return;
-        }
-      }
-      if ((data.newOpinion.status === archivedStatus) && (data.opinion.status !== archivedStatus)) {
-        data.topic.opinions = +data.topic.opinions - 1; // opinion will be added at addOnDataSaved()
-        data.topic.save();
-      }
-      data.opinion.status = data.newOpinion.status ? data.newOpinion.status : data.opinion.status;
-      data.opinion.modified = new Date();
-      data.opinion.save(chain.onSaved.bind(null, addOnDataSaved.bind(null, db, callback, data)));
-    } else {
-      if (data.opinion.status === db.opinion.model.status.published) {
-        addOnDataLoaded (data.newOpinion.content, data.newOpinion.status, db, callback, data, data.opinion);
-      } else {
-        callback(Errors.immutable('opinion'));
-      }
+  function archiveUpdateQueries (db, repository, tasks) {
+    var opinion = repository.opinion;
+    if (opinion) {
+      tasks.authors.parameters.authorId = opinion.authorId;
+      tasks.community.parameters = opinion.communityId;
+      tasks.topic.parameters = opinion.topicId;
     }
+    return (repository.opinion !== null);
   }
 
-  function get (authUser, opinionId, db, callback) {
-    db.opinion.get(Encryption.unmask(opinionId), chain.onLoad.bind(null, 'opinion',getOnOpinionLoaded.bind(null, authUser, db, callback), callback, true));
+  function archiveOnDataLoaded (db, callback, data) {
+    var opinion = data.opinion;
+
+    opinion.status = db.comment.model.status.archived;
+    opinion.modified = new Date();
+    opinion.save(chain.andThenPass('opinion',callback));
+
+    var topic = data.topic;
+    topic.opinions--;
+    topic.save();
   }
 
-  function getOnOpinionLoaded (authUser, db, callback, opinion) {
-    chain ([{name:'opinion', data: opinion},
-      {name:'community', table:db.community, parameters: opinion.communityId, continueIf: chain.onlyIfExists},
-      {name:'member', table:db.membership, parameters: { userId: authUser.id, communityId: opinion.communityId}},
-      {name:'author', table:db.membership, parameters: opinion.authorId},
-      {name:'history', table:db.opinion, parameters: { topicId: opinion.topicId, authorId: opinion.authorId, status: db.opinion.model.status.history}, multiple: {order: 'modified'}}
-    ], getOnDataLoaded.bind(null, db, callback), callback);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function get (optionalUser, opinionId, db, files, callback) {
+    var unmaskedOpinionId = Encryption.unmask(opinionId);
+    if (isNaN(unmaskedOpinionId)) {
+      callback(Errors.badInput('opinionId',opinionId));
+      return;
+    }
+
+    var tasks = {
+      opinion: { table: db.opinion, parameters: unmaskedOpinionId, continueIf: getAddOpinionToQueries },
+      community: { table: db.community, continueIf: chain.onlyIfExists },
+      history: { table:db.opinion, parameters: { id: unmaskedOpinionId, status: db.opinion.model.status.history}, multiple: {order: 'modified'}},
+      author: { table: db.author, continueIf: chain.onlyIfExists },
+      member: { table: db.membership, data: null },
+      viewpoint: {  table: db.opinionViewpoint, data: null }
+    };
+    if (optionalUser) {
+      tasks.member.parameters = { userId: optionalUser.id };
+      delete tasks.member.data;
+    }
+    chain.load ( tasks, ['opinion','community','history','author','member','viewpoint'], getOnDataLoaded.bind(null, db ,files, callback));
+  }
+
+  function getAddOpinionToQueries (repository, tasks) {
+    var opinion = repository.opinion;
+    if (opinion === null) {
+      return false;
+    }
+    tasks.community.parameters = opinion.communityId;
+    tasks.author.parameters = opinion.authorId;
+    tasks.member.parameters.communityId = opinion.communityId;
+    tasks.member.continueIf = addMemberToViewpointQuery ;
+    tasks.viewpoint.parameters = { opinionId: opinion.id };
+    return true;
+  }
+
+  function addMemberToViewpointQuery (repository, tasks) {
+    var member = repository.member;
+    if (member !== null) {
+      tasks.viewpoint.parameters.memberId = member.id;
+    }
+    return true;
   }
 
   function getOnDataLoaded (db, callback, data) {
     if (data.member || data.community.type !== db.community.model.type.exclusive) {
-      data.opinion.author = data.author;
-      data.opinion.community = data.community;
-      data.opinion.history = data.history;
-      callback(data.opinion.toJSON());
+      callback({
+        opinion: data.opinion.toJSON(),
+        author : data.author.toMinJSON(),
+        community : data.community.toMinJSON(),
+        history : db.opinion.model.toList(data.history,'toMinJSON')
+      });
     } else {
       callback (Errors.noPermissions('get-topic'));
     }
   }
 
-  function list (authUser, topicId, db, callback) {
-    db.topic.get(Encryption.unmask(topicId), chain.onLoad.bind(null, 'topic', listOnTopicLoaded.bind(null, authUser, db, callback), callback, true));
-  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function listOnTopicLoaded (authUser, db, callback, topic) {
-    chain([{name: 'topic', data: topic},
-      { name: 'community', table: db.community, parameters: topic.communityId, continueIf: chain.onlyIfExists},
-      { name: 'member', table: db.membership, parameters: { userId: authUser.id, communityId: topic.communityId } }
-    ], listOnMemberLoaded.bind(null, db, callback), callback);
-  }
-
-  function listOnMemberLoaded (db, callback, data) {
-    if (data.member  || data.community.type !== db.community.model.type.exclusive) {
-      var query = { topicId: data.topic.id};
-      if (data.member) {
-        query.or = [ { status: [db.opinion.model.status.published, db.opinion.model.status.history]} ,
-          { status: db.opinion.model.status.draft, authorId: data.member.id }];
-      } else {
-        query.status = [db.opinion.model.status.published, db.opinion.model.status.history];
-      }
-      db.opinion.find( query, { order: 'created' }, chain.onLoad.bind(null, 'opinions',listOnOpinionsLoaded.bind(null, data, db, callback), callback, true));
-    } else {
-      callback (Errors.noPermissions('list-comments'));
+  function list (optionalUser, topicId, db, callback) {
+    var unmaskedTopicId = Encryption.unmask(topicId);
+    var status= db.opinion.model.status;
+    if (isNaN(unmaskedTopicId)) {
+      callback(Errors.badInput('topicId',topicId));
+      return;
     }
+
+    var tasks = {topic: { table: db.topic, parameters: unmaskedTopicId, continueIf: listOnTopicLoaded },
+      community: { table: db.community, continueIf: chain.onlyIfExists },
+      member: { table: db.membership  },
+      opinions: { table: db.opinion, parameters: { topicId: unmaskedTopicId, status: [status.published, status.history] }, multiple: { order: 'modified' }, continueIf: listOnOpinionsLoaded},
+      authors: { table: db.membership },
+      viewpoints: { table: db.opinionViewpoints, multiple: {} }
+    };
+
+    if (optionalUser !== undefined)  {
+      tasks.member.table = db.membership;
+      tasks.member.parameters = { userId: optionalUser.id };
+      tasks.member.continueIf = listOnMemberLoaded.bind(null, status);
+      tasks.viewpoints.parameters = { userId: optionalUser.id };
+    } else {
+      tasks.member.data = null;
+      tasks.viewpoints.data = [];
+    }
+    chain.load (tasks,[ 'topic','community','member','opinions','viewpoints'], listOnDataLoaded.bind(null, status, db, callback), callback);
   }
-  function listOnOpinionsLoaded (data, db, callback, opinions) {
+
+  function listOnTopicLoaded (repository, tasks) {
+    var topic = repository.topic;
+    if (topic === null ) {
+      return false;
+    }
+    tasks.community.parameters = topic.communityId;
+    tasks.member.parameters.communityId = topic.communityId;
+
+    return true;
+  }
+
+
+  function listOnMemberLoaded (status, repository, tasks) {
+    var member = repository.member;
+    if (member !== null) {
+      tasks.opinions.parameters.or =[ tasks.opinions.parameters.status, { status: status.draft, authorId: member.id }];
+      delete tasks.opinions.parameters.status;
+      tasks.viewpoints.parameters.memberId = member.id;
+    }
+
+    return true;
+  }
+
+  function listOnOpinionsLoaded (repository, tasks) {
+    var opinions = repository.opinions;
     var count = opinions.length, authorIdMap = {};
     if (count > 0) {
-      data.opinions = opinions;
       while (count--) {
         authorIdMap[opinions[count].authorId] = true;
       }
-      db.membership.find({id: Object.keys(authorIdMap)}, chain.onLoad.bind(null, 'authors',listOnAuthorsLoaded.bind(null, data, db, callback), callback, false));
+      tasks.authors.parameters = { id : Object.keys(authorIdMap) };
+    }
+
+    return true;
+  }
+
+  function listOnDataLoaded (status, db, callback, data) {
+    var output = {
+      authors: db.member.model.toMap(data.authors,'id','toMinJSON'),
+      communities: db.community.model.toMap(data.authors,'id','toMinJSON'),
+      viewpoints: db.member.model.toMap(data.authors,'opinionId','toMinJSON')
+    };
+    var drafts = [];
+    var historyMap = {};
+    var published = [];
+    var opinions = db.opinion.model.toList(data.opinions);
+    var count = opinions.length;
+    while (count--) {
+      var opinion = opinions[count];
+      switch (opinion.status) {
+        case status.published:
+          published[published.length] = opinion;
+          break;
+        case status.history:
+          if (historyMap[opinion.id] === undefined) {
+            historyMap[opinion.id] = [];
+          }
+          historyMap[opinion.id].push(opinion);
+          break;
+        case status.draft:
+          drafts[drafts.length] = opinion;
+          break;
+      }
+    }
+    output.draft = drafts;
+    output.history = historyMap;
+    output.opinions = published;
+
+    callback(output);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function set (authUser, topicId, opinionId, opinion, db, callback) {
+    if (topicId !== undefined) {
+      opinion.topicId = topicId;
+    }
+    if (opinionId !== undefined) {
+      opinion.id = opinionId;
+    }
+
+    if (opinion.id !== undefined) {
+      update (authUser, opinion, db, callback);
+    } else if (opinion.topicId !== undefined) {
+      add (authUser, opinion, db, callback);
     } else {
-      callback ([]);
+      callback (Errors.missingInput('membership.topicId'));
     }
   }
-  function listOnAuthorsLoaded (data, db, callback, authors) {
-    var output = [];
-    var postCount = data.opinions.length;
-    if (postCount > 0) {
-      var historyPerAuthor = {};
-      var historyStatus = db.opinion.model.status.history;
-      var authorsMap = db.membership.model.toMap(authors);
-      var authorsIds = Object.keys(authorsMap);
-      while (authorsIds.length) {
-        historyPerAuthor[Encryption.unmask(authorsIds.pop())] = [];
-      }
-      while (postCount--) {
-        var opinion = data.opinions[postCount];
-        if (opinion.status === historyStatus) {
-          historyPerAuthor[opinion.authorId].push(opinion);
-        } else {
-          opinion.authorJSON = authorsMap[Encryption.mask(opinion.authorId)];
-          opinion.history = historyPerAuthor[opinion.authorId];
-          output.push(opinion);
-        }
 
-      }
-    }
-    callback(db.opinion.model.toList(output));
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function add (authUser, opinion, db, callback) {
+    chain.load ({
+      topic : { table:db.topic, parameters: Encryption.unmask(opinion.topicId), continueIf: addUpdateQueries },
+      community : { table:db.community, continueIf: chain.onlyIfExists },
+      author : { table:db.membership, parameters: { userId: authUser.id }, continueIf: authorExistsAndCanOpinion },
+      existing: { table: db.opinion, parameters: {}, continueIf: addCreateOpinion.bind(opinion, db) },
+      history: { table: db.opinion, data: [] }
+    }, ['topic', 'community','author','existing', 'history'], addOnDataLoaded.bind(db, callback));
   }
 
-  module.exports.add = add;
-  module.exports.update = update;
-  module.exports.get = get;  // get opinion content
-  module.exports.list = list;  // get opinion list of a topic
+  function addUpdateQueries (repository, tasks) {
+    var topic = repository.topic;
+    if (topic === null) {
+      return false;
+    }
+    tasks.community.parameters = topic.communityId;
+    tasks.author.parameters.communityId = topic.communityId;
+    tasks.existing.parameters.topicId = topic.id;
+    return true;
+  }
+
+  function authorExistsAndCanOpinion (repository, tasks) {
+    var author = repository.author;
+    if (author) {
+      tasks.existing.parameters.authosId = author.id;
+    }
+    return (author ? (author.can ('opinionate') ? true : Errors.noPermissions('opinionate')) : Errors.notFound('member'));
+  }
+
+  function addCreateOpinion (jOpinion, db, data) {
+    var callback = chain.DelayedReturn();
+    var sanitizeContent = validators.sanitizeString(jOpinion.content);
+    if (!data.community.isOpinionLengthOk(sanitizeContent)) {
+      return Errors.tooLong('opinion');
+    }
+
+    var opinion = db.opinion.model.getNew(data.author.id, data.community.id, data.topic.id, sanitizeContent, jOpinion.status ? jOpinion.status :  db.opinion.model.status.published);
+    db.opinion.create(opinion, addOnDataSaved.bind(null, data, db, callback.input, data));
+
+    return callback.output;
+  }
+
+  function addOnDataSaved (data, db, callback, err, opinion) {
+    var topic = data.topic;
+    var existing = data.existing;
+    data.opinion = opinion;
+
+    if (err) {
+     callback(new Error(err));
+
+    } else if (existing) {
+      existing.status = db.opinion.model.status.history;
+      existing.modified = new Date();
+      existing.save(callback.bind(null,true));
+
+    } else if (topic && !err) {
+      topic.opinions++;
+      topic.modified = new Date();
+      topic.save(callback.bind(null,true));
+    }
+  }
+
+  function addOnDataLoaded (db, callback, data) {
+    callback({
+      opinion: data.opinion.ToJSON(),
+      author : data.author.toMinJSON(),
+      community : data.community.toMinJSON(),
+      history: db.opinion.model.toList(data.history)
+    });
+  }
+
+  //-----------------------------------------------------------------------------------------------------------//
+
+  function update (authUser, opinion, db, callback) {
+    chain.load ({
+      existing: { table:db.opinion, parameters: Encryption.unmask(opinion.id), continueIf: setUpdateQueries.bind(null, db) },
+      community: { table:db.community, continueIf: chain.onlyIfExists },
+      author: { table:db.membership, parameters: { userId: authUser.id}, continueIf: authorExistsAndCanOpinion },
+      history: { table: db.opinion, data: [] }
+    }, ['existing', 'community','author'], addOnDataLoaded.bind(opinion, db, callback), callback);
+  }
+
+  function setUpdateQueries (db, repository, tasks) {
+    var opinion = repository.opinion;
+    if (opinion) {
+      tasks.community.parameters = opinion.communityId;
+      tasks.author.parameters.id = opinion.authorId;
+      tasks.history.parameters = { communityId: opinion.communityId, authorId: opinion.authorId, status: db.opinion.model.status.history };
+      delete tasks.history.data;
+    }
+
+    return (opinion !== null);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  var controllers = {};
+  function setControllers (controllerMap) {
+    controllers = controllerMap;
+  }
+  module.exports.setControllers = setControllers;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   module.exports.archive = archive;
+  module.exports.get = get;
+  module.exports.list = list;
+  module.exports.set = set;
 })();

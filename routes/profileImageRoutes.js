@@ -1,21 +1,36 @@
 (function memberRoutesClosure() {
-    'use strict';
+  'use strict';
 
-    //{ method: 'get', url: new RegExp('user\/password\/' + validators.emailPatternString + '\/?'), handler: userController.generateResetPasswordToken, parameters: { username: {alias: '0' }} },
-   module.exports = function (controller, validators) {
-       if (validators === undefined) {
-           validators = require('../helpers/validators.js');
-       }
+  module.exports = function (controllers) {
+    return {
+      '/membership/image': {
+        get: {
+          description: 'Return all memberships of current user that have an image',
+          response: {'200': {memberships: 'array[memberships]'}},
+          handler: controllers.profileImage.list
+        }
+      },
+      '/membership/[membershipId]/image': {
+        get: {
+          description: 'Get the member profile image',
+          parameters: {membershipId: 'id'},
+          response: {'200': { image: 'binary' }},
+          handler: controllers.profileImage.get
+        },
+        put: {
+          description: 'Set the member profile image',
+          parameters: {image: 'base64', membershipId: 'id'},
+          response: {'200': {}},
+          handler: controllers.profileImage.set
+        },
+        delete: {
+          description: 'Set the member profile image',
+          parameters: {image: 'base64', membershipId: 'id'},
+          response: {'200': {}},
+          handler: controllers.profileImage.archive
+        }
+      }
+    };
 
-       if (controller === undefined) {
-           controller = require('../controllers/profileImageController');
-       }
-
-       return [
-           { method: 'get', url: new RegExp('^\\/user\\/image\\/?$'), handler: controller.getAllProfileImages, parameters: { } },
-           { method: 'get', url: new RegExp('^\\/membership\\/' + validators.maskedIdPattern +'\\/image\\/?$'), handler: controller.getProfileImage, parameters: { membershipId: {alias: '0' }} },
-           { method: 'post', url: new RegExp('^\\/membership\\/' + validators.maskedIdPattern +'\\/image\\/?$'), handler: controller.setProfileImage, parameters:  { membershipId: {alias: '0' }} }
-       ];
-
-   };
+  };
 })();

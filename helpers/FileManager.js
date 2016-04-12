@@ -23,9 +23,17 @@
   }
 
   function set (fileName, data, callback) {
-    var base64Data = data.replace(/^data:image\/png;base64,/, "");
+    var isBase64 = (data.indexOf('data:image/png;base64') === 0 );
+    if (data) {
+      var target = ''.concat(folder,'/',fileName);
+      var base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-    fs.writeFile(''.concat(folder,'/',fileName), base64Data, 'base64', callback);
+      fs.writeFile (target, base64Data, isBase64 ? 'base64' : 'utf8', callback.bind(null,{ status: 'file-stored'}));
+    } else if (exists (fileName)) {
+      fs.unlink (fileName, callback.bind(null,{ status: 'file-removed'}));
+    }
+
+
   }
 
   function get (fileName, callback) {

@@ -4,9 +4,21 @@
   var Encryption = require ( '../helpers/Encryption.js' );
 
   var status =  { invited: "invited", requested: "requested",declined: "declined", "rejected": "rejected", active: "active", unfit: "unfit", quit: "quit", archived: "archived"};
+  var defaultPermissions = { 'read':true,'endorse':true,'follow':true, 'suggest': true, 'opinionate': true, 'comment':true, 'approve-members': true, 'invite-members': true };
+  var editableFields = ['name','description','isModerator', 'isPublic','isPublic','isRepresentative','endorseJoin','endorseGender','endorseMinAge','endorseMaxAge'];
 
-  function toJSON (membership) {
-    return {
+  function toJSON (membership, isMinimal) {
+    return isMinimal ? {
+      id: Encryption.mask(membership.id),
+      status: membership.status,
+      name: membership.name,
+      email: membership.email,
+      description: membership.description,
+      score: membership.score,
+      isModerator: membership.isModerator,
+      isPublic: membership.isPublic,
+      isRepresentative: membership.isRepresentative
+    } : {
       id: Encryption.mask(membership.id),
       status: membership.status,
       created: membership.created,
@@ -26,41 +38,12 @@
       endorseGender: membership.endorseGender,
       endorseMinAge: membership.endorseMinAge,
       endorseMaxAge: membership.endorseMaxAge,
-      community: membership.community ? membership.community.toJSON() : undefined,
       communityId: Encryption.mask(membership.communityId)
     };
   }
 
-  function toMinJSON (membership) {
-    return {
-      id: Encryption.mask(membership.id),
-      status: membership.status,
-      name: membership.name,
-      email: membership.email,
-      description: membership.description,
-      score: membership.score,
-      isModerator: membership.isModerator,
-      isPublic: membership.isPublic,
-      isRepresentative: membership.isRepresentative
-    }
-  }
-  function toList (list) {
-    var members = [];
-    var i, listLength = list.length;
-    for (i=0;i<listLength;i++) {
-      members[members.length] = toMinJSON (list[i]);
-    }
-    return members;
-  }
-
-  function toMap (list) {
-    var count = list.length;
-    var map = {};
-    while (count--) {
-      var member = list[count];
-      map[member.id] = toMinJSON (member);
-    }
-    return  map;
+  function getEditables () {
+    return editableFields;
   }
 
   module.exports = {
@@ -98,31 +81,29 @@
         return (this.permissions && this.permissions[action] !== undefined);
       },
 
-      toJSON:function thisToJSON() { return toJSON(this); }
+      toJSON:function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
+      getEditables: getEditables
     },
     validations: {},
-    manualFields: ['status','name','description','isModerator', 'isPublic','isPublic','isRepresentative','endorseJoin','endorseGender','endorseMinAge','endorseMaxAge'],
     toJSON: toJSON,
-    toList: toList,
-    toMap: toMap,
-    getNew: function getNew (membershipId, userId, communityId, name, email, communityType, iStatus) {
+    getNew: function getNew ( membership ) {
       var now = new Date ();
       return {
-        id : membershipId,
-        status: status[iStatus] ? status[iStatus] : status.active,
+        id : membership.id,
+        status: status[membership.status] ? status[membership.status] : status.active,
         created: now,
         modified: now,
-        userId : userId,
-        communityId: communityId,
-        name: name,
-        email: email,
+        userId : membership.userId,
+        communityId: membership.communityId,
+        name: membership.name,
+        email: membership.email,
         score: 0,
-        permissions: { 'read':true,'endorse':true,'follow':true, 'suggest': true, 'opinionate': true, 'comment':true, 'approve-members': true, 'invite-members': true },
+        permissions: defaultPermissions,
         penalties: {},
         isModerator: false,
         isPublic: false,
         isRepresentative: false,
-        communityType: communityType
+        communityType: membership.communityType
       };
     }
   };
