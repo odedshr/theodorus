@@ -1,44 +1,61 @@
-(function communityRouteTestEnclosure() {
+(function topicyRouteTestEnclosure() {
   'use strict';
 
   var assert = require('assert');
-  var fs = require('fs');
-  var md5 = require('md5');
-  var request = require('supertest');
-  var should = require('should');
-  var winston = require('winston');
 
-  var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
+  var testUtils = require('../test/testUtils.js');
 
-  var dbModels = {};
-  var url = config('testsURL');
+  describe('ctopicRouterTest', function topicRouterTest () {
+    var founderToken, memberToken, communityId, founderId, memberId;
+    var testId = (new Date()).getTime();
+    var founderEmail = 'founder-'+testId+'@test.suite.topic';
+    var memberEmail = 'member-'+testId+'@test.suite.topic';
 
-  describe('communityRouterTest', function communityRouterTest () {
-    var email = 'router@test.suite.topic';
-    var tokenFile = '../user-files/debug_'+email+'.json';
-    var token ='';
+    var communityName = 'membership-public-'+testId;
+    var founderName = 'topic-public-founder-'+testId;
+    var memberName = 'topic-public-member-'+testId;
 
-    function setToken (done, err, response) {
-      if (err) {
-        throw err;
-      } else {
-        token =  JSON.parse (response.text).token;
-      }
-      done();
-    }
-    function connect (done) {
-      var connectToken = require(tokenFile).text;
-      request(url).get('/user/connect/'+connectToken).end(setToken.bind(null, done));
-    }
-
-    before( function (done) {
-      if (!fs.existsSync(tokenFile)) {
-        request(url).post('/user/connect').send({email: email}).end(connect.bind(null, done));
-      } else {
-        connect(done);
-      }
+    before( function beforeTests (done) {
+      testUtils.removeTokenFileOf(founderEmail);
+      testUtils.removeTokenFileOf(memberEmail);
+      createUserFounder(createUserMember.bind(null,createCommunity.bind(null, joinCommunity.bind(null, done))));
     });
+
+    after ( function afterTests () {
+      testUtils.removeTokenFileOf(founderEmail);
+      testUtils.removeTokenFileOf(memberEmail);
+    });
+
+    function createUserFounder (callback) {
+      testUtils.withTokenOf ( founderEmail, function (gotToken1) {
+        founderToken = gotToken1;
+        callback();
+      });
+    }
+    function createUserMember (callback) {
+      testUtils.withTokenOf ( memberEmail, function (gotToken2) {
+        memberToken = gotToken2;
+        callback();
+      });
+    }
+    function createCommunity (callback) {
+      testUtils.addCommunity ( founderToken, {
+        community: { name: communityName, topicLength: 10 },
+        founder: { name: founderName }
+      }, function (data) {
+        communityId = data.community.id;
+        founderId = data.founder.id;
+        callback();
+      });
+    }
+    function joinCommunity (callback) {
+      testUtils.addMembership ( memberToken, communityId, {
+        membership: { name: memberName }
+      }, function (data) {
+        memberId = data.membership.id;
+        callback();
+      });
+    }
 
     describe('PUT /community/[communityId]/topics', function putCommunityTopic () {
       it ('fail to add topic because content is too long', function () {});

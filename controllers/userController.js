@@ -66,41 +66,34 @@
         return;
       }
 
-      db.user.one({email:decryptedToken.email}, sergeant.onLoad.bind({}, 'user', onAuthenticateUserLoaded.bind(null, decryptedToken, db, callback), callback, false) );
+      sergeant({
+        user : { table: db.user,
+                  load: {email:decryptedToken.email},
+                  beforeSave: prepareAuthenticatedUser.bind(null, decryptedToken, db),
+                  save: true }}, 'user', onAuthenticateUserAdded.bind(null, decryptedToken, callback));
 
     },callback);
   }
 
-  function onAuthenticateUserLoaded (token, db, callback, user) {
-    tryCatch(function tryCatchSigninOnLoaded() {
-    if (user !== null) {
-      token.user = {
-        id : user.id,
-        email: user.email,
-        lastLogin: user.lastLogin
-      };
+  function prepareAuthenticatedUser (token, db, data) {
+    var user = data.user;
+    if (user !== null && user !== undefined) {
+      token.user = { lastLogin: user.lastLogin };
       user.lastLogin = new Date();
-      user.save();
-      callback({ token: Encryption.encode(JSON.stringify(token)) });
     } else {
-      var oUser = db.user.model.getNew({ email : token.email });
-      db.user.create(oUser, onAuthenticateUserAdded.bind(null, token, callback));
+      data.user = db.user.model.getNew({ email : token.email });
     }
-
-    },callback);
+    return true;
   }
 
-  function onAuthenticateUserAdded (authToken, callback, err, user) {
-    if (err) {
-      callback (new Error(err));
-    } else {
-      if (authToken.user === undefined) {
-        authToken.user = {};
-      }
-      authToken.user.id = user.id;
-      authToken.user.email = user.email;
-      callback({ token: Encryption.encode(JSON.stringify(authToken)) });
+  function onAuthenticateUserAdded (authToken, callback, data) {
+    var user = data.user;
+    if (authToken.user === undefined) {
+      authToken.user = {};
     }
+    authToken.user.id = user.id;
+    authToken.user.email = user.email;
+    callback({ token: Encryption.encode(JSON.stringify(authToken)) });
   }
   exports.authenticate = authenticate;
 
@@ -116,16 +109,12 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function set (authUser, user, db, callback) {
-    sergeant({ loadUser: { table: db.user, load: authUser.id, after:sergeant.stopIfNotFound },
-               user: { before: setUser.bind(null, user), save:true, json:true }
-    }, 'loadUser,user',callback);
+    sergeant({ user: { table: db.user, load: authUser.id,  beforeSave: sergeant.and(sergeant.stopIfNotFound, setUser.bind(null, user)), save:true, finally: sergeant.json }
+    }, 'user',callback);
   }
 
-  function setUser (jUser, data, tasks, currentTaskName) {
-    var user = data.loadUser;
-    delete data.loadUser;
-    tasks[currentTaskName].save = (sergeant.update(jUser, user) > 0);
-    tasks[currentTaskName].data = user;
+  function setUser (jUser, data, tasks) {
+    tasks.user.save = (sergeant.update(jUser, data.user) > 0);
     return true;
   }
 

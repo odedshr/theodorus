@@ -2,56 +2,39 @@
   'use strict';
 
   var assert = require('assert');
-  var fs = require('fs');
-  var md5 = require('md5');
-  var request = require('supertest');
   var should = require('should');
-  var winston = require('winston');
 
-  var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
-
-  var url = config('testsURL');
-
+  var testUtils = require('../test/testUtils.js');
+  
   describe('communityRouterTest', function communityRouterTest () {
-    var email = 'router@test.suite.community';
-    var tokenFile = '../user-files/debug_'+email+'.json';
     var token ='';
 
+    var email = 'router@test.suite.community';
     var communityName = 'communityName'+(new Date()).getTime();
     var communityId;
 
-    function setToken (done, err, response) {
-      if (err) {
-        throw err;
-      } else {
-        token =  JSON.parse (response.text).token;
-      }
-      done();
-    }
-    function connect (done) {
-      var connectToken = require(tokenFile).text;
-      request(url).get('/user/connect/'+connectToken).end(setToken.bind(null, done));
-    }
+    before( function beforeAllTests (done) {
+      testUtils.removeTokenFileOf(email);
+      testUtils.withTokenOf(email, function (gotToken) {
+        token = gotToken;
+        done();
+      });
+    });
 
-    before( function (done) {
-      if (!fs.existsSync(tokenFile)) {
-        request(url).post('/user/connect').send({email: email}).end(connect.bind(null, done));
-      } else {
-        connect(done);
-      }
+    after(function afterAllTests() {
+      testUtils.removeTokenFileOf(email);
     });
 
     describe ('PUT /community', function getCommunity () {
       it ('should fail to add community with no name', function addCommunityNoNameFail (done) {
         function failedToGetName (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           var errorMessage = JSON.parse(response.text);
-          assert.ok(errorMessage.message === 'missing-input', 'parameter is missing');
-          assert.ok(errorMessage.details.key === 'community.name', 'missing parameter is community name');
+          assert.equal (errorMessage.message, 'missing-input', 'parameter is missing');
+          assert.equal (errorMessage.details.key, 'community.name', 'missing parameter is community name');
           done();
         }
-        request(url)
+        testUtils.REST()
           .put('/community')
           .send({community: {}, founder: { name : 'founderName'}})
           .set('authorization', token)
@@ -61,13 +44,13 @@
 
       it ('should fail to add community with no founder', function addCommunityNoFounderFail (done) {
         function failedToGetName (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           var errorMessage = JSON.parse(response.text);
-          assert.ok(errorMessage.message === 'missing-input', 'parameter is missing');
-          assert.ok(errorMessage.details.key === 'founder.name', 'missing parameter is community name');
+          assert.equal (errorMessage.message, 'missing-input', 'parameter is missing');
+          assert.equal (errorMessage.details.key, 'founder.name', 'missing parameter is community name');
           done();
         }
-        request(url)
+        testUtils.REST()
           .put('/community')
           .send({community: { name: 'communityName'} })
           .set('authorization', token)
@@ -77,16 +60,16 @@
 
       it ('should successfully add a community', function addCommunitySuccess (done) {
         function communityAdded (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           var data = JSON.parse(response.text);
           communityId = data.community.id;
-          assert.ok(data.community.name === communityName, 'community has the right name');
-          assert.ok(data.community.founderId === data.founder.id, 'community has the right founder id');
-          assert.ok(data.founder.name === 'founderName', 'founder has the right name');
-          assert.ok (communityId !== undefined, 'communityId is undefined');
+          assert.equal (data.community.name, communityName, 'community has the right name');
+          assert.equal (data.community.founderId, data.founder.id, 'community has the right founder id');
+          assert.equal (data.founder.name, 'founderName', 'founder has the right name');
+          assert.notEqual (communityId, undefined, 'communityId is undefined');
           done();
         }
-        request(url)
+        testUtils.REST()
           .put('/community')
           .send({community: { name: communityName}, founder: { name: 'founderName'} })
           .set('authorization', token)
@@ -96,13 +79,13 @@
 
       it ('should fail to add community with existing name', function addCommunityNameExistsFail (done) {
         function communityAlreadyExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           var data = JSON.parse(response.text);
-          assert.ok(data.message === 'already-exists', 'error message of already exists');
-          assert.ok(data.details.value.name === communityName, 'existing community name is as expected');
+          assert.equal (data.message, 'already-exists', 'error message of already exists');
+          assert.equal (data.details.value.name, communityName, 'existing community name is as expected');
           done();
         }
-        request(url)
+        testUtils.REST()
           .put('/community')
           .send({community: { name: communityName}, founder: { name: 'founderName'} })
           .set('authorization', token)
@@ -114,7 +97,7 @@
     describe ('GET /community', function getCommunityList () {
       it ('should successfully get communityList', function getCommunityListSuccess (done) {
         function gotList (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var list = JSON.parse(response.text).communities;
             assert.ok((list.length > 0), 'community list is not empty');
@@ -122,7 +105,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .get('/community')
           .set('authorization', token)
           .expect(200)
@@ -133,17 +116,17 @@
     describe ('POST /community/exists', function getCommunity () {
       it ('should successfully check if existing community exists', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var data = JSON.parse(response.text);
             assert.ok(data.exists, 'community exists');
-            assert.ok(data.type === 'community', 'exists.type is community');
-            assert.ok(data.parameters.name === communityName, 'community name is as sent');
+            assert.equal (data.type, 'community', 'exists.type is community');
+            assert.equal (data.parameters.name, communityName, 'community name is as sent');
           }
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/community/exists')
           .set('authorization', token)
           .send({community: { name : communityName }})
@@ -153,17 +136,17 @@
 
       it ('should successfully check if non-existing community exists', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var data = JSON.parse(response.text);
             assert.ok(!data.exists, 'community does not exists');
-            assert.ok(data.type === 'community', 'exists.type is community');
-            assert.ok(data.parameters.name === communityName+'NA', 'community name is as sent');
+            assert.ok(data.type, 'community', 'exists.type is community');
+            assert.ok(data.parameters.name, communityName+'NA', 'community name is as sent');
           }
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/community/exists')
           .set('authorization', token)
           .send({community: { name : communityName+'NA' }})
@@ -173,16 +156,16 @@
 
       it ('should fail if not community name provided', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var errorMessage = JSON.parse(response.text);
-            assert.ok(errorMessage.message === 'missing-input', 'parameter is missing');
-            assert.ok(errorMessage.details.key === 'community.name', 'missing parameter is community name');
+            assert.equal (errorMessage.message, 'missing-input', 'parameter is missing');
+            assert.equal (errorMessage.details.key, 'community.name', 'missing parameter is community name');
           }
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/community/exists')
           .set('authorization', token)
           .expect(406)
@@ -193,16 +176,16 @@
 
       it ('should fail if not community not found', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var errorMessage = JSON.parse(response.text);
-            assert.ok(errorMessage.message === 'not-found', 'error message is not found');
-            assert.ok(errorMessage.details.key === 'community', 'missing parameter is community');
+            assert.equal (errorMessage.message, 'not-found', 'error message is not found');
+            assert.equal (errorMessage.details.key, 'community', 'missing parameter is community');
           }
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .get('/community/13/')
           .set('authorization', token)
           .expect(404)
@@ -211,18 +194,18 @@
 
       it ('should successfully get community anonymously', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok (error === null, 'no errors requesting token');
+          assert.equal  (error, null, 'no errors requesting token');
           if (response) {
             var data = JSON.parse(response.text);
-            assert.ok (data.community.name === communityName, 'community name is as expected');
-            assert.ok (data.founder.name === 'founderName', 'founder name is as expected');
-            assert.ok (data.member === undefined, 'no current member');
+            assert.equal  (data.community.name, communityName, 'community name is as expected');
+            assert.equal  (data.founder.name, 'founderName', 'founder name is as expected');
+            assert.equal  (data.member, undefined, 'no current member');
           }
           done();
         }
 
         assert.ok (communityId !== undefined, 'communityId is undefined');
-        request(url)
+        testUtils.REST()
           .get('/community/' + communityId+'/')
           .expect(200)
           .end(communityExists);
@@ -230,15 +213,15 @@
 
       it ('should successfully get community as member', function getCommunityListSuccess (done) {
         function communityExists (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
+          assert.equal (error, null, 'no errors requesting token');
           if (response) {
             var data = JSON.parse(response.text);
-            assert.ok(data.founder.id === data.membership.id, 'current member is founder');
+            assert.equal (data.founder.id, data.membership.id, 'current member is founder');
           }
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .get('/community/' + communityId+'/')
           .set('authorization', token)
           .expect(200)
@@ -257,7 +240,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/community/' + communityId+'/')
           .set('authorization', token)
           .send({ community: { description: 'my description'}})
@@ -279,7 +262,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .delete('/community/' + communityId+'/')
           .set('authorization', token)
           .expect(200)

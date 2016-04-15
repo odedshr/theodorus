@@ -33,7 +33,15 @@
           handler: controllers.membership.list
         }
       },
-      '/membership/[membershipId]/': {
+      '/membership/exists': {
+        post: {
+          description: 'Return true if membership exists',
+          parameters: { membership: 'membership' },
+          response: {'200': {type: 'string', exists: 'boolean', parameters: 'object'}},
+          handler: controllers.membership.exists
+        }
+      },
+      '/membership/[membershipId]': {
         get: {
           description: 'Return membership data',
           parameters: { membershipId: 'id' },
@@ -51,14 +59,6 @@
           parameters: { membershipId: 'id' },
           response: {'200': { membership: 'membership'}},
           handler: controllers.membership.archive
-        }
-      },
-      '/membership/exists': {
-        post: {
-          description: 'Return true if membership exists',
-          parameters: { membership: 'membership' },
-          response: {'200': {type: 'string', exists: 'boolean', parameters: 'object'}},
-          handler: controllers.membership.exists
         }
       }
     };

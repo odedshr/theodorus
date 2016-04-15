@@ -43,7 +43,7 @@
   }
 
   module.exports = {
-    name: 'relationship',
+    name: 'membershipViewpoint',
     status: status,
     schema: {
       status: Object.keys(status),

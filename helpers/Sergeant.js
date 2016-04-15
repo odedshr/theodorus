@@ -2,35 +2,14 @@
   'use strict';
   var Errors = require('../helpers/Errors.js');
 
-  function LoadError (key, value, message, stack) {
-    this.key = key;
-    this.value = value;
-    this.message = message;
-    this.stack = stack;
-  }
-
-  LoadError.prototype = Object.create(Error.prototype);
-  LoadError.prototype.constructor = LoadError;
-
-  function SaveError (key, value, message, stack) {
-    this.key = key;
-    this.value = value;
-    this.message = message;
-    this.stack = stack;
-  }
-
-  SaveError.prototype = Object.create(Error.prototype);
-  SaveError.prototype.constructor = SaveError;
-
-  //-----------------------------------------------------------------------------------------------------------//
-
   // Sergeant({ tasks }, [ taskOrder, callback ]);
-  // tasks { [taskName] : { table: db[tableName], load:{parameters}, data:{object}, save:{boolean} post:method }
-  // pre running after anything else and must return true, false, or error
-  // load override data,
-  // save=true + load = error
+  // tasks { [taskName] : { table: db[tableName], before:function load:{parameters}, data:{object}, beforeSave:function, save:{boolean} after:function, finally: enum}
+  // order of operation: before, load, beforeSave, save, after, finally
+  // finally runs after all tasks completed
+  // save will use task.data and if not available, will check for repository.data, else will fail
   // save's output is the saved value
-  // post running after anything else and must return true, false, or error
+  // before/beforeSaving,after return - true=continue, false/undefined/null=skip this task, error=stop sergeant and return error
+  // finally = [delete,json ,jsonMap:#indexBy#]
 
   function main (tasks, taskOrder, callback) {
     if (typeof taskOrder === 'string') {
@@ -40,12 +19,11 @@
     while (count--) {
       var task = tasks[taskOrder[count]];
       if ( task === undefined) {
-        callback (new LoadError('task',taskOrder[count]));
-      } else if ((task.save && task.load) || ! (task.save || task.load || (task.data !== undefined) || task.json)) {
-        callback (Errors.badInput(taskOrder[count], task));
+        callback (Errors.badInput('task',taskOrder[count]));
       }
     }
-    next (tasks, taskOrder.reverse(), {}, callback, callback);
+    taskOrder = taskOrder.reverse();
+    next (tasks, taskOrder, {}, eventually.bind (null, tasks, taskOrder.slice(0), callback), callback);
   }
 
   function next (tasks, taskOrder, output, onSuccess, onError) {
@@ -58,95 +36,131 @@
     if (task === undefined) {
       onError(Errors.systemError('task-not-found',[taskName]));
     }
-    var boundedOnTaskComplete = onTaskCompleted.bind(null, output, tasks, taskName, next.bind(null, tasks, taskOrder, output, onSuccess, onError), onError);
+    var boundedNext = next.bind (null, tasks, taskOrder, output, onSuccess, onError );
+    var boundedAfter = prepareData.bind (null, task.after, output, tasks, taskName, onError, boundedNext, boundedNext );
+    var boundedSave = doSave.bind (null, output, tasks, taskName, onError, boundedAfter );
+    var boundedBeforeSave = prepareData.bind (null, task.beforeSave, output, tasks, taskName, onError, boundedNext, boundedSave );
+    var boundedLoad = doLoad.bind (null, output, tasks, taskName, onError, boundedNext, boundedBeforeSave );
 
-    var beforeTaskResult = task.before ? task.before(output, tasks, taskName) : true;
-    if (beforeTaskResult instanceof Error) {
-      onError(beforeTaskResult);
-    }
-    if (beforeTaskResult === undefined) {
-      boundedOnTaskComplete(undefined, task.data);
-    }
-    if (typeof beforeTaskResult === 'object') {
-      beforeTaskResult(performMainOperation.bind(null, task, boundedOnTaskComplete),onError);
-    } else {
-      performMainOperation(task, boundedOnTaskComplete);
-    }
+    prepareData( task.before, output, tasks, taskName, onError, boundedNext, boundedLoad);
   }
 
-   function performMainOperation (task, boundedOnTaskComplete) {
-    if ( task.save === true) {
-      if (task.data.id && task.data.save) {
-        task.data.save(boundedOnTaskComplete);
-      } else {
-        task.table.create(task.data, boundedOnTaskComplete);
-      }
-    } else if ( task.load === undefined ) {
-      boundedOnTaskComplete(undefined, task.data);
+  function prepareData (method, data, tasks, taskName, stop, skip, next) {
+    var result = method ? method(data, tasks, taskName) : true;
+    if (result instanceof Error) {
+      stop(result);
+      return;
+    }
+    if (result === undefined) {
+      skip();
+    } else if (typeof result === 'object') {
+      result(next,stop);
+    } else {
+      next();
+    }
+  }
+  function doLoad (data, tasks, taskName, stop, skip, next) {
+    var task = tasks[taskName];
+    var boundedOnLoaded = onLoaded.bind (null, data,tasks, taskName, stop, next);
+    if ( task.load === undefined ) {
+      next ();
     } else if (isNaN(task.load)) {
       if (task.multiple) {
-        task.table.find (task.load, task.multiple, boundedOnTaskComplete);
+        task.table.find (task.load, task.multiple, boundedOnLoaded);
       } else {
-        task.table.one (task.load, boundedOnTaskComplete);
+        task.table.one (task.load, boundedOnLoaded);
       }
     } else {
-      task.table.get(task.load, boundedOnTaskComplete);
+      task.table.get(task.load, boundedOnLoaded);
     }
   }
 
-  function onTaskCompleted (repository, tasks, currentTaskName, onSuccess, onError, error, item) {
-    var task = tasks[currentTaskName];
-    var originalValue = repository[currentTaskName];
+  function onLoaded (data,tasks, taskName, onError, onSuccess, error, item) {
     if (error && error.literalCode !== 'NOT_FOUND') {
-      onError(task.save ? new SaveError(currentTaskName, JSON.stringify(task.data), error) : new LoadError(currentTaskName, JSON.stringify(task.load)));
-      return;
-    }
-
-    repository[currentTaskName] = item;
-    var currentTask = tasks[currentTaskName];
-    if (task.json) {
-      jsonRepository(repository, (Array.isArray(task.json) && task.json.length===0) ? [currentTaskName] : task.json);
-    }
-    var afterResult = currentTask.after ? currentTask.after(repository, tasks, currentTaskName) : true;
-    if ( afterResult instanceof Error ) {
-      onError (afterResult);
-      return;
-    } else if (afterResult === undefined) {
-      repository[currentTaskName] = originalValue;
-    }
-    if ( typeof afterResult === 'object' ) {
-      afterResult(onSuccess, onError);
+      onError(Errors.systemError(error,['load-error', JSON.stringify(tasks[taskName])]));
     } else {
-      onSuccess(item);
+      data[taskName] = item;
+      onSuccess();
     }
   }
 
-  function jsonRepository (data, items) {
-    var output = {};
-    var keys = Object.keys(data);
-    // if items is undefined or true, json the entire repository
-    if (items === true || items === undefined) {
-      items = Object.keys(data);
+  function doSave (repository, tasks, taskName, stop, next) {
+    var task = tasks[taskName];
+    if ( task.save === true) {
+      var item = task.data;
+      if ( item === undefined || item === null ) {
+        item = repository[taskName];
+      }
+      if ( item === undefined || item === null ) {
+        stop(Errors.missingInput(JSON.stringify(task)));
+        return;
+      }
+      var boundedOnSaved = onSaved.bind (null, repository, tasks, taskName, stop,next);
+      if (item.id && item.save) {
+        item.save (boundedOnSaved);
+      } else {
+        task.table.create (item, boundedOnSaved);
+      }
+    } else {
+      next();
     }
-    while (keys.length) {
-      var key = keys.pop();
-      if (items.indexOf(key) > -1 ) {
-        var source = data[key];
-        if (Array.isArray(source)) {
-          var count  = source.length;
-          output[key] = [];
-          while (count--) {
-            output[key][count] = jsonItem(source[count], true);
-          }
-        } else {
-          output[key] = jsonItem(source, false);
+  }
+
+  function onSaved (data, tasks, taskName, onError, onSuccess, error, item) {
+    if (error) {
+      onError(Errors.systemError (error, ['save-error', JSON.stringify(tasks[taskName])]));
+    } else {
+      data[taskName] = item;
+      onSuccess();
+    }
+  }
+
+  function eventually (tasks, tasksOrder, callback, data) {
+    var runCallback = true;
+    while (tasksOrder.length) {
+      var taskName = tasksOrder.pop();
+      var task = tasks[taskName];
+      if (task.finally) {
+        var result = task.finally(data, tasks, taskName);
+        if (result instanceof Error) {
+          data[taskName] = result;
+        } else if (typeof result === 'object' ) {
+          result(callback.bind(null, data));
+          callback = result;
+          runCallback = false;
         }
       }
     }
-    return output;
+    if (runCallback) {
+      callback (data);
+    }
   }
 
-  function jsonItem (item, isMinimal) {
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function remove (data, tasks, taskName) {
+    delete data[taskName];
+    return true;
+  }
+
+  function json (data, tasks, taskName, isMinimal) {
+    var item = data[taskName];
+    if (Array.isArray(item)) {
+      var count  = item.length;
+      var list = [];
+      while (count--) {
+        list[count] = toJSON(item[count], (isMinimal !== undefined) ? isMinimal : true);
+      }
+      data[taskName] = list;
+    } else {
+      data[taskName] = toJSON(item, (isMinimal !== undefined) ? isMinimal : false);
+    }
+    return true;
+  }
+  function minimalJson (data, tasks, taskName) {
+    return json (data, tasks, taskName, true);
+  }
+  function toJSON (item, isMinimal) {
     if (item === undefined || item === false || item === null) {
       return item;
     } else if (item.toJSON) {
@@ -155,6 +169,25 @@
       return JSON.stringify(item);
     }
   }
+
+  function jsonMap (indexBy, data, tasks, taskName) {
+    var item = data[taskName];
+    var map = {};
+    if (Array.isArray(item)) {
+      if (indexBy === undefined) {
+        indexBy = 'id';
+      }
+      var count = item.length;
+      while (count--) {
+        map[item[indexBy]] = toJSON(item[count], true);
+      }
+    } else {
+      map[item[indexBy]] = toJSON(item, true);
+    }
+    data[taskName] = map;
+    return  true;
+  }
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /* How to use DelayedReturn?
@@ -201,6 +234,20 @@
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function internalAnd (conditions, data, tasks, currentTask) {
+    var count = conditions.length;
+    for (var i = 0; i < count ; i ++ ) {
+      var result = conditions[i](data, tasks, currentTask);
+      if (result !== true) {
+        return result;
+      }
+    }
+    return true;
+  }
+  function and (/* methods */) {
+    return internalAnd.bind(null, Array.prototype.slice.call(arguments));
+  }
+
   function stopIfNotFound (data, tasks, currentTask) {
     var value = data[currentTask];
     return (value !== undefined && value !== null) ? true : Errors.notFound(currentTask, tasks[currentTask].load) ;
@@ -211,38 +258,6 @@
     return (value === undefined || value === null) ? true : Errors.alreadyExists(currentTask, tasks[currentTask].load) ;
   }
 
-  function onLoad (itemName, onSuccess, onError, isRequired, error, item) {
-    if (error) {
-      onError (error.message === "Not found" ? Errors.notFound(itemName) : new LoadError('failed-to-load-'+itemName, error));
-    } else if (item || !isRequired) {
-      onSuccess (item);
-    } else {
-      onError (Errors.notFound(itemName));
-    }
-  }
-
-  function onSaved (callback, err,item) {
-    callback (err ? Errors.saveFailed('generic','',err) : item.toJSON());
-  }
-
-  function andThenPass (subjectType, callback, err,item) {
-    if (err) {
-      callback ( Errors.saveFailed(subjectType,'',err));
-    } else if (subjectType !== undefined)  {
-      var output = {};
-      output[subjectType] = item.toJSON();
-      callback (output);
-    } else {
-      callback (item);
-    }
-  }
-
-  function andThenNothing (err) {
-    if (err) {
-      console.error ('andThenNothing produced an error:');
-      console.error (err);
-    }
-  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -285,15 +300,19 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   module.exports = main;
+
+  //before/beforeSave/after
   module.exports.stopIfNotFound = stopIfNotFound;
   module.exports.stopIfFound = stopIfFound;
-  module.exports.toJSON = jsonRepository;
+  module.exports.and = and;
 
-  module.exports.onLoad = onLoad;
-  module.exports.onSaved = onSaved;
+  //finally
+  module.exports.json = json;
+  module.exports.minimalJson = minimalJson;
+  module.exports.jsonMap = jsonMap;
+  module.exports.remove = remove;
+
   module.exports.update = update;
   module.exports.updateAndSave = updateAndSave;
-  module.exports.andThenNothing = andThenNothing;
-  module.exports.andThenPass = andThenPass;
   module.exports.DelayedReturn = DelayedReturnWrapper;
 })();

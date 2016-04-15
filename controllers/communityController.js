@@ -64,9 +64,9 @@
     }
 
     var tasks = {
-      community : { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound },
-      membership: { table:db.membership, data: null },
-      founder: { table:db.membership, data: null, json:true, before: getSetFounderIdFromCommunity }
+      community : { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound, finally:sergeant.json },
+      membership: { table:db.membership, data: null, finally: sergeant.minimalJson },
+      founder: { table:db.membership, data: null, json:true, before: getSetFounderIdFromCommunity, finally:sergeant.minimalJson }
     };
     if (optionalUser !== undefined) {
       tasks.membership.load = {userId: optionalUser.id, communityId: unmaskedCommunityId };
@@ -136,22 +136,22 @@
     founder =  db.membership.model.getNew( founder );
     founder.userId = authUser.id;
     var tasks = {
-      existingCommunity: { table:db.community, load:{ name : community.name}, after:sergeant.stopIfFound},
-      community: { table: db.community, data: community, save: true },
-      founder: { table: db.membership, data: founder, before: addSetFounderCommunityId, save: true },
-      communityWithFounder: { table: db.community, data: community, before: addUpdateCommunityFounder, save: true }
+      existingCommunity: { table:db.community, load:{ name : community.name}, after:sergeant.stopIfFound, finally:sergeant.remove },
+      communityWithoutFounder: { table: db.community, data: community, save: true, finally:sergeant.remove  },
+      founder: { table: db.membership, data: founder, before: addSetFounderCommunityId, save: true, finally:sergeant.json },
+      community: { table: db.community, data: community, before: addUpdateCommunityFounder, save: true, finally:sergeant.json  }
     };
-    sergeant(tasks, 'existingCommunity,community,founder,communityWithFounder', addSaveFounderImage.bind(null, founderImage, files, callback));
+    sergeant(tasks, 'existingCommunity,communityWithoutFounder,founder,community', addSaveFounderImage.bind(null, founderImage, files, callback));
   }
 
   function addSetFounderCommunityId (data, tasks) {
-    tasks.founder.data.communityId = data.community.id;
+    tasks.founder.data.communityId = data.communityWithoutFounder.id;
     return true;
   }
 
   function addUpdateCommunityFounder (data, tasks) {
-    tasks.communityWithFounder.data = data.community;
-    tasks.communityWithFounder.data.founderId = data.founder.id;
+    tasks.community.data = data.communityWithoutFounder;
+    tasks.community.data.founderId = data.founder.id;
     return true;
   }
   function addSaveFounderImage (founderImage, files, callback, data) {
@@ -159,11 +159,7 @@
       callback(data);
       return;
     }
-    var founderId = data.founder.id;
-    data.community = data.communityWithFounder;
-    delete data.existingCommunity;
-    delete data.communityWithFounder;
-    data = sergeant.toJSON(data);
+    var founderId = Encryption.unmask (data.founder.id);
 
     if (founderImage !== undefined) {
       controllers.saveProfileImageFile(founderId,founderImage,files,callback.bind(null,data));
@@ -179,9 +175,9 @@
       return;
     }
     sergeant ({
-      founder : { table:db.membership, load: { userId: authUser.id, communityId: unmaskedCommunityId }, after: sergeant.stopIfNotFound },
-      loadedCommunity: { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound },
-      community: { table:db.community, data: {},  save: true, before: prepareCommunityUpdate.bind(null, community), json: true }
+      founder : { table:db.membership, load: { userId: authUser.id, communityId: unmaskedCommunityId }, after: sergeant.stopIfNotFound, finally: sergeant.json },
+      loadedCommunity: { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      community: { table:db.community, data: {},  save: true, before: prepareCommunityUpdate.bind(null, community), finally: sergeant.json }
     }, 'founder,loadedCommunity,community', callback);
   }
 
@@ -190,8 +186,6 @@
     if (data.founder.id !== community.founderId) {
       return (Errors.noPermissions('update-community'));
     } else {
-      delete data.founder;
-      delete data.loadedCommunity;
       if (sergeant.update(jCommunity, community) > 0) {
         tasks.community.data = community;
         return community.isValid();

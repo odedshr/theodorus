@@ -4,65 +4,73 @@
   var Encryption = require ('../helpers/Encryption.js');
   var Errors = require('../helpers/Errors.js');
   var tryCatch = require('../helpers/tryCatch.js');
-  var chain = require('../helpers/chain.js');
+  var sergeant = require('../helpers/sergeant.js');
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function updateCommunityMemberCount (db, community, delta) {
-    community.members = community.members +delta;
+  function updateCommunityMemberCount (db, delta, data) {
+    var community = data.community;
+    community.members = community.members + delta;
     if (community.members <= 0) {
       community.status =  db.community.model.status.archived;
     }
-    community.save(chain.andThenNothing);
+    return true;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, membershipId, communityId, db, callback) {
-    var tasks = [];
+    var tasks = {
+      membership: { table: db.membership, load: {}, beforeSave: sergeant.and(sergeant.stopIfNotFound,archiveUpdateMembership.bind(null,db, authUser.id )), save: true, finally: sergeant.json },
+      community: {  table:db.community, beforeSave: sergeant.and(sergeant.stopIfNotFound,updateCommunityMemberCount.bind(null,db, -1)), save: true, finally: sergeant.json }
+    };
     if (membershipId) {
       var unmaskedMembershipId = Encryption.unmask (membershipId);
       if (isNaN(unmaskedMembershipId)) {
         callback(Errors.badInput('membershipId',membershipId));
         return;
       }
-      tasks = [{name:'membership', table:db.membership, parameters: { userId: authUser.id, membershipId: unmaskedMembershipId }, continueIf: archiveUpdateCommunityQuery },
-               {name:'community', table:db.community, parameters: {}, continueIf: chain.onlyIfExists }];
+      tasks.membership.load.id = unmaskedMembershipId;
+      tasks.community.before = archiveUpdateCommunityQuery;
     } else if (communityId) {
       var unmaskedCommunityId = Encryption.unmask (communityId);
       if (isNaN(unmaskedCommunityId)) {
         callback(Errors.badInput('communityId',communityId));
         return;
       }
-      tasks = [{name:'membership', table:db.membership, parameters: { userId: authUser.id, communityId: unmaskedCommunityId }, continueIf: chain.onlyIfExists },
-               {name:'community', table:db.community, parameters: unmaskedCommunityId, continueIf: chain.onlyIfExists }];
+      tasks.membership.load.communityId = unmaskedCommunityId;
+      tasks.membership.load.userId = authUser.id;
+      tasks.community.load = unmaskedCommunityId;
     } else {
       callback(Errors.missingInput('membershipId'));
       return;
     }
-    chain (tasks, archiveOnDataLoaded.bind(null, db, callback), callback);
+    sergeant (tasks, 'membership,community', callback);
+  }
+  function archiveUpdateMembership (db, userId, data) {
+    if (data.membership.userId !== userId) {
+      return Errors.noPermissions('remove-member');
+    }
+    data.membership.status = db.membership.model.status.archived;
+    data.membership.modified = new Date();
+    return true;
   }
 
   function archiveUpdateCommunityQuery (repository, tasks) {
-    if (repository.membership) {
-      tasks[0].parameters = repository.membership.communityId;
-    }
-    return (repository.membership !== null);
-  }
-
-  function archiveOnDataLoaded (db, callback, data) {
-    updateCommunityMemberCount (data.community, -1);
-    data.membership.status = db.membership.model.status.archived;
-    data.membership.modified = new Date();
-    data.membership.save(chain.onSaved(callback));
+    tasks.community.load = repository.membership.communityId;
+    return true;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function exists ( optionalUser, membership, db, callback ) {
     var parameters = {};
-    if (membership.name !== undefined) {
+    if ( membership.name !== undefined ) {
       parameters.name = membership.name;
+      var nameIsValid = db.membership.model.isValidName(membership.name);
+      if (nameIsValid !== true) {
+        return callback(nameIsValid);
+      }
     } else if (optionalUser !== undefined) {
       parameters.userId = optionalUser.id;
     }
@@ -89,157 +97,214 @@
       return;
     }
 
-    var tasks = [{name:'membership', table:db.membership, parameters: unmaskedMembershipId, continueIf: chain.onlyIfExists }];
-    //TODO: include MemberViewpoint
-    chain (tasks, getOnDataLoaded.bind(null, optionalUser, callback), callback);
+    var tasks = {
+      membership : { table:db.membership, load: unmaskedMembershipId, after: sergeant.and(sergeant.stopIfNotFound, onMembershipLoaded.bind(null, optionalUser)), finally: sergeant.minimalJson },
+      me : { table:db.membership, after: sergeant.and(onMyMembershipLoaded), finally: sergeant.remove },
+      viewpoint : { table:db.membershipViewpoint, finally: sergeant.json}
+    };
+    if (optionalUser !== undefined) {
+      tasks.me.load = { userId: optionalUser.id };
+    }
+    sergeant (tasks, 'membership,me,viewpoint', callback);
   }
 
-  function getOnDataLoaded (optionalUser, callback, data) {
-    data.membership = (optionalUser && optionalUser.id === data.membserhip.userId) ? data.membership.toJSON() :data.membership.toMinJSON()  ;
-    callback(data);
+  function onMembershipLoaded (optionalUser, data, tasks) {
+    if (optionalUser && optionalUser.id === data.membership.userId) {
+      tasks.membership.finally = sergeant.json;
+    }
+    return true;
   }
 
+  function onMyMembershipLoaded (data, tasks) {
+    if (data.me) {
+      tasks.viewpoint.load = {
+        memberId: data.me.id,
+        subjectId: data.membership.id
+      };
+    }
+    return true;
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function list (optionalUser, communityId, db, callback) {
     if (communityId !== undefined) {
       listCommunityMembers (optionalUser, Encryption.unmask(communityId), db, callback);
     } else if (optionalUser !== undefined) {
-      listUserCommunities(optionalUser.id, db, callback);
+      listUserMemberships (optionalUser.id, db, callback);
     } else {
       callback (Errors.missingInput('communityId'));
     }
   }
 
   //-----------------------------------------------------------------------------------------------------------//
-  function listUserCommunities(userId, db, callback) {
-    chain([{name:'members', table:db.membership, parameters: {userId: userId, status: db.membership.model.status.active }, multiple: {} , continueIf: setCommunitiesToList},
-      {name:'communities', table:db.community, parameters: { status: db.membership.model.status.active }, multiple: {} }
-    ], listOnDataLoaded.bind(null, db, callback), callback);
+  function listUserMemberships(userId, db, callback) {
+    var tasks = {
+      memberships: { table:db.membership, load: {userId: userId, status: db.membership.model.status.active }, multiple: {}, finally: sergeant.json },
+      communities : { table:db.community, before:prepareCommunityList, load: { status: db.membership.model.status.active }, multiple: {}, finally: sergeant.jsonMap.bind(null,'id') }
+    };
+    sergeant(tasks, 'memberships,communities', callback);
   }
 
-  function setCommunitiesToList (repository, tasks) {
+  function prepareCommunityList (repository, tasks) {
     var list = [];
-    var memberships = repository.members.length;
+    var memberships = repository.memberships;
     var membershipCount = memberships.length;
 
-    while (membershipCount--) {
-      list[membershipCount] = memberships[membershipCount].communityId;
-    }
+    if (membershipCount === 0 ) {
+      delete tasks.communities.load;
+    } else {
+      while (membershipCount--) {
+        list[membershipCount] = memberships[membershipCount].communityId;
+      }
 
-    tasks[0].parameters.id = list;
+      tasks.communities.load.id = list;
+    }
+    return true;
   }
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function listCommunityMembers (optionalUser, communityid, db, callback) {
-    var tasks = [{name:'community', table:db.community, parameters: communityid, continueIf: chain.onlyIfExists },
-      {name:'membership', data: null, continueIf: canListCommunityMembers.bind (null, db) },
-      {name:'members', table:db.membership, parameters: {communityId: communityid, status: db.membership.model.status.active }, multiple: {} }
-    ];
+  function listCommunityMembers (optionalUser, communityId, db, callback) {
+    var tasks = {
+      community: { table:db.community, load: communityId, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      membership: { table:db.membership, after: canListCommunityMembers.bind (null, db), finally: sergeant.remove },
+      members: { table:db.membership, load: {communityId: communityId, status: db.membership.model.status.active }, multiple: {}, finally: sergeant.json }
+    };
     if (optionalUser !== undefined) {
-      delete tasks[1].data;
-      tasks[1].table = db.membership;
-      tasks[1].parameters = {userId: optionalUser.id, communityId: communityid, status: db.membership.model.status.active };
+      tasks.membership.load = { userId: optionalUser.id, communityId: communityId, status: db.membership.model.status.active };
     }
-    chain (tasks, listOnDataLoaded.bind(null, db, callback), callback);
+    sergeant (tasks, 'community,membership,members', callback);
   }
 
   function canListCommunityMembers (db, data) {
     return (data.community.type !== db.community.model.type.secret || (data.membership !== null)) ? true : new Error('no-permissions') ;
   }
 
-  function listOnDataLoaded (db, callback, data) {
-    if (data.communities !== undefined) {
-      callback ( {
-        communities: db.community.model.toList(data.communities, 'toMinJson'),
-        memberships: db.community.model.toMap(data.memberships, 'communityId', 'toMinJson')
-      });
-    } else {
-      callback ( {
-        members: db.community.model.toList(data.memberships, 'toMinJson')
-      });
-    }
-  }
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function set (authUser, membership, membershipImage, communityId, membershipId, files, db, callback) {
+    if (membership === undefined) {
+      callback (Errors.missingInput('membership'));
+      return;
+    }
     if (membershipId !== undefined) {
       membership.id = membershipId;
     }
     if (communityId !== undefined) {
       membership.communityId = communityId;
     }
-    var onceMembershipIsSaved = chain.onSaved.bind(null, membershipImage ? saveMembershipImage.bind(null,membershipImage,files, callback) : membershipSaved.bind(null, callback));
+    var onceMembershipIsSaved = membershipImage ? saveMembershipImage.bind(null,membershipImage,files, callback) : callback;
 
+    var tasks  ={
+      current : { table:db.membership, load:{ userId: authUser.id }, finally: sergeant.remove },
+      sameName : { table:db.membership, finally: sergeant.remove },
+      community: { table:db.community, load: membership.communityId, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      user: { table:db.user, load: authUser.id, finally: sergeant.remove },
+      membership: { table: db.membership,
+                    before: setCommunityType.bind(null, membership, db),
+                    beforeSave: setPrepareSave.bind(null, membership, db),
+                    save: true,
+                    after: setAfterAdd.bind(null, db), finally: sergeant.json }
+    };
+
+    membership.userId = authUser.id; // this is relevant for new memberships
+
+    if (membership.name !== undefined) {
+      // check if name already in use
+      tasks.sameName.load = { name : membership.name };
+      tasks.sameName.after = checkIfSameNameIsCurrent;
+    } else if (membership.id === undefined) {
+      callback (Errors.missingInput('membership.name'));
+      return;
+    }
     if (membership.id !== undefined) {
-      membership.communityId = Encryption.unmask(membership.communityId);
-      chain ([{name:'existing', table:db.membership, parameters:{ userId: authUser.id, communityId: membership.communityId } },
-              {name:'community', table:db.community, parameters: membership.communityId },
-              {name:'user', table:db.user, parameters: authUser.id }],
-        add.bind(null, membership, onceMembershipIsSaved, db, callback), callback);
+      // update
+      membership.id = Encryption.unmask(membership.id);
+      tasks.current.load = membership.id;
+      tasks.community.before = setPrepareCommunityIdQuery;
     } else if (membership.communityId !== undefined) {
-      chain ([{name:'membership', table:db.membership, parameters:{ id: Encryption.unmask(membership), userId: authUser.id, status: db.membership.model.status.active }, continueIf: chain.onlyIfExists} ],
-            update.bind(null, membership, callback), callback);
+      // add
+      membership.communityId = Encryption.unmask(membership.communityId);
+      tasks.current.load.communityId = membership.communityId;
+      tasks.community.load = membership.communityId;
     } else {
       callback (Errors.missingInput('membership.communityId'));
+      return;
+    }
+
+    sergeant (tasks, 'current,sameName,community,user,membership', onceMembershipIsSaved);
+  }
+
+  function checkIfSameNameIsCurrent (data) {
+    if ((data.sameName === null) || (data.current !== null && data.current.id === data.sameName.id)){
+      return true;
+    } else {
+      return Errors.alreadyExists('membership.name',data.sameName.name);
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------//
+  function setPrepareCommunityIdQuery (data, tasks) {
+    tasks.community.load = data.current.communityId;
+    return true;
+  }
 
-  function add (membership, onceMembershipIsSaved, db, callback, data) {
-    var existing = data.existing;
+  function setCommunityType (membership, db, data, tasks) {
+    var communityTypes = db.community.model.type;
+    switch (data.community.type) {
+      case communityTypes.exclusive:
+        tasks.membership.beforeSave = controllers.requests.setPrepareSave.bind(null, membership, db);
+        break;
+      case communityTypes.secret:
+        tasks.membership.beforeSave = controllers.invitations.setPrepareSave.bind(null, membership, db);
+        break;
+      case communityTypes.public:
+        break;
+      default:
+        return Errors.badInput(data.community.toJSON());
+    }
+    return true;
+  }
+
+  function setPrepareSave (membership, db, data, tasks) {
+    var communityTypes = db.community.model.type;
+    var status = db.membership.model.status;
+
+    var current = data.current;
     var community = data.community;
     var user = data.user;
-    if (data.community.isFit(user)) {
-      var communityTypes = db.community.model.type;
-      switch (community.type) {
-        case communityTypes.exclusive:
-          membership.type = db.community.model.type.exclusive;
-          membership.status = db.membership.model.status.requested;
-          break;
-        case communityTypes.public:
-          membership.type = db.community.model.type.public;
-          updateCommunityMemberCount ( db,community, 1);
-          break;
-        case communityTypes.secret:
-          callback(new Error('cannot-join-secret-community'));
-          return;
-        default:
-          callback(new Error('community-with-no-type'));
-          return;
+
+    membership.communityId = community.id; // for updates that start with membership.id
+    membership.type = communityTypes.public;
+    membership.status = status.active;
+
+    if (community.isFit(user)) {
+      if (current) {
+        sergeant.update(membership, current);
+      } else {
+        updateCommunityMemberCount ( db,1, data);
+        community.save();
       }
-      db.membership.create(membership, onceMembershipIsSaved);
     } else {
-      if (existing) {
-        existing.status = db.membership.model.status.unfit;
-        existing.save();
+      if (current) {
+        current.status = status.unfit;
+      } else {
+        return Errors.noPermissions('unfit-to-join-community');
       }
-      callback(new Error('user-not-fit-for-community'));
+    }
+
+    tasks.membership.data = current ? current : db.membership.model.getNew(membership);
+    return db.membership.model.isValid(membership);
+  }
+  function setAfterAdd (db, data) {
+    if (data.membership.status === db.membership.model.status.unfit) {
+      return new Error('user-not-fit-for-community');
+    } else {
+      return true;
     }
   }
+  function saveMembershipImage (membershipImage,files, callback, data) {
+    controllers.profileImage.saveProfileImageFile(data.membership.id, membershipImage, files, callback.bind(null, data));
 
-  function saveMembershipImage (membershipImage,files, callback, jMembership) {
-    controllers.profileImage.saveProfileImageFile(jMembership.id, membershipImage, files, membershipSaved.bind(jMembership, callback));
-  }
-
-  function membershipSaved (callback, jMembership) {
-    callback ( { membership : jMembership});
-  }
-
-  //-----------------------------------------------------------------------------------------------------------//
-
-  function update (jMembership, callback, data) {
-    var membership = data.membership;
-    data.community = chain.update(jMembership, membership);
-    var isValid = membership.isValid();
-    if (isValid instanceof Error) {
-      callback(isValid);
-    } else {
-      membership.save( chain.onSaved(callback));
-    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

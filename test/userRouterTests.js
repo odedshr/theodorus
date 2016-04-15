@@ -3,33 +3,26 @@
 
   var assert = require('assert');
   var fs = require('fs');
-  var md5 = require('md5');
   var request = require('supertest');
   var should = require('should');
-  var winston = require('winston');
-
-  var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
-
-  var url = config('testsURL');
+  
+  var testUtils = require('../test/testUtils.js');
 
   describe('UserRouterRouter', function () {
     var email = 'router@test.suite.user';
     var tokenFile = './user-files/debug_'+email+'.json';
     var token ='';
 
-    before(function beforeAllTests(done) {
+    before(function beforeAllTests() {
       if (fs.existsSync(tokenFile)) {
         fs.unlinkSync(tokenFile);
       }
-      done();
     });
 
-    after(function afterAllTests(done) {
+    after(function afterAllTests() {
       if (fs.existsSync(tokenFile)) {
         fs.unlinkSync(tokenFile);
       }
-      done();
     });
 
     describe('POST /user/connect', function postUserConnect() {
@@ -41,7 +34,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/user/connect')
           .send({})
           .expect(500)
@@ -57,7 +50,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/user/connect')
           .send({email: email})
           .expect(200) //Status code
@@ -73,18 +66,18 @@
           assert.ok ( token.length>10, 'got a token');
           done();
         }
-        var file = require('../user-files/debug_'+email+'.json');
+        var file = require(testUtils.getTokenFile(email));
         var connectionToken = file.text;
         assert.ok ( connectionToken !== undefined, 'authenticationToken read from file');
 
-        request(url)
+        testUtils.REST()
           .get('/user/connect/'+connectionToken)
           .expect(200) //Status code
           .end(onAuthTokenGenerated);
       });
 
       it('should failed to get authToken when connection string is wrong', function (done) {
-        request(url)
+        testUtils.REST()
           .get('/user/connect/wrongConnectionString')
           .expect(406, {}, done); //Status code
       });
@@ -92,7 +85,7 @@
 
     describe('POST /user', function postUserConnect() {
       it('should failed to update user when not authorized', function (done) {
-        request(url)
+        testUtils.REST()
           .post('/user')
           .send({isFemale: true})
           .expect(401, {}, done); //Status code
@@ -108,7 +101,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .post('/user')
           .set('authorization', token)
           .send({ user: {isFemale: true}})
@@ -119,7 +112,7 @@
 
     describe('GET /user', function postUserConnect() {
       it('should failed to update user when not authorized', function (done) {
-        request(url)
+        testUtils.REST()
           .get('/user')
           .expect(401, {}, done); //Status code
       });
@@ -134,7 +127,7 @@
           done();
         }
 
-        request(url)
+        testUtils.REST()
           .get('/user')
           .set('authorization', token)
           .expect(200)

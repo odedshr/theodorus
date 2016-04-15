@@ -112,7 +112,7 @@
       }
       url = url.split(item[0]).join( actually );
     }
-    return new RegExp ('^' + url + '\\/?');
+    return new RegExp ('^' + url + '\\/?$');
   }
 
   module.exports = function ContextTemplate(url, def, FileManager, Mailer) {

@@ -342,6 +342,10 @@
     // return true if membership is not an error and its id is not of the current user
     callback( (membership !== null) && (optionalUser.id !== membership.id) );
   }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function setPrepareSave (membership, db, data, tasks) {}
+  module.exports.setPrepareSave = setPrepareSave;
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   var controllers = {};
