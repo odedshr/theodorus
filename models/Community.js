@@ -10,67 +10,12 @@
 
   var editableFields = ['name','description','topicLength', 'opinionLength','commentLength','minAge','maxAge','gender','type'];
 
-  function toJSON (community, isMinimal) {
-    return isMinimal ? {
-      id: Encryption.mask(community.id),
-      name: community.name,
-      description: community.description,
-      type: community.type
-    } :{
-      id: Encryption.mask(community.id),
-      status: community.status,
-      created: community.created,
-      modified: community.modified,
-      name: community.name,
-      description: community.description,
-      founderId: Encryption.mask(community.founderId),
-      members: community.members,
-      topicLength: community.topicLength,
-      opinionLength: community.opinionLength,
-      commentLength: community.commentLength,
-      minAge: community.minAge,
-      maxAge: community.maxAge,
-      gender: community.gender,
-      type: community.type,
-      topics: community.topics
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  function isPostLengthOK (message, comparedTo) {
-    if (comparedTo === 0) {
-      return true;
-    } else {
-      return (comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message)) <= Math.abs(comparedTo);
-    }
-  }
-
-  //------------------------------------------------------------------------------------------------------------//
-
-  function isCommunityValid (community) {
-    return isValidCommunityName(community.name);
-  }
-
-  function isValidCommunityName (name) {
-    if (name === undefined) {
-      return Errors.missingInput('name');
-    }
-    if (name === 0) {
-      return Errors.tooShort('name');
-    }
-    return true;
-  }
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   module.exports = {
     name: 'community',
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -87,7 +32,7 @@
       topics: Number
     },
     relations: function (model, models) {
-      model.hasOne('founder',models.membership, { field: 'founderId', required: false});
+      model.hasOne('founder',models.membership, { field: 'founderId' });
     },
     methods : {
       isFit: function isFit (user) {
@@ -147,6 +92,65 @@
       };
     }
   };
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function toJSON (community, isMinimal) {
+    return isMinimal ? {
+      id: community.id,
+      name: community.name,
+      description: community.description,
+      type: community.type,
+      topics: community.topics
+    } :{
+      id: community.id,
+      status: community.status,
+      created: community.created,
+      modified: community.modified,
+      name: community.name,
+      description: community.description,
+      founderId: community.founderId,
+      members: community.members,
+      topicLength: community.topicLength,
+      opinionLength: community.opinionLength,
+      commentLength: community.commentLength,
+      minAge: community.minAge,
+      maxAge: community.maxAge,
+      gender: community.gender,
+      type: community.type,
+      topics: community.topics
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function isPostLengthOK (message, comparedTo) {
+    if (comparedTo === 0) {
+      return true;
+    } else {
+      return (comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message)) <= Math.abs(comparedTo);
+    }
+  }
+
+  //------------------------------------------------------------------------------------------------------------//
+
+  function isCommunityValid (community) {
+    return isValidCommunityName(community.name);
+  }
+
+  function isValidCommunityName (name) {
+    if (name === undefined) {
+      return Errors.missingInput('name');
+    }
+    if (name === 0) {
+      return Errors.tooShort('name');
+    }
+    return true;
+  }
 
 })();
 

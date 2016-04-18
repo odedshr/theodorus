@@ -1,6 +1,7 @@
 ;(function SergeantHelperEnclosure() {
   'use strict';
   var Errors = require('../helpers/Errors.js');
+  var tryCatch = require('../helpers/tryCatch.js');
 
   // Sergeant({ tasks }, [ taskOrder, callback ]);
   // tasks { [taskName] : { table: db[tableName], before:function load:{parameters}, data:{object}, beforeSave:function, save:{boolean} after:function, finally: enum}
@@ -51,7 +52,7 @@
       stop(result);
       return;
     }
-    if (result === undefined) {
+    if (result === false) {
       skip();
     } else if (typeof result === 'object') {
       result(next,stop);
@@ -60,19 +61,24 @@
     }
   }
   function doLoad (data, tasks, taskName, stop, skip, next) {
-    var task = tasks[taskName];
-    var boundedOnLoaded = onLoaded.bind (null, data,tasks, taskName, stop, next);
-    if ( task.load === undefined ) {
-      next ();
-    } else if (isNaN(task.load)) {
-      if (task.multiple) {
-        task.table.find (task.load, task.multiple, boundedOnLoaded);
-      } else {
-        task.table.one (task.load, boundedOnLoaded);
+    tryCatch (function tryCatchDoLoad() {
+      var task = tasks[taskName];
+      var boundedOnLoaded = onLoaded.bind (null, data,tasks, taskName, stop, next);
+      switch (typeof task.load) {
+        case 'undefined':
+          return next();
+        case 'string':
+          return task.table.get(task.load, boundedOnLoaded);
+        case 'function':
+          return task.load(data, tasks, taskName, boundedOnLoaded);
+        default:
+          if (task.multiple) {
+            return task.table.find (task.load, task.multiple, boundedOnLoaded);
+          } else {
+            return task.table.one (task.load, boundedOnLoaded);
+          }
       }
-    } else {
-      task.table.get(task.load, boundedOnLoaded);
-    }
+    }, stop);
   }
 
   function onLoaded (data,tasks, taskName, onError, onSuccess, error, item) {
@@ -96,11 +102,7 @@
         return;
       }
       var boundedOnSaved = onSaved.bind (null, repository, tasks, taskName, stop,next);
-      if (item.id && item.save) {
-        item.save (boundedOnSaved);
-      } else {
-        task.table.create (item, boundedOnSaved);
-      }
+      task.table.set (item, boundedOnSaved);
     } else {
       next();
     }
@@ -135,7 +137,11 @@
       callback (data);
     }
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function loadFromData (taskToLoadFrom,data, tasks, taskName, callback) {
+    callback(undefined, data[taskToLoadFrom]);
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function remove (data, tasks, taskName) {
@@ -145,20 +151,25 @@
 
   function json (data, tasks, taskName, isMinimal) {
     var item = data[taskName];
-    if (Array.isArray(item)) {
-      var count  = item.length;
-      var list = [];
-      while (count--) {
-        list[count] = toJSON(item[count], (isMinimal !== undefined) ? isMinimal : true);
+    if (item) {
+      if (Array.isArray(item)) {
+        var count = item.length;
+        var list = [];
+        while (count--) {
+          list[count] = toJSON(item[count], (isMinimal !== undefined) ? isMinimal : true);
+        }
+        data[taskName] = list;
+      } else {
+        data[taskName] = toJSON(item, (isMinimal !== undefined) ? isMinimal : false);
       }
-      data[taskName] = list;
-    } else {
-      data[taskName] = toJSON(item, (isMinimal !== undefined) ? isMinimal : false);
     }
     return true;
   }
   function minimalJson (data, tasks, taskName) {
     return json (data, tasks, taskName, true);
+  }
+  function fullJson (data, tasks, taskName) {
+    return json (data, tasks, taskName, false);
   }
   function toJSON (item, isMinimal) {
     if (item === undefined || item === false || item === null) {
@@ -171,23 +182,50 @@
   }
 
   function jsonMap (indexBy, data, tasks, taskName) {
+    if (arguments.length===3) {
+      taskName = arguments[2];
+      tasks = arguments[1];
+      data = arguments[0];
+      indexBy = 'id';
+    }
     var item = data[taskName];
-    var map = {};
-    if (Array.isArray(item)) {
+    var jsonItem, map = {};
+    if (item) {
+      if (!Array.isArray(item)) {
+        item = [item];
+      }
       if (indexBy === undefined) {
         indexBy = 'id';
       }
       var count = item.length;
       while (count--) {
-        map[item[indexBy]] = toJSON(item[count], true);
+        jsonItem  = toJSON(item[count], true);
+        var key = jsonItem[indexBy] ? jsonItem[indexBy] : item[indexBy];
+        map[key] = jsonItem;
       }
-    } else {
-      map[item[indexBy]] = toJSON(item, true);
+      data[taskName] = map;
     }
-    data[taskName] = map;
-    return  true;
   }
 
+  function jsonGroup  (groupBy, data, tasks, taskName) {
+    var item = data[taskName];
+    var jsonItem, map = {};
+    if (item) {
+      if (!Array.isArray(item)) {
+        item = [item];
+      }
+      var count = item.length;
+      while (count--) {
+        jsonItem  = toJSON(item[count], true);
+        var key = jsonItem[groupBy] ? jsonItem[groupBy] : item[groupBy];
+        if (map[key] === undefined) {
+          map[key] = [];
+        }
+        map[key].push (jsonItem);
+      }
+      data[taskName] = map;
+    }
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /* How to use DelayedReturn?
@@ -306,10 +344,15 @@
   module.exports.stopIfFound = stopIfFound;
   module.exports.and = and;
 
+  //load functions
+  module.exports.loadFromData = loadFromData;
+
   //finally
   module.exports.json = json;
+  module.exports.fullJson = fullJson;
   module.exports.minimalJson = minimalJson;
   module.exports.jsonMap = jsonMap;
+  module.exports.jsonGroup = jsonGroup;
   module.exports.remove = remove;
 
   module.exports.update = update;

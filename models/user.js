@@ -5,28 +5,12 @@
 
   var status = { active: "active", suspended: "suspended", archived: "archived"};
   var editableFields = ['birthDate','isFemale'];
-
-  function toJSON (user) {
-    return {
-      id: Encryption.mask(user.id),
-      status: user.status,
-      created: user.created,
-      modified: user.modified,
-      lastLogin: user.lastLogin,
-      email: user.email,
-      birthDate: user.birthDate,
-      isFemale: user.isFemale
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
   
   module.exports = {
     name: 'user',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -55,4 +39,21 @@
     }
   };
 
+
+  function toJSON (user) {
+    return {
+      id: user.id,
+      status: user.status,
+      created: user.created,
+      modified: user.modified,
+      lastLogin: user.lastLogin,
+      email: user.email,
+      birthDate: user.birthDate,
+      isFemale: user.isFemale
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 })();

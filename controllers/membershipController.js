@@ -25,22 +25,12 @@
       community: {  table:db.community, beforeSave: sergeant.and(sergeant.stopIfNotFound,updateCommunityMemberCount.bind(null,db, -1)), save: true, finally: sergeant.json }
     };
     if (membershipId) {
-      var unmaskedMembershipId = Encryption.unmask (membershipId);
-      if (isNaN(unmaskedMembershipId)) {
-        callback(Errors.badInput('membershipId',membershipId));
-        return;
-      }
-      tasks.membership.load.id = unmaskedMembershipId;
+      tasks.membership.load.id = membershipId;
       tasks.community.before = archiveUpdateCommunityQuery;
     } else if (communityId) {
-      var unmaskedCommunityId = Encryption.unmask (communityId);
-      if (isNaN(unmaskedCommunityId)) {
-        callback(Errors.badInput('communityId',communityId));
-        return;
-      }
-      tasks.membership.load.communityId = unmaskedCommunityId;
+      tasks.membership.load.communityId = communityId;
       tasks.membership.load.userId = authUser.id;
-      tasks.community.load = unmaskedCommunityId;
+      tasks.community.load = communityId;
     } else {
       callback(Errors.missingInput('membershipId'));
       return;
@@ -79,7 +69,7 @@
     } else if (membership.communityId === undefined) {
       callback (Errors.missingInput('membership.communityId'));
     } else {
-      parameters.communityId = Encryption.unmask(membership.communityId);
+      parameters.communityId = membership.communityId;
       db.membership.one(parameters, existsOnLoaded.bind(null, membership, callback));
     }
   }
@@ -91,14 +81,8 @@
    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function get (optionalUser, membershipId, db, callback) {
-    var unmaskedMembershipId = Encryption.unmask(membershipId);
-    if (isNaN(unmaskedMembershipId)) {
-      callback(Errors.badInput('membershipId',membershipId));
-      return;
-    }
-
     var tasks = {
-      membership : { table:db.membership, load: unmaskedMembershipId, after: sergeant.and(sergeant.stopIfNotFound, onMembershipLoaded.bind(null, optionalUser)), finally: sergeant.minimalJson },
+      membership : { table:db.membership, load: membershipId, after: sergeant.and(sergeant.stopIfNotFound, onMembershipLoaded.bind(null, optionalUser)), finally: sergeant.minimalJson },
       me : { table:db.membership, after: sergeant.and(onMyMembershipLoaded), finally: sergeant.remove },
       viewpoint : { table:db.membershipViewpoint, finally: sergeant.json}
     };
@@ -128,7 +112,7 @@
 
   function list (optionalUser, communityId, db, callback) {
     if (communityId !== undefined) {
-      listCommunityMembers (optionalUser, Encryption.unmask(communityId), db, callback);
+      listCommunityMembers (optionalUser, communityId, db, callback);
     } else if (optionalUser !== undefined) {
       listUserMemberships (optionalUser.id, db, callback);
     } else {
@@ -219,12 +203,10 @@
     }
     if (membership.id !== undefined) {
       // update
-      membership.id = Encryption.unmask(membership.id);
       tasks.current.load = membership.id;
       tasks.community.before = setPrepareCommunityIdQuery;
     } else if (membership.communityId !== undefined) {
       // add
-      membership.communityId = Encryption.unmask(membership.communityId);
       tasks.current.load.communityId = membership.communityId;
       tasks.community.load = membership.communityId;
     } else {

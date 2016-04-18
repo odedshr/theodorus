@@ -3,17 +3,10 @@
   var Encryption = require ( '../helpers/Encryption.js' );
   var editableFields = [];
 
-  function toJSON (isMinimal) {
-    return {};
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
   module.exports = {
     name: 'conversation',
     schema: {
+      id: {type: 'text', key: true},
       created: Date,
       modified: Date
     },
@@ -26,5 +19,13 @@
     },
     validations: {}
   };
+
+  function toJSON (isMinimal) {
+    return {};
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 
 })();

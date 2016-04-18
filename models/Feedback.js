@@ -7,31 +7,11 @@
   var status = { sent: "sent", handled: "handled", archived: "archived" };
   var editableFields = ['content', 'image','url'];
 
-  function getEditables () {
-    return editableFields;
-  }
-
-  function toJSON (feedback, isMinimal) {
-    return isMinimal ? {
-      content: feedback.content,
-      image: feedback.image ? feedback.image.toString('base64') : '',
-      url: feedback.url
-    } :{
-      id: Encryption.mask(feedback.id),
-      status: feedback.status,
-      created: feedback.created,
-      modified: feedback.modified,
-      content: feedback.content,
-      image: feedback.image ? feedback.image.toString('base64') : '',
-      url: feedback.url,
-      userId: Encryption.mask(feedback.userId)
-    };
-  }
-
   module.exports = {
     name: 'feedback',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -60,6 +40,27 @@
       };
     }
   };
+
+  function getEditables () {
+    return editableFields;
+  }
+
+  function toJSON (feedback, isMinimal) {
+    return isMinimal ? {
+      content: feedback.content,
+      image: feedback.image ? feedback.image.toString('base64') : '',
+      url: feedback.url
+    } :{
+      id: feedback.id,
+      status: feedback.status,
+      created: feedback.created,
+      modified: feedback.modified,
+      content: feedback.content,
+      image: feedback.image ? feedback.image.toString('base64') : '',
+      url: feedback.url,
+      userId: feedback.userId
+    };
+  }
 
 })();
 

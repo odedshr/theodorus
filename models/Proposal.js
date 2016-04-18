@@ -16,6 +16,7 @@
     name: 'proposal',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,

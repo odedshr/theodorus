@@ -25,7 +25,7 @@
     var values = reURL.exec(req.url.toString());
     // urlParameterPattern for some reason return null at the second /community/[communityId] run
     var keys = (new RegExp('\\[([^#]+?)\\]','g')).exec(urlFormat);
-    if (keys !== null & values !== null) {
+    if (keys !== null && values !== null) {
       var count = Math.min(keys.length, values.length);
       for (var i=1; i < count ;i++) {
         output[keys[i]] = values[i];

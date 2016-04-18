@@ -21,10 +21,6 @@
       });
     });
 
-    after(function afterAllTests() {
-      testUtils.removeTokenFileOf(email);
-    });
-
     describe ('PUT /community', function getCommunity () {
       it ('should fail to add community with no name', function addCommunityNoNameFail (done) {
         function failedToGetName (error, response) {

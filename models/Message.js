@@ -16,6 +16,7 @@
   module.exports = {
     name: 'message',
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       content: String

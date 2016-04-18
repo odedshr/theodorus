@@ -10,12 +10,12 @@
 
   function toJSON (post, isMinimal) {
     return isMinimal ? {
-      id: Encryption.mask(post.id),
+      id: post.id,
       status: post.status,
       content: post.content,
-      authorId: Encryption.mask(post.authorId)
-    } :{
-      id: Encryption.mask(post.id),
+      authorId: post.authorId
+    } : {
+      id: post.id,
       status: post.status,
       created: post.created,
       modified: post.modified,
@@ -23,8 +23,8 @@
       endorse: post.endorse,
       report: post.report,
       comments: post.comments,
-      authorId: Encryption.mask(post.authorId),
-      communityId: Encryption.mask(post.communityId),
+      authorId: post.authorId,
+      communityId: post.communityId,
       history: post.history ? utils.toList(post.history) : undefined
     };
   }
@@ -37,6 +37,7 @@
     name: 'opinion',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -55,14 +56,15 @@
       getEditables: getEditables
     },
     validations: {},
-    getNew: function getNew (membershipId, communityId, topicId, content, iStatus) {
+    getNew: function getNew ( opinion ) {
       var now = new Date ();
       return {
-        authorId : membershipId,
-        communityId: communityId,
-        topicId: topicId,
-        content: content,
-        status: status[iStatus] ? status[iStatus] : status.published,
+        id : opinion.id,
+        authorId : opinion.authorId,
+        communityId: opinion.communityId,
+        topicId: opinion.topicId,
+        content: opinion.content,
+        status: status[opinion.status] ? status[opinion.status] : status.published,
         created: now,
         modified: now,
         endorse: 0,

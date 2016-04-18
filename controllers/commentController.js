@@ -16,12 +16,7 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, commentId, db, callback) {
-    var unmaskedCommentId = Encryption.unmask (commentId);
-    if (isNaN(unmaskedCommentId)) {
-      callback(Errors.badInput('commentId',commentId));
-      return;
-    }
-    sergeant ({ comment : { table:db.comment, parameters: unmaskedCommentId, after: archiveUpdateQueries.bind(null, db) },
+    sergeant ({ comment : { table:db.comment, parameters: commentId, after: archiveUpdateQueries.bind(null, db) },
                 author:   { table:db.membership, parameters: { userId : authUser.id}, after: sergeant.onlyIfExists },
                 community:{ table:db.community, parameters: {}, after: sergeant.onlyIfExists },
                 parent:   { table:db.opinion, after: sergeant.onlyIfExists },
@@ -48,7 +43,7 @@
         tasks.parent.table = db.comment;
         tasks.parent.parameters = comment.parentId;
       } else {
-        return Errors.notFound('comment-parent',Encryption.mask(comment.id));
+        return Errors.notFound('comment-parent', comment.id);
       }
     }
     return (repository.comment !== null);
@@ -82,13 +77,8 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function get (optionalUser, commentId, db, files, callback) {
-    var unmaskedCommentId = Encryption.unmask(commentId);
-    if (isNaN(unmaskedCommentId)) {
-      callback(Errors.badInput('commentId',commentId));
-      return;
-    }
     var tasks = {
-      comment: { table: db.comment, parameters: unmaskedCommentId, continueIf: getUpdateQueries },
+      comment: { table: db.comment, parameters: commentId, continueIf: getUpdateQueries },
       community: { table: db.community, continueIf: sergeant.onlyIfExists },
       author: { table: db.author, continueIf: sergeant.onlyIfExists },
       member: { table: db.membership, data: null },
@@ -148,11 +138,11 @@
       viewpoints: { table: db.topicViewpoint, data: [], multiple: {}}
     };
     if (commentId) {
-      commentId = Encryption.unmask(commentId);
+      commentId = commentId;
       tasks.root = { table: db.comment, parameters: commentId };
       tasks.comments.parameters.parentId = commentId;
     } else if (opinionId) {
-      opinionId = Encryption.unmask(opinionId);
+      opinionId = opinionId;
       tasks.root = { table: db.comment, parameters: opinionId};
       tasks.comments.parameters.opinionId = opinionId;
     } else {
@@ -212,10 +202,10 @@
 
   function set (authUser, opinionId, parentId, commentId, comment, db, callback) {
     if (opinionId !== undefined) {
-      comment.opinionId = Encryption.unmask(opinionId);
+      comment.opinionId = opinionId;
     }
     if (parentId !== undefined) {
-      comment.commentId = Encryption.unmask(parentId);
+      comment.commentId = parentId;
     }
     if (commentId !== undefined) {
       comment.id = commentId;
@@ -285,7 +275,7 @@
 
   function update (authUser, comment, db, callback) {
     chain.load({
-      comment: { table: db.comment, parameters: Encryption.unmask(comment.id), continueIf: updateUpdateQueries},
+      comment: { table: db.comment, parameters: comment.id, continueIf: updateUpdateQueries},
       author: { table: db.membership, parameters: { userId: authUser.id }, continueIf: isPostBelongsToAuthor },
       community: { table: db.community, continueIf: chain.onlyIfExists }
     },['comment','newComment','author','community'], updateOnDataLoaded.bind (comment, callback));

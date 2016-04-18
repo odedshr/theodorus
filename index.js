@@ -42,7 +42,7 @@
     app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
     try {
-      app.use(db.useExpress(config('dbConnectionString', true)));
+      app.use(db.useExpress(config('dbConnectionString', true),config('guidLength')));
     }
     catch (err) {
       log('failed to connect to DB: ' + config('dbConnectionString'));

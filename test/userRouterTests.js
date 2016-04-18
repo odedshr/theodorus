@@ -13,12 +13,6 @@
     var tokenFile = './user-files/debug_'+email+'.json';
     var token ='';
 
-    before(function beforeAllTests() {
-      if (fs.existsSync(tokenFile)) {
-        fs.unlinkSync(tokenFile);
-      }
-    });
-
     after(function afterAllTests() {
       if (fs.existsSync(tokenFile)) {
         fs.unlinkSync(tokenFile);

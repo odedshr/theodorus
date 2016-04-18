@@ -10,7 +10,7 @@
           response: {'200': { opinions: 'array[opinion]'}},
           handler: controllers.opinion.list
         },
-        post: {
+        put: {
           description: 'Add an opinion',
           parameters: {opinion: 'opinion', topicId: 'id'},
           response: {'200': {opinion: 'opinion'}},

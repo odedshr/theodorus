@@ -3,7 +3,7 @@
 
   var Encryption = require ('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
-  var chain = require('../helpers/chain.js');
+  var sergeant = require('../helpers/sergeant.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
 
@@ -16,160 +16,130 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, topicId, db, callback) {
-    var unmaskedTopicId = Encryption.unmask (topicId);
-    if (isNaN(unmaskedTopicId)) {
-      callback(Errors.badInput('topicId',topicId));
-      return;
-    }
-    chain.load ({ topic : { table:db.topic, parameters: unmaskedTopicId, continueIf: archiveUpdateAuthorQuery },
-                  author: { table:db.membership, parameters: { userId : authUser.id}, continueIf: chain.onlyIfExists },
-                  community: { table:db.community, parameters: {}, continueIf: chain.onlyIfExists }},
-      ['topic', 'author', 'community'], archiveOnDataLoaded.bind(null, authUser.id, db, callback), callback);
+    sergeant ({
+      current : { table:db.topic, load: topicId, after: sergeant.and(sergeant.stopIfNotFound, stopIfImmutable), finally: sergeant.remove },
+      author: { table:db.membership, before: archiveGetAuthorFromTopic, load: { userId : authUser.id}, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      community: { table:db.community, before: archiveGetCommunityFromTopic, beforeSave: sergeant.and(sergeant.stopIfNotFound, archiveUpdateCommunityTopics), save: true, finally: sergeant.minimalJson },
+      topic: { table:db.community, beforeSave: archivePrepare.bind(null,db), save: true, finally: sergeant.json }
+    },'current,author,community,topic', callback);
   }
 
-  function archiveUpdateAuthorQuery (repository, tasks) {
-    if (repository.topic) {
-      tasks.authors.parameters.authorId = repository.topic.authorId;
-      tasks.community.parameters = repository.topic.communityId;
+  function stopIfImmutable (data) {
+    if (isImmutable (data.current)) {
+      return Errors.immutable('topic');
     }
-    return (repository.topic !== null);
   }
 
-  function archiveOnDataLoaded (db, callback, data) {
-    var topic = data.topic;
-    if (isImmutable (topic)) {
-      callback(Errors.immutable('topic'));
-      return;
-    }
+  function archiveGetAuthorFromTopic (data, tasks) {
+    tasks.author.load.id = data.current.authorId;
+  }
 
+  function archiveGetCommunityFromTopic (data, tasks) {
+    tasks.community.load = data.current.communityId;
+  }
+
+  function archiveUpdateCommunityTopics (data) {
+    data.community.topics --;
+  }
+
+  function archivePrepare (db, data, tasks ) {
+    var topic = data.current;
     topic.status = db.topic.model.status.archived;
     topic.modified = new Date();
-    topic.save(chain.andThenPass('topic',callback));
-
-    var community = data.community;
-    community.topics--;
-    community.save(callback ? callback :chain.andThenNothing);
+    tasks.topic.data = topic;
   }
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function get (optionalUser, topicId, db, files, callback) {
     var tasks = {
-      topic: { table: db.topic, parameters: Encryption.unmask(topicId), continueIf: getAddTopicToQueries },
-      community: { table: db.community, continueIf: chain.onlyIfExists },
-      author: { table: db.author, continueIf: chain.onlyIfExists },
-      member: { table: db.membership, data: null },
-      viewpoint: {  table: db.topicViewpoint, data: null }
+      topic: { table: db.topic, load: topicId, after: sergeant.stopIfNotFound, finally: sergeant.json },
+      community: { table: db.community, before:getCommunityFromTopic,  after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      member: { table: db.membership, before:getMemberFromCommunity.bind(null, optionalUser), after: getCheckPermissions.bind(null, db), finally: sergeant.remove },
+      author: { table: db.membership, before:getAuthorFromTopic, after: sergeant.and(sergeant.stopIfNotFound, getCheckAuthorImage.bind(null, files)), finally: sergeant.minimalJson },
+      viewpoint: {  table: db.topicViewpoint, before:getPrepareViewpoint, finally: sergeant.minimalJson }
     };
+
+    sergeant ( tasks, 'topic,community,author,member,viewpoint', callback);
+  }
+
+  function getCommunityFromTopic (data, tasks) {
+    tasks.community.load = data.topic.communityId;
+  }
+
+  function getMemberFromCommunity (optionalUser, data, tasks) {
     if (optionalUser) {
-      tasks.member.parameters = { userId: optionalUser.id };
-      delete tasks.member.data;
+      tasks.member.load = { userId: optionalUser.id, communityId: data.community.id };
     }
-    chain.load ( tasks, ['topic','community','author','member','viewpoint'], getOnDataLoaded.bind(null, db ,files, callback));
   }
 
-  function getAddTopicToQueries (repository, tasks) {
-    var topic = repository.topic;
-    if (topic === null) {
-      return false;
-    }
-    tasks.community.parameters = topic.communityId;
-    tasks.author.parameters = topic.authorId;
-    tasks.member.parameters.communityId = topic.communityId;
-    tasks.member.continueIf = addMemberToViewpointQuery ;
-    tasks.viewpoint.parameters = { topicId: topic.id };
-    return true;
+  function getAuthorFromTopic (data, tasks) {
+    tasks.author.load = data.topic.authorId;
   }
 
-  function addMemberToViewpointQuery (repository, tasks) {
-    var member = repository.member;
-    if (member !== null) {
-      tasks.viewpoint.parameters.memberId = member.id;
+  function getPrepareViewpoint (data, tasks) {
+    if (data.member) {
+      tasks.viewpoint.load = { topicId:data.topic.id, memberId: data.member.id };
     }
-    return true;
   }
 
-  function getOnDataLoaded (db, files, callback, data) {
-    if (data.member || data.community.type !== db.community.model.type.exclusive) {
-      callback({
-        topic: data.topic.toJSON(),
-        author: data.author.toMinJSON(),
-        hasImage: controllers.profileImage.existsSync (files,data.author.id),
-        community: data.community.toMinJSON(),
-        viewpoint: data.viewpoint.toJSON()
-      });
-    } else {
-      callback (Errors.noPermissions('get-topic'));
+  function getCheckPermissions (db, data) {
+    if (!(data.member || data.community.type !== db.community.model.type.exclusive)) {
+      return Errors.noPermissions('get-topic');
     }
+  }
+
+  function getCheckAuthorImage (files, data) {
+    data.hasImage = controllers.profileImage.existsSync (files, data.author.id);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function list (optionalUser, communityId, db, callback) {
-    var communityUnmaskedId = Encryption.unmask(communityId);
-    if (isNaN(communityUnmaskedId)) {
-      callback(Errors.badInput('communityId',communityId));
-      return;
-    }
-
     var tasks = {
-      community: { table: db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-      topics: { table: db.topic, parameters: {communityId: communityUnmaskedId, status: db.topic.model.status.published}, multiple: {order: 'modified'}, continueIf: listAddAuthorsTask },
-      authors: { table: db.membership, multiple: {} },
-      member: { continueIf: listOnlyIfExistsOrPublicCommunity.bind(null,db.community.model.type.exclusive) },
-      viewpoints: { table: db.topicViewpoint, data: [], multiple: {}}
+      community: { table: db.community, load: communityId, after: sergeant.stopIfNotFound, finally: sergeant.jsonMap },
+      topics: { table: db.topic, load: { communityId: communityId, status: db.topic.model.status.published}, multiple: {order: 'modified'}, finally: sergeant.json },
+      authors: { table: db.membership, before: prepareAuthorsQuery, multiple: {}, finally: sergeant.jsonMap },
+      member: { table: db.membership, before: prepareMemberQuery.bind(null, optionalUser), after: listOnlyIfHasPermissions.bind (null,db.community.model.type.exclusive), finally: sergeant.remove },
+      viewpoints: { table: db.topicViewpoint, before: prepareViewpointsQuery, multiple: {}, finally: sergeant.jsonMap.bind (null,'topicId')}
     };
 
-    if (optionalUser !== undefined)  {
-      tasks.member.table = db.membership;
-      tasks.member.parameters = { userId: optionalUser.id, communityId: communityUnmaskedId };
-    } else {
-      tasks.member.data = undefined;
-    }
-
-    chain.load(tasks, ['community','member','topics','viewpoints'], listOnDataLoaded.bind(null,db,callback),callback);
+    sergeant (tasks, 'community,topics,authors,member,viewpoints', callback);
   }
 
-  function listOnlyIfExistsOrPublicCommunity (communityTypeExclusive, repository, tasks) {
-    if (repository.member) {
-      tasks.viewpoints.parameters = { memberId : repository.member.id };
-      delete tasks.viewpoints.data;
-      return true;
+  function prepareAuthorsQuery (data, tasks) {
+    var topics = data.topics;
+    var topicCount = topics.length;
+    if (topicCount) {
+      var authors = {}; // we need to find distinct authors!
+      while (topicCount--) {
+        authors[topics[topicCount].authorId] = true;
+      }
+      tasks.authors.load = { id: Object.keys(authors) };
     }
-    return (repository.community.type !== communityTypeExclusive) ? true : Errors.noPermissions('topics') ;
   }
 
-  function listAddAuthorsTask (repository, tasks) {
-    repository.topics.reverse(); // changing to descending order
-    var topicCount = repository.topics.length;
-    var topicIdList = [];
-    var authors = {}; // we need to find distinct authors!
-    while (topicCount--) {
-      var topic = repository.topics[topicCount];
-      topicIdList[topicIdList.length] = topic.id;
-      authors[topic.authorId] = true;
+  function prepareMemberQuery (optionalUser, data, tasks) {
+    if (optionalUser) {
+      tasks.member.load = { userId: optionalUser.id, communityId: data.community.id };
     }
-    if (repository.member && topicIdList.length > 0) { // if member, add topicIds to viewpoints task
-      tasks[0].parameters.topicId = topicIdList;
-    }
-    authors = Object.keys(authors);
-
-    if (authors.length > 0) {
-      tasks.authors.parameters.id = authors;
-    } else {
-      tasks.authors.data = [];
-      delete tasks.authors.table;
-    }
-    return true;
   }
 
-  function listOnDataLoaded (db,callback, data) {
-    callback({
-      topics: db.topic.model.toList(data.topics),
-      viewpoints : db.topicViewpoint.model.toMap(data.viewpoints, 'topicId'),
-      authors : db.membership.model.toMap(data.authors,'id','toMinJSON'),
-      communities : db.community.model.toMap(data.communities,'id','toMinJSON')
-    });
+  function listOnlyIfHasPermissions (communityTypeExclusive, data, tasks) {
+    return (data.member || data.community.type !== communityTypeExclusive) ? true : Errors.noPermissions('list-topics') ;
+  }
+
+  function prepareViewpointsQuery (data, tasks) {
+    if (data.member) {
+      var topics = data.topics;
+      var topicCount = topics.length;
+      if (topicCount) {
+        var topicIds = []; // we need to find distinct authors!
+        while (topicCount--) {
+          topicIds[topicCount] = topics[topicCount].id;
+        }
+        tasks.viewpoints.load = { memberId: data.member.id, topicId: topicIds};
+      }
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,6 +151,8 @@
     if (topicId !== undefined) {
       topic.id = topicId;
     }
+
+    topic.content = validators.sanitizeString(topic.content);
 
     if (topic.id !== undefined) {
       update (authUser, topic, db, callback);
@@ -194,91 +166,62 @@
   //-----------------------------------------------------------------------------------------------------------//
 
   function add (authUser, topic, db, callback) {
-    var communityUnmaskedId = Encryption.unmask(topic.communityId);
-
-    chain.load ({
-      community: { table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-      author: { table:db.membership, parameters: { userId: authUser.id, communityId: communityUnmaskedId }, continueIf: authorExistsAndCanSuggest }
-    }, ['community','author'], addOnDataLoaded.bind(null, topic, db, callback), callback);
+    sergeant ({
+      author: { table: db.membership, load: { userId: authUser.id, communityId: topic.communityId }, after: sergeant.and(sergeant.stopIfNotFound,setCheckPermissions), finally: sergeant.minimalJson },
+      community: { table: db.community, load: topic.communityId, beforeSave:sergeant.and(sergeant.stopIfNotFound, addCheckTopicLength.bind(null, topic.content)), save: true, finally: sergeant.minimalJson  },
+      topic: { table: db.topic, before: addPrepareTopic.bind(null, topic,db), save: true, finally: sergeant.json}
+    }, 'community,author,topic', callback);
   }
 
-  function authorExistsAndCanSuggest (repository) {
-    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
+  function setCheckPermissions (data) {
+    return data.author.can ('suggest') ? true : Errors.noPermissions('suggest');
   }
 
-  function addOnDataLoaded (topic, db, callback, data) {
-    var sanitizedString = validators.sanitizeString(topic.content);
-
-    if (!data.community.isTopicLengthOk(sanitizedString)) {
-      callback(Errors.tooLong('topic'));
-      return;
-    }
-
-    topic = db.topic.model.getNew(data.author.id, data.community.id, sanitizedString, topic.status ? topic.status : db.topic.model.status.published);
-    db.topic.create (topic, chain.onSaved.bind(null, addOnDataSaved.bind(null, callback, data)));
+  function addCheckTopicLength (string, data) {
+    data.community.topics++;
+    return data.community.isTopicLengthOk(string) ? true : Errors.tooLong('topic',string);
   }
-
-  function addOnDataSaved (callback, data, topicJSON) {
-    if (!(topicJSON instanceof Error)) {
-      var community = data.community;
-      community.topics = data.community.topics + 1;
-      community.modified = new Date();
-      community.save();
-    }
-    callback({
-      topic: topicJSON,
-      author: data.author.toJSON(),
-      community: data.community.toJSON()
-    });
+  function addPrepareTopic (topic, db, data, tasks) {
+    topic.authorId = data.author.id;
+    topic.communityId = data.community.id;
+    topic = db.topic.model.getNew( topic );
+    tasks.topic.data = topic;
   }
 
   //-----------------------------------------------------------------------------------------------------------//
 
   function update (authUser, topic, db, callback) {
-    chain.load ({
-      topic: { table:db.topic, parameters: Encryption.unmask(topic.id), continueIf: setUpdateQueries },
-      community: { table:db.community, continueIf: chain.onlyIfExists },
-      author: { table:db.membership, parameters: { userId: authUser.id}, continueIf: isPostBelongsToAuthor }
-    }, ['topic', 'community','author'], updateOnDataLoaded.bind(null, topic, callback), callback);
+    sergeant ({
+      existing: { table:db.topic, load: topic.id, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      community: { table:db.community, before:updatePrepareCommunity, after: sergeant.stopIfNotFound, finally: sergeant.minimalJson },
+      author: { table:db.membership, before:updatePrepareAuthor, load: { userId: authUser.id}, after: sergeant.and(sergeant.stopIfNotFound, isPostBelongsToAuthor), finally: sergeant.minimalJson },
+      topic: {table:db.topic, beforeSave: updatePrepareTopic.bind(null, topic), save: true, finally: sergeant.json }
+    }, 'existing,community,author,topic', callback);
   }
 
-  function setUpdateQueries (repository, tasks) {
-    var topic = repository.topic;
-    if (topic) {
-      tasks.community.parameters = topic.communityId;
-      tasks.author.parameters.id = topic.authorId;
-    }
-
-    return (topic !== null);
+  function updatePrepareCommunity (data, tasks) {
+    tasks.community.load = data.existing.communityId;
+  }
+  function updatePrepareAuthor (data, tasks) {
+    tasks.author.load = data.existing.authorId;
   }
 
-  function isPostBelongsToAuthor(repository) {
-    return (repository.author ? (repository.author.can ('suggest') ? true : Errors.noPermissions('suggest')) : Errors.notFound('member'));
+  function isPostBelongsToAuthor(data) {
+    return data.author.can ('suggest') ? true : Errors.noPermissions('suggest');
   }
 
-  function updateOnDataLoaded (jTopic, callback, data) {
-    var topic = data.topic;
-    jTopic.content = validators.sanitizeString(jTopic.content);
-    chain.update(jTopic, topic);
+  function updatePrepareTopic (jTopic, data, tasks) {
+    var topic = data.existing;
+    sergeant.update(jTopic, topic);
 
     if (isImmutable(topic)) {
-      callback(Errors.immutable('topic'));
-      return;
+      return Errors.immutable('topic');
     } else if (!data.community.isTopicLengthOk(topic.content)) {
-      callback(Errors.tooLong('topic-content'));
-      return;
+      return Errors.tooLong('topic-content');
     }
 
     topic.modified = new Date();
-    topic.save(chain.onSaved.bind(null, updateOnSaved.bind(null, callback, data)));
-  }
-
-  function updateOnSaved (callback, data, topicJSON) {
-    callback({
-      topic: topicJSON,
-      author: data.author.toMinJSON(),
-      community: data.community.toMinJSON()
-    });
+    tasks.topic.data = topic;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

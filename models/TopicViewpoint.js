@@ -12,9 +12,9 @@
       endorse: viewPoint.endorse,
       report: viewPoint.report
     } : {
-      id: Encryption.mask (viewPoint.id),
-      memberId: Encryption.mask (viewPoint.memberId),
-      topicId: Encryption.mask (viewPoint.topicId),
+      id: viewPoint.id,
+      memberId: viewPoint.memberId,
+      topicId: viewPoint.topicId,
       created: viewPoint.created,
       modified: viewPoint.modified,
       read: viewPoint.read,
@@ -31,6 +31,7 @@
   module.exports = {
     name: 'topicViewpoint',
     schema: {
+      id: {type: 'text', key: true},
       created: Date,
       modified: Date,
       read: Boolean,

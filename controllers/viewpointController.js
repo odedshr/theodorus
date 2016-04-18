@@ -15,12 +15,11 @@
     }
   }
   function updateViewpoint (authUser, subjectType, subjectId, attribute, value, db, callback) {
-    var unmaskedSubjectId = Encryption.unmask(subjectId);
     chain ([
-      {name: subjectType, table: db[subjectType], parameters: unmaskedSubjectId, continueIf: injectCommunityToMemberQuery.bind({},subjectType) },
+      {name: subjectType, table: db[subjectType], parameters: subjectId, continueIf: injectCommunityToMemberQuery.bind({},subjectType) },
       {name: 'member', table: db.membership, parameters: {userId: authUser.id }, continueIf: injectMembershipToTopicQuery.bind({},attribute) },
-      {name: 'viewpoint', table: db[getViewpointDBObjectName(subjectType)], parameters: { topicId: unmaskedSubjectId } }
-    ], updateViewpointOnViewpointLoaded.bind(null, subjectType, unmaskedSubjectId, attribute, value, db, callback), callback);
+      {name: 'viewpoint', table: db[getViewpointDBObjectName(subjectType)], parameters: { topicId: subjectId } }
+    ], updateViewpointOnViewpointLoaded.bind(null, subjectType, subjectId, attribute, value, db, callback), callback);
   }
 
   function injectCommunityToMemberQuery (subjectType, repository, tasks) {
@@ -78,7 +77,7 @@
   function onViewpointSaved (subjectType, subjectId, attribute, value, callback, count) {
     var data = {
       subjectType: subjectType,
-      subjectId: Encryption.mask(subjectId),
+      subjectId: subjectId,
       attribute : attribute,
       value : value,
       count : count

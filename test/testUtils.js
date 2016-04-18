@@ -32,7 +32,6 @@
     var filename = './user-files/debug_'+email+'.json';
 
     if (fs.existsSync(filename)) {
-      console.log('removing ' + filename);
       fs.unlinkSync (filename);
     } else {
       console.log('file not exists ' + filename);
@@ -41,6 +40,7 @@
 
   function getAuthToken (tokenFile, callback) {
     (REST ()).get('/user/connect/'+require(tokenFile).text).end(setToken.bind(null, callback));
+    fs.unlinkSync (tokenFile.substr(1));
   }
   function sendTokenRequest (email, callback) {
     var tokenFile = getTokenFile(email);
@@ -50,23 +50,28 @@
       getAuthToken(tokenFile, callback);
     }
   }
-  function addCommunity (token, input, callback) {
-    function communityAdded (error, response) {
-      if (error !== null) {
-        throw error;
-      }
-      callback (JSON.parse(response.text));
-    }
 
-    (REST()).put('/community').send(input).set('authorization', token).end(communityAdded);
+  function parseResponse (callback, error, response) {
+    if (error !== null) {
+      throw error;
+    }
+    callback (JSON.parse(response.text));
   }
-  function addMembership (token, communityId, input, callback) {
-    (REST()).put('/community/'+communityId+'/membership').set('authorization', token).send(input).end(callback);
+
+  function addCommunity (token, input, callback) {
+    (REST()).put('/community').send(input).set('authorization', token).end(parseResponse.bind(null, callback));
+  }
+  function addMembership (token, communityId, membership, callback) {
+    (REST()).put('/community/'+communityId+'/membership').set('authorization', token)
+      .send(membership).end(parseResponse.bind(null, callback));
   }
 
   function addRequest () {}
   function addInvite () {}
-  function addTopic () {}
+  function addTopic (token, communityId, topic, callback) {
+    (REST()).put('/community/'+communityId+'/topics').set('authorization', token)
+      .send(topic).end(parseResponse.bind (null, callback));
+  }
   function addOpinion () {}
   function addComment () {}
 
@@ -74,7 +79,7 @@
   module.exports.getTokenFile = getTokenFile;
   module.exports.withTokenOf = sendTokenRequest;
   module.exports.removeTokenFileOf = removeTokenFileOf;
-
+  module.exports.parseResponse = parseResponse;
 
   module.exports.addCommunity = addCommunity;
   module.exports.addMembership = addMembership;

@@ -16,14 +16,7 @@
     var memberName = 'membership-public-member-'+testId;
 
     before( function beforeTests (done) {
-      testUtils.removeTokenFileOf(founderEmail);
-      testUtils.removeTokenFileOf(memberEmail);
       createUserFounder(createUserMember.bind(null,createCommunity.bind(null, done)));
-    });
-
-    after ( function afterTests () {
-      testUtils.removeTokenFileOf(founderEmail);
-      testUtils.removeTokenFileOf(memberEmail);
     });
 
     function createUserFounder (callback) {
@@ -210,7 +203,7 @@
         function onGetMembership (error,response) {
           assert.equal ( error, null, 'no errors requesting token');
           var data = JSON.parse(response.text);
-          assert.equal ( data.membershipSize, 9, 'membership has the right number of properties');
+          assert.equal ( data.membershipSize, 10, 'membership has the right number of properties');
           done();
         }
 

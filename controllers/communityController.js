@@ -10,14 +10,9 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, communityId, db, callback) {
-    var unmaskedCommunityId = Encryption.unmask (communityId);
-    if (isNaN(unmaskedCommunityId)) {
-      callback(Errors.badInput('communityId',communityId));
-      return;
-    }
     sergeant ({
-      founder : { table:db.membership, load: { userId: authUser.id, communityId: unmaskedCommunityId }, after: sergeant.stopIfNotFound },
-      loadedCommunity : { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound },
+      founder : { table:db.membership, load: { userId: authUser.id, communityId: communityId }, after: sergeant.stopIfNotFound },
+      loadedCommunity : { table:db.community, load: communityId, after: sergeant.stopIfNotFound },
       community : { table:db.community, save: true, before: prepareCommunityArchive.bind(null,db), after: prepareArchiveOutput }},
       'founder,loadedCommunity,community', callback);
   }
@@ -57,19 +52,13 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function get (optionalUser, communityId, db, callback) {
-    var unmaskedCommunityId = Encryption.unmask(communityId);
-    if (isNaN(unmaskedCommunityId)) {
-      callback(Errors.badInput('communityId',communityId));
-      return;
-    }
-
     var tasks = {
-      community : { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound, finally:sergeant.json },
+      community : { table:db.community, load: communityId, after: sergeant.stopIfNotFound, finally:sergeant.json },
       membership: { table:db.membership, data: null, finally: sergeant.minimalJson },
-      founder: { table:db.membership, data: null, json:true, before: getSetFounderIdFromCommunity, finally:sergeant.minimalJson }
+      founder: { table:db.membership, json:true, before: getSetFounderIdFromCommunity, finally:sergeant.minimalJson }
     };
     if (optionalUser !== undefined) {
-      tasks.membership.load = {userId: optionalUser.id, communityId: unmaskedCommunityId };
+      tasks.membership.load = {userId: optionalUser.id, communityId: communityId };
     }
     sergeant (tasks,'community,membership,founder', callback);
   }
@@ -83,32 +72,31 @@
 
   function list (optionalUser, db, callback) {
     var tasks = {
-      communities : { table:db.community, load: { status: db.community.model.status.active }, multiple: {}, json: true },
-      memberships :  { table: db.membership, data: [], multiple: {}, json: true, after: mapMemberships.bind(null, db) }
+      communities : { table:db.community, load: { status: db.community.model.status.active }, multiple: {}, finally: sergeant.json },
+      memberships : { table: db.membership, multiple: {}, finally: sergeant.jsonMap.bind(null,'communityId') }
     };
     if (optionalUser !== undefined) {
       tasks.memberships.load  = { userId: optionalUser.id, status: db.membership.model.status.active};
     }
-    sergeant (tasks, 'communities,memberships', callback);
+    sergeant (tasks, 'communities,memberships', filterSecretCommunities.bind(null, db, callback));
   }
 
-  function mapMemberships (db, data) {
-    var memberships = utils.toMap(data.memberships, 'communityId');
-    var secretCommunity = db.community.model.type.secret;
+  function filterSecretCommunities (db, callback, data) {
     var communities = data.communities;
-    var communityCount = communities.length;
+    var memberships = data.memberships;
+    var secretCommunity = db.community.model.type.secret;
     var communityList = [];
 
     communities.reverse();
-    while (communityCount--) {
-      var community = communities[communityCount].toJSON();
+    while (communities.length) {
+      var community = communities.pop();
       if (community.type !== secretCommunity || memberships[community.id]) {
         communityList[communityList.length] = community;
       }
     }
-
-    data.memberships = memberships;
     data.communities = communityList;
+
+    callback(data);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,24 +147,18 @@
       callback(data);
       return;
     }
-    var founderId = Encryption.unmask (data.founder.id);
 
     if (founderImage !== undefined) {
-      controllers.saveProfileImageFile(founderId,founderImage,files,callback.bind(null,data));
+      controllers.saveProfileImageFile(data.founder.id,founderImage,files,callback.bind(null,data));
     } else {
       callback(data);
     }
   }
 
   function update (authUser,  community, db, callback) {
-    var unmaskedCommunityId = Encryption.unmask(community.id);
-    if (isNaN(unmaskedCommunityId)) {
-      callback(Errors.badInput('communityId',community.id));
-      return;
-    }
     sergeant ({
-      founder : { table:db.membership, load: { userId: authUser.id, communityId: unmaskedCommunityId }, after: sergeant.stopIfNotFound, finally: sergeant.json },
-      loadedCommunity: { table:db.community, load: unmaskedCommunityId, after: sergeant.stopIfNotFound, finally: sergeant.remove },
+      founder : { table:db.membership, load: { userId: authUser.id, communityId: community.id }, after: sergeant.stopIfNotFound, finally: sergeant.json },
+      loadedCommunity: { table:db.community, load: community.id, after: sergeant.stopIfNotFound, finally: sergeant.remove },
       community: { table:db.community, data: {},  save: true, before: prepareCommunityUpdate.bind(null, community), finally: sergeant.json }
     }, 'founder,loadedCommunity,community', callback);
   }

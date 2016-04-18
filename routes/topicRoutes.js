@@ -6,11 +6,11 @@
       '/community/[communityId]/topics': {
         get: {
           description: 'Get community\'s topics',
-          parameters: {topic: 'topic', communityId: 'id'},
+          parameters: { communityId: 'id'},
           response: {'200': {topics: 'array[topic]'}},
           handler: controllers.topic.list
         },
-        post: {
+        put: {
           description: 'Add a topic',
           parameters: {topic: 'topic', communityId: 'id'},
           response: {'200': {topic: 'topic'}},

@@ -7,36 +7,11 @@
   var status = { published: "published", draft: "draft", archived: "archived" };
   var editableFields = ['content'];
 
-  function toJSON (topic, isMinimal) {
-    return isMinimal ? {
-      id: Encryption.mask(topic.id),
-      created: topic.created,
-      modified: topic.modified,
-      content: topic.content,
-      authorId: Encryption.mask(topic.authorId)
-    } :{
-      id: Encryption.mask(topic.id),
-      status: topic.status,
-      created: topic.created,
-      modified: topic.modified,
-      content: topic.content,
-      follow: topic.follow,
-      endorse: topic.endorse,
-      report: topic.report,
-      opinions: topic.opinions,
-      authorId: Encryption.mask(topic.authorId),
-      communityId: Encryption.mask(topic.communityId)
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
   module.exports = {
     name: 'topic',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -55,13 +30,13 @@
       getEditables: getEditables
     },
     validations: {},
-    getNew: function getNew (membershipId, communityId, content, iStatus) {
+    getNew: function getNew ( topic ) {
       var now = new Date ();
       return {
-        authorId : membershipId,
-        communityId: communityId,
-        content: content,
-        status: status[iStatus] ? status[iStatus] : status.active,
+        authorId : topic.authorId,
+        communityId: topic.communityId,
+        content: topic.content,
+        status: status[topic.status] ? status[topic.status] : status.published,
         created: now,
         modified: now,
         follow: 0,
@@ -71,6 +46,33 @@
       };
     }
   };
+
+  function toJSON (topic, isMinimal) {
+    return isMinimal ? {
+      id: topic.id,
+      created: topic.created,
+      modified: topic.modified,
+      content: topic.content,
+      authorId: topic.authorId,
+      opinions: topic.opinions
+    } : {
+      id: topic.id,
+      status: topic.status,
+      created: topic.created,
+      modified: topic.modified,
+      content: topic.content,
+      follow: topic.follow,
+      endorse: topic.endorse,
+      report: topic.report,
+      opinions: topic.opinions,
+      authorId: topic.authorId,
+      communityId: topic.communityId
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 
 })();
 

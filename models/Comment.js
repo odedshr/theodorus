@@ -6,33 +6,11 @@
   var status = { published: "published", archived: "archived", blocked: "blocked" };
   var editableFields = ['content'];
 
-  function toJSON (post, isMinimal) {
-    return isMinimal ? {
-      id: Encryption.mask(post.id),
-      content: post.content,
-      authorId: Encryption.mask(post.authorId)
-    } : {
-      id: Encryption.mask(post.id),
-      status: post.status,
-      created: post.created,
-      modified: post.modified,
-      content: post.content,
-      endorse: post.endorse,
-      report: post.report,
-      comments: post.comments,
-      authorId: Encryption.mask(post.authorId),
-      communityId: Encryption.mask(post.communityId)
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
   module.exports = {
     name: 'comment',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -70,5 +48,28 @@
       };
     }
   };
+
+  function toJSON (post, isMinimal) {
+    return isMinimal ? {
+      id: post.id,
+      content: post.content,
+      authorId: post.authorId
+    } : {
+      id: post.id,
+      status: post.status,
+      created: post.created,
+      modified: post.modified,
+      content: post.content,
+      endorse: post.endorse,
+      report: post.report,
+      comments: post.comments,
+      authorId: post.authorId,
+      communityId: post.communityId
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 
 })();

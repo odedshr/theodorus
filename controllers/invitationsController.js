@@ -7,12 +7,11 @@
   var chain = require('../helpers/chain.js');
 
   function add (authUser, email, name, communityId, db, callback) {
-    var communityUnmaskedId = Encryption.unmask(communityId);
     if (email === undefined) {
       email = authUser.email;
     }
-    chain ([{name:'community', table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityUnmaskedId } }
+    chain ([{name:'community', table:db.community, parameters: communityId, continueIf: chain.onlyIfExists },
+        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityId } }
     ], addOnDataLoaded.bind(null, db, callback, authUser, email, name), callback);
   }
 
@@ -136,7 +135,7 @@
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   function reject (authUser, membershipId, db, callback) {
-    db.membership.get(Encryption.unmask(membershipId), chain.onLoad.bind(null, 'membership', rejectOnMembershipLoaded.bind(null,db, callback, authUser), callback, true));
+    db.membership.get(membershipId, chain.onLoad.bind(null, 'membership', rejectOnMembershipLoaded.bind(null,db, callback, authUser), callback, true));
   }
 
   function rejectOnMembershipLoaded (db, callback, authUser, membership) {
@@ -159,7 +158,7 @@
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   function decline (membershipId , db, callback) {
-    db.membership.get(Encryption.unmask(Encryption.decode(membershipId)), chain.onLoad.bind(null, 'membership', declineOnMembershipLoaded.bind(null, db, callback), callback, true));
+    db.membership.get(Encryption.decode(membershipId), chain.onLoad.bind(null, 'membership', declineOnMembershipLoaded.bind(null, db, callback), callback, true));
   }
 
   function declineOnMembershipLoaded (db, callback, membership) {
@@ -173,9 +172,8 @@
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   function quit (authUser, communityId , db, callback) {
-    var communityUnmaskedId = Encryption.unmask(communityId);
-    chain ([{name:'community', table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityUnmaskedId }, continueIf: chain.onlyIfExists },
+    chain ([{name:'community', table:db.community, parameters: communityId, continueIf: chain.onlyIfExists },
+        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityId }, continueIf: chain.onlyIfExists },
     ], quitOnDataLoaded.bind(null, db, callback), callback);
   }
 
@@ -204,7 +202,7 @@
       if (membershipId === undefined) {
         membershipId = membership.id;
       }
-      db.membership.one({userId: authUser.id, id: Encryption.unmask(membershipId)}, chain.onLoad.bind(null, 'membership', updateOnMembershipLoaded.bind(null, db, membership, callback), callback, true));
+      db.membership.one({userId: authUser.id, id: membershipId}, chain.onLoad.bind(null, 'membership', updateOnMembershipLoaded.bind(null, db, membership, callback), callback, true));
     } else {
       callback(new Error(404));
     }
@@ -231,10 +229,9 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function list (authUser, communityId, db, callback) {
-    var communityUnmaskedId = Encryption.unmask(communityId);
-    chain ([{name:'community', table:db.community, parameters: communityUnmaskedId, continueIf: chain.onlyIfExists },
-        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityUnmaskedId }, continueIf: listCanListMembers.bind (null, db) },
-        {name:'members', table:db.membership, parameters: {communityId: communityUnmaskedId, status: db.membership.model.status.active }, multiple: {} }
+    chain ([{name:'community', table:db.community, parameters: communityId, continueIf: chain.onlyIfExists },
+        {name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityId }, continueIf: listCanListMembers.bind (null, db) },
+        {name:'members', table:db.membership, parameters: {communityId: communityId, status: db.membership.model.status.active }, multiple: {} }
     ], listOnDataLoaded.bind(null, db, callback), callback);
   }
 
@@ -249,9 +246,8 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function requests (authUser, communityId, db, callback) {
-    var communitUnmaskedId = Encryption.unmask(communityId);
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communitUnmaskedId }, continueIf: requestsCanApproveRequests.bind(null, db)},
-        {name:'members', table:db.membership, parameters: {communityId: communitUnmaskedId, status: db.membership.model.status.requested}, multiple: {} }
+    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityId }, continueIf: requestsCanApproveRequests.bind(null, db)},
+        {name:'members', table:db.membership, parameters: {communityId: communityId, status: db.membership.model.status.requested}, multiple: {} }
         ], listOnDataLoaded.bind(null, db, callback), callback);
   }
 
@@ -262,9 +258,8 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function invitations (authUser, communityId, db, callback) {
-    var communitUnmaskedId = Encryption.unmask(communityId);
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communitUnmaskedId }, continueIf: invitationsUpdateQuery.bind (null, db)},
-        {name:'members', table:db.membership, parameters: {communityId: communitUnmaskedId , communityType: db.community.model.type.secret }, multiple: {} } //TODO , status: db.membership.model.status.invited ?
+    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, communityId: communityId }, continueIf: invitationsUpdateQuery.bind (null, db)},
+        {name:'members', table:db.membership, parameters: {communityId: communityId , communityType: db.community.model.type.secret }, multiple: {} } //TODO , status: db.membership.model.status.invited ?
     ], listOnDataLoaded.bind(null, db, callback), callback);
   }
 
@@ -280,7 +275,7 @@
     if (membershipId === undefined) {
       tasks = [{name:'memberships', table:db.membership, parameters: { userId: authUser.id }, multiple: {} }];
     } else {
-      tasks =[{name:'membership', table:db.membership, parameters: Encryption.unmask(membershipId), continueIf: listCommunitiesIsListPublic.bind(null,authUser.id)},
+      tasks =[{name:'membership', table:db.membership, parameters: membershipId, continueIf: listCommunitiesIsListPublic.bind(null,authUser.id)},
           {name:'memberships', table:db.membership, parameters: { userId: false }, multiple: {} }
       ]; //userId will be completed when first task completes
     }
@@ -319,7 +314,7 @@
       var community = dCommunities[i].toJSON();
       if (isCurrentUserList) {
         var membership = membershipByCommuntyId[dCommunities[i].id];
-        community.membershipId = Encryption.mask(membership.id);
+        community.membershipId = membership.id;
         community.membershipStatus = membership.status;
         community.membershipName = membership.name;
       }
@@ -331,8 +326,7 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function exists (optionalUser, communityId, name, db, callback ) {
-    var unmaskedCommunityId = Encryption.unmask(communityId);
-    db.membership.one({communityId: unmaskedCommunityId, name: name}, chain.onLoad.bind(null, 'membership', existsOnLoaded.bind(null, optionalUser, callback), callback, false));
+    db.membership.one({communityId: communityId, name: name}, chain.onLoad.bind(null, 'membership', existsOnLoaded.bind(null, optionalUser, callback), callback, false));
   }
 
   function existsOnLoaded (optionalUser, callback, membership) {

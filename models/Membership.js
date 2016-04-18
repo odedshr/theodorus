@@ -12,6 +12,7 @@
     name: 'membership',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
@@ -74,7 +75,7 @@
 
   function toJSON (membership, isMinimal) {
     return isMinimal ? {
-      id: Encryption.mask(membership.id),
+      id: membership.id,
       status: membership.status,
       name: membership.name,
       email: membership.email,
@@ -82,9 +83,10 @@
       score: membership.score,
       isModerator: membership.isModerator,
       isPublic: membership.isPublic,
-      isRepresentative: membership.isRepresentative
+      isRepresentative: membership.isRepresentative,
+      communityId: membership.communityId
     } : {
-      id: Encryption.mask(membership.id),
+      id: membership.id,
       status: membership.status,
       created: membership.created,
       modified: membership.modified,
@@ -103,7 +105,7 @@
       endorseGender: membership.endorseGender,
       endorseMinAge: membership.endorseMinAge,
       endorseMaxAge: membership.endorseMaxAge,
-      communityId: Encryption.mask(membership.communityId)
+      communityId: membership.communityId
     };
   }
 

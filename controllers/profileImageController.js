@@ -9,8 +9,7 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, membershipId, files, db, callback) {
-    var membershipUnmaskedId = Encryption.unmask(membershipId);
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipUnmaskedId }, continueIf: chain.onlyIfExists }],
+    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipId }, continueIf: chain.onlyIfExists }],
       deleteProfileImageFile.bind(null, membershipId,image, files, callback), callback);
   }
 
@@ -29,7 +28,7 @@
     var memberships = data.memberships;
     var count = memberships.length;
     while(count--) {
-      var membershipId = Encryption.mask(memberships[count].id);
+      var membershipId = memberships[count].id;
       if (files.exists(membershipId+'.png')) {
         images[images.length] = membershipId;
       }
@@ -49,8 +48,7 @@
   }
 
   function setProfileImage (authUser, membershipId, image, files, db, callback) {
-    var membershipUnmaskedId = Encryption.unmask(membershipId);
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipUnmaskedId }, continueIf: chain.onlyIfExists }],
+    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipId }, continueIf: chain.onlyIfExists }],
       saveProfileImageFile.bind(null, membershipId,image, files, callback), callback);
   }
 

@@ -4,32 +4,10 @@
   var Encryption = require ( '../helpers/Encryption.js' );
   var editableFields = ['read','follow','endorse', 'report'];
 
-  function toJSON (viewPoint, isMinimal) {
-    return isMinimal ? {
-      read: viewPoint.read,
-      follow: viewPoint.follow,
-      endorse: viewPoint.endorse,
-      report: viewPoint.report
-    } : {
-      id: Encryption.mask (viewPoint.id),
-      memberId: Encryption.mask (viewPoint.memberId),
-      commentId: Encryption.mask (viewPoint.commentId),
-      created: viewPoint.created,
-      modified: viewPoint.modified,
-      read: viewPoint.read,
-      follow: viewPoint.follow,
-      endorse: viewPoint.endorse,
-      report: viewPoint.report
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
   module.exports = {
     name: 'commentViewpoint',
     schema: {
+      id: {type: 'text', key: true},
       created: Date,
       modified: Date,
       read: Boolean,
@@ -59,5 +37,28 @@
       };
     }
   };
+
+  function toJSON (viewPoint, isMinimal) {
+    return isMinimal ? {
+      read: viewPoint.read,
+      follow: viewPoint.follow,
+      endorse: viewPoint.endorse,
+      report: viewPoint.report
+    } : {
+      id: viewPoint.id,
+      memberId: viewPoint.memberId,
+      commentId: viewPoint.commentId,
+      created: viewPoint.created,
+      modified: viewPoint.modified,
+      read: viewPoint.read,
+      follow: viewPoint.follow,
+      endorse: viewPoint.endorse,
+      report: viewPoint.report
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 
 })();

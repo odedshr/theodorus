@@ -10,7 +10,7 @@
           response: {'200': {comments: 'array[comment]'}},
           handler: controllers.comment.list
         },
-        post: {
+        put: {
           description: 'add a comment',
           parameters: {comment: 'comment', opinionId: 'id'},
           response: {'200': {comment: 'comment'}},

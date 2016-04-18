@@ -30,9 +30,9 @@
       endorse: viewPoint.endorse,
       report: viewPoint.report
     } : {
-      id: Encryption.mask (viewPoint.id),
-      memberId: Encryption.mask (viewPoint.memberId),
-      subjectId: Encryption.mask (viewPoint.subjectId),
+      id: viewPoint.id,
+      memberId: viewPoint.memberId,
+      subjectId: viewPoint.subjectId,
       created: viewPoint.created,
       modified: viewPoint.modified,
       read: viewPoint.read,
@@ -46,6 +46,7 @@
     name: 'membershipViewpoint',
     status: status,
     schema: {
+      id: {type: 'text', key: true},
       status: Object.keys(status),
       created: Date,
       modified: Date,
