@@ -14,9 +14,8 @@
           {{?!showUserDetailsInHeader}}
           <nav class="header-navigation">
               <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
-              <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}" data-ico="sign-up"><span>{{#link.signUp}}</span></a>
-              <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}" data-ico="sign-in"><span></span></a>
-              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
+              <a href="#join" class="nav-link link-join" title="{{#link.join}}" data-ico="sign-in"  data-register="getRedirectionURL"><span>{{#link.join}}</span></a>
+              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="sendFeedback"><span>{{#link.feedback}}</span></a>
           </nav>
           {{/showUserDetailsInHeader}}
           {{?showUserDetailsInHeader}}
@@ -24,7 +23,7 @@
               <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
               <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}" data-ico="message"><span>{{#link.messages}}</span></a>
               <a href="#me" class="nav-link link-me" title="{{#link.me}}" data-ico="user"><span>{{#link.me}}</span></a>
-              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
+              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="sendFeedback"><span>{{#link.feedback}}</span></a>
           </nav>
           {{/showUserDetailsInHeader}}
       </header>
@@ -32,8 +31,8 @@
   </template>
 
   <template data-id="welcomePage">
-      <aside class="visitors-info-what-is">
-          <h2>What is {{#app.title}} ?</h2>
+      <aside class="side-bar-element component visitors-info-what-is">
+          <h2 class="dialog-title">What is {{#app.title}} ?</h2>
           <div>lorem ipsum...</div>
       </aside>
 
@@ -43,69 +42,41 @@
           </ul>
       </article>
 
-      <aside class="visitor-options">
-          <div class="sign-in">
-              <h2>Sign in and speak up!</h2>
-              {{.:'signIn'}}
-          </div>
-          <div class="sign-up">
-              <h2>Sign up and join the conversation</h2>
-              {{.:'signUp'}}
+      <aside class="side-bar-element component visitor-join">
+          <div class="connect">
+              <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
+              {{.:'join'}}
           </div>
       </aside>
   </template>
 
-  <template data-id="signinPage">
+  <template data-id="joinPage">
       <div class="dialog">
-      <div class="dialog-title">{{#title.signIn}}</div>
-      {{.:'signIn'}}
+          <div class="dialog-title">{{#title.joinTheConversation}}</div>
+          {{.:'join'}}
       </div>
   </template>
 
-  <template data-id="signIn">
-      <form class="sign-in-form" data-register="frmSignIn">
+  <template data-id="join">
+      <form class="join-form" data-register="frmJoin">
           <div class="dialog-content">
-              <div>
-                  <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="email"/>
+              <div class="field-email">
+                  <label for="signUpEmail" class="dialog-label required">{{#label.join}}</label>
+                  <input type="email" name="email" id="joinEmail" placeholder="{{#placeholder.email}}"
+                         class="dialog-field join-field-email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" />
+                  <div id="joinEmailErrors" class="field-message"></div>
               </div>
-              <div>
-                  <label for="signInPassword">Password</label><input type="password" id="signInPassword" name="password"/>
-                  <i title="Show password">E</i>
-              </div>
+              <div class="text-agree-to-terms">{{#text.byClickingJoin}}</div>
+              <div data-hidden="true">{{#text.onceYouJoin}}</div>
           </div>
           <div class="dialog-buttons">
-              <button>Sign In</button>
+              <button type="submit">{{#link.join}}</button>
           </div>
       </form>
   </template>
 
-  <template data-id="signupPage">
-      <div class="dialog">
-          <div class="dialog-title">{{#title.signUp}}</div>
-          {{.:'signUp'}}
-      </div>
-  </template>
-
-  <template data-id="signUp">
-      <form class="sign-up-form" data-register="frmSignUp">
-          <div class="dialog-content">
-              <div>
-                  <label for="signUpEmail">Email</label><input type="email" name="email" id="signUpEmail" />
-              </div>
-              <div>
-                  <label for="signUpPassword">Password</label><input type="password" name="password" id="signUpPassword" />
-              </div>
-              <div>
-                  <label for="signUpRetypePassword">Retype Password</label><input type="password" name="retypePassword" id="signUpRetypePassword" />
-              </div>
-              <div>
-                  By clicking the sign up, you agree to the terms of use.
-              </div>
-          </div>
-          <div class="dialog-buttons">
-              <button>Sign Up</button>
-          </div>
-      </form>
+  <template data-id="userConnectRedirectPage">
+    <div>{{.:'loading'}}</div>
   </template>
 
   <template data-id="appContainer">
@@ -113,9 +84,7 @@
       <div id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}">
           {{.:'loading'}}
       </div>
-      <div class="error-screen-too-small">{{#error.screenTooSmall}}</div>
   </template>
-
 
   <template data-id="loading">
       <div class="loading">
@@ -153,6 +122,34 @@
   <template data-id="mePage">
       me
       <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+  </template>
+
+  <template data-id="notifySystem">
+      <div class="notification system {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="notifyCommunity">
+      <div class="notification community {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="notifyScore">
+      <div class="notification score {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="notifyMessage">
+      <div class="notification message {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
   </template>
 </body>
 </html>

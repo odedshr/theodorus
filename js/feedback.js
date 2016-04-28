@@ -4,35 +4,42 @@ app = (typeof app !== 'undefined') ? app : {};
   'use strict';
   this.registry = this.registry || {};
 
-  this.registry.reportBug = { attributes: { onclick : captureCurrentState.bind(this) } };
+  this.registry.sendFeedback = { attributes: { onclick : captureCurrentState.bind(this) } };
+  function captureCurrentState () {
+    var url = location.href;
+    html2canvas(document.body, { onrendered: onCanvasRendered.bind(this) });
+    return true;
+  }
+
+  function onCanvasRendered (canvas) {
+    window.setTimeout(storePreviousPageData.bind(this,canvas.toDataURL(), url),1);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+
   this.registry.feedbackPage = { preprocess: initFeedbackPage };
 
   function initFeedbackPage (dElm, callback) {
     document.title = O.TPL.translate('title.feedback');
     callback();
   }
-  function captureCurrentState () {
-    var url = location.href;
-    html2canvas(document.body, {
-      onrendered: function(canvas) {
-        window.setTimeout(storePreviousPageData.bind(this,canvas.toDataURL(), url),1);
-      }
-    });
-    return true;
-  }
 
   function storePreviousPageData (canvasData, url) {
     O.ELM.url.value = url;
-    O.ELM.image.value = canvasData;
     O.ELM.screenshotSample.src = canvasData;
     O.ELM.screenshotRow.removeAttribute('data-hidden');
+    this.resizeImage (canvasData, 1280, 1280, gotResizedScreenshot);
   }
 
-  this.registry.frmSendFeedback =  { attributes: {onsubmit : sendFeedback.bind(this) } } ;
+  function gotResizedScreenshot(canvasData) {
+    O.ELM.image.value = canvasData;
+  }
+
+  this.registry.frmFeedback =  { attributes: { onsubmit : sendFeedback.bind(this) } } ;
 
   function sendFeedback (evt) {
     try {
-      var data = this.getFormFields(evt.detail.target);
+      var data = this.getFormFields(evt.target);
       if (!data.feedbackIncludesScreenshot) {
         delete data.image;
       }

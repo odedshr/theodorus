@@ -59,12 +59,6 @@
 .icon-search:before {
   content: "\73";
 }
-.icon-male:before {
-  content: "\2642";
-}
-.icon-female:before {
-  content: "\2640";
-}
 .icon-star-empty:before {
   content: "\2729";
 }
@@ -172,4 +166,10 @@
 }
 .icon-cog:before {
   content: "\2699";
+}
+.icon-male:before {
+  content: "\2642";
+}
+.icon-female:before {
+  content: "\2640";
 }

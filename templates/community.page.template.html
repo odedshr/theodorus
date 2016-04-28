@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="communityPage">
+      <div class="page-header community-header">
+          <h2 class="community-name">{{communityName}}</h2>
+          {{?isMember}}
+          <div class="member-name">{{memberName}}<span class="email">{{email}}</span></div>
+          <div class="community-actions">
+              <div tabindex="1" class="community-actions drop-down">
+                  <div class="drop-down-title" data-ico="cog"><span>{{#btn.settings}}</span></div>
+                  <div class="community-actions-content drop-down-content">
+                      <a class="action" href="#community:{{communityId}}/settings" data-ico="cog"><span>{{#btn.settings}}</span></a>
+                      <a class="action" href="#community:{{communityId}}/quit" data-register="btnLeave" data-ico="sign-out"><span>{{#btn.quit}}</span></a>
+                  </div>
+              </div>
+          </div>
+          {{/isMember}}
+          {{?!isMember}}
+          <a class="link-community-join" href="{{joinLink}}"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
+          {{/isMember}}
+      </div>
+      {{?isMember}}
+      <div class="page-header">
+          {{.:'frmAddTopic'}}
+          <div class="topic-filter">
+            <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
+          </div>
+      </div>
+      {{/isMember}}
+      <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
+  </template>
+
+  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
+</body>
+</html>

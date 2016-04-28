@@ -94,5 +94,6 @@ Temporary Items
 # Created by .ignore support plugin (hsz.mobi)
 
 # Project Specific
-/_deploy.dev
-/_deploy.bin
+_deploy.dev
+_deploy.prd
+npm-debug.log

@@ -1,0 +1,182 @@
+@import "definitions.less";
+
+@media only screen and (max-width: @screen-xxs-max) {
+  .header {
+    height: 32px;
+    text-align: center;
+
+    .app-logo {
+      background-size: 28px;
+      background-position: center center;
+      height: 32px;
+      width: 32px;
+      padding: 0;
+    }
+    .app-title, .app-quick-description {
+      display: none;
+    }
+    .header-navigation {
+      display: inline-block;
+      float: none;
+      margin: 0;
+      vertical-align: top;
+
+      .nav-link:before { font-size: 28px; }
+      .nav-link {
+        height: 32px;
+        width: 32px;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: @screen-xs-min) {}
+/*
+@media only screen and (max-device-width: @screen-sm-max) and (orientation: landscape) {}
+@media only screen and (max-device-width: @screen-sm-max) and (orientation: portrait) {}
+*/
+.header {
+  background-color: @clr-white;
+  border-bottom: 0.1rem solid @clr-theodorus;
+  padding: 0.5rem;
+
+  @media only screen and (min-width: @screen-xs-min) and (max-width: @screen-xs-max) {
+    height: 3rem;
+    text-align: center;
+
+    .app-logo {
+      background-size: 40px;
+      background-position: center;
+      height: 48px;
+      width: 48px;
+      padding: 0;
+    }
+    .app-title, .app-quick-description {
+      display: none;
+    }
+    .header-navigation {
+      display:inline-block;
+      float: none;
+      margin: 0;
+      vertical-align: top;
+    }
+    .nav-link {
+      margin-left: 0.5rem;
+    }
+    .nav-link:before {
+      font-size: 2.5rem;
+    }
+  }
+/*  @media only screen and (min-width: @screen-sm-min) and (max-width: @screen-sm-max) { background-color: @clr-blumine; }
+  @media only screen and (min-width: @screen-md-min) and (max-width: @screen-md-max) { background-color: @clr-muddy-waters; }
+  @media only screen and (min-width: @screen-lg-min) { background-color: @clr-hippie-pink; }*/
+
+}
+.app-logo {
+  background-image: url(../img/logo.svg);
+  background-position: 0;
+  background-repeat: no-repeat;
+  clear: both;
+  color: @clr-title;
+  display: inline-block;
+  height: 3.7rem;
+  padding: .3rem 0 0 3.5rem;
+  text-decoration: none;
+  width: 10rem;
+}
+.app-title {
+  font-size: 2rem;
+}
+.app-quick-description {
+  font-size: 14px;
+}
+
+.header-navigation {
+  float: right;
+  margin: 10px 10px 0 0 ;
+}
+
+a[data-ico].nav-link, a[data-ico].nav-link:visited {
+  .outline-text;
+  background: transparent;
+  border: none;
+  color: @clr-white;
+  cursor: pointer;
+  display: inline-block;
+  height: 3rem;
+  text-align: center;
+  text-decoration: none;
+  width: 3rem;
+
+  span {
+    display: none;
+  }
+}
+.nav-link:before {
+  font-size: 2rem;
+}
+
+/*=============================================== pageHeader */
+.page-header {
+  background-color: @clr-background;
+  border-bottom: 0.1rem solid @clr-border;
+  padding: 0.5rem;
+
+  .button[data-ico] {
+    .outline-text;
+    background-color: @clr-background-dark;
+    border: 1px solid @clr-border;
+    border-radius: 12px;
+    box-sizing: border-box;
+    color: @clr-white;
+    cursor: pointer;
+    font-size: 12px;
+    height: 24px;
+    text-align: center;
+    padding-top: 4px;
+    width: 24px;
+
+    span {
+      display: none;
+    }
+
+  }
+  .button:hover {
+    background-color: @clr-white;
+    color: @clr-title;
+    text-shadow: none;
+  }
+  .button:active {
+    background-color: @clr-white;
+    color: @clr-title;
+    padding-top: 5px;
+    text-shadow: none;
+  }
+}
+
+.search {
+  background-color: @clr-white;
+  border: 0.1rem solid @clr-border;
+  border-radius: 12px;
+  display: inline-block;
+  height: 24px;
+  padding: 0 6px;
+
+  .stringSearch {
+    background: none;
+    border: none;
+    display: inline-block;
+    font-size: 12px;
+    line-height: 20px;
+    outline: none;
+    vertical-align: middle;
+  }
+  [data-ico="search"] {
+    background: none;
+    border: none;
+    color: @clr-title;
+    font-size: 16px;
+    line-height: 24px;
+    vertical-align: middle;
+  }
+}

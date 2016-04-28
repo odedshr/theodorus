@@ -15,21 +15,22 @@ app = (typeof app !== 'undefined') ? app : {};
       pageTemplate : this.getPageTemplateName()
     });
     if ( isAuthenticated ) {
-      this.api.getEmail (gotEmail.bind(this, bindedCallback));
+      this.api.getUser (gotUser.bind(this, bindedCallback));
     } else {
       bindedCallback ();
     }
 
   }).bind(this) };
 
-  function gotEmail (callback, response) {
-    this.state.email = response.email;
+  function gotUser (callback, response) {
+    this.state.user = response.user;
     callback ();
   }
 
   //===========================================================================/
   function onCancelButtonClicked () {
     history.back();
+    return false;
   }
   this.registry.btnCancel = { attributes : { onclick : onCancelButtonClicked } };
 
@@ -105,7 +106,13 @@ app = (typeof app !== 'undefined') ? app : {};
     var pageTemplate = (title.length ? title.replace(/\s/g,'') : (this.isAuthenticated() ? 'home' : 'welcome'))+'Page';
     O.ELM.appContainer.setAttribute('data-section',hashData.length > 0 ? hashData[0].key : 'home');
     if (O.TPL.list().indexOf(pageTemplate) === -1) {
-      pageTemplate = "notFoundPage";
+      var registryAction = this.registry[pageTemplate];
+      if (registryAction !== undefined && registryAction.preprocess !== undefined) {
+        registryAction.preprocess(null, function () {});
+      } else {
+        this.log('trying to access ' + pageTemplate,this.logType.debug);
+        pageTemplate = "notFoundPage";
+      }
     }
     return pageTemplate;
   }).bind(this);
@@ -125,10 +132,16 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.archive = { attributes : { onclick : archive.bind(this)}};
 
   function archive (evt) {
-    var dArchiveButton = evt.target;
-    var type = dArchiveButton.getAttribute('data-type');
-    var id = dArchiveButton.getAttribute('data-id');
-    this.api.archive(type, id, onArchived.bind(this,type, id));
+    var dArchiveButton = evt.target.closest('[data-register="archive"]');
+    if (dArchiveButton) {
+      var type = dArchiveButton.getAttribute('data-type');
+      var id = dArchiveButton.getAttribute('data-id');
+      this.api.archive(type, id, onArchived.bind(this,type, id));
+    } else {
+      this.log('failed to find archive button',this.logType.debug);
+      this.log(dArchiveButton,this.logType.debug);
+    }
+
   }
 
   function onArchived (type, id) {
@@ -162,7 +175,7 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.toggle = { attributes : { onclick : toggle.bind(this)}};
 
   function toggle (evt) {
-    var toggler = evt.target;
+    var toggler = evt.target.closest('[data-register]');
     var dElm = O.ELM[toggler.getAttribute('data-target')];
     if (dElm.getAttribute('data-hidden') === 'true') {
       O.CSS.add(toggler,'toggled');
@@ -213,17 +226,5 @@ app = (typeof app !== 'undefined') ? app : {};
     dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,pong)).getDispatcher('ping');
     callback();
   }).bind(this) };
-
-  //==========================
-
-  this.onCloseNotificationClicked = (function onCloseNotificationClicked (evt) {
-    O.DOM.remove(evt.target.closest('.notification'));
-    return false;
-  }).bind(this);
-
-  this.registry.closeNotification = (function registerCloseNotificationButton (dElm, callback) {
-    dElm.onclick = this.onCloseNotificationClicked;
-    callback();
-  }).bind(this);
 
 return this;}).call(app);

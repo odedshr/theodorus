@@ -12,22 +12,22 @@
 
     {{stylesheet@stylesheets}}<link rel="stylesheet" href="{{.}}" />
     {{/stylesheet@stylesheets}}
-    <script>
-        var server = '{{server}}';
-    </script>
-    <script language="JavaScript" src="vendor/o.min.js"></script>
-    <script language="JavaScript" src="vendor/moment.min.js"></script>
-    <script language="JavaScript" src="vendor/html2canvas.js"></script>
-    {{script@scripts}}<script language="JavaScript" src="{{.}}"></script>
-    {{/script@scripts}}
 </head>
 <body>
-<div id="appContainer" data-register="appContainer" data-env="{{environment}}">
-    <noscript>Please enable javascript to view this site.</noscript>
-    <div class="loading">
-        <i data-ico="spinner"></i>
-        <span class="title">{{#label.loading}}</span>
-    </div>
-</div>
-</body>
+  <div id="appContainer" data-register="appContainer" data-env="{{environment}}">
+      <noscript>Please enable javascript to view this site.</noscript>
+      <div class="loading">
+          <i data-ico="spinner"></i>
+          <span class="title">{{#label.loading}}</span>
+      </div>
+  </div>
+  </body>
+  <script>
+      var server = '{{server}}';
+  </script>
+  <script language="JavaScript" src="vendor/o.min.js"></script>
+  <script language="JavaScript" src="vendor/html2canvas.js"></script>
+  <script language="JavaScript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+  {{script@scripts}}<script language="JavaScript" src="{{.}}"></script>
+  {{/script@scripts}}
 </html>

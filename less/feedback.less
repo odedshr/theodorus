@@ -1,0 +1,33 @@
+@import "definitions.less";
+
+[data-section="feedback"] {
+  .form-feedback {
+    background: @clr-white;
+    box-sizing: content-box;
+    display: inline-block;
+    margin: 3vh 4vw;
+    min-width: @screen-xxs-max;
+    padding: 10px;
+
+    .title-feedback {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .feedback-content {
+      min-height: 50px;
+      width: 100%;
+    }
+
+    .button-bar {
+      text-align: right;
+    }
+  }
+  .feedbackScreenshot {
+    border: 1px solid @clr-border;
+    display: inline-block;
+    height: auto;
+    vertical-align: top;
+    width: 150px;
+  }
+}

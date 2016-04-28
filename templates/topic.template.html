@@ -20,17 +20,17 @@
           </div>
       </div>
       <div class="attributes">
-          <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
-          <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-          <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+          <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> {{#label.opinions}}</div>
+          <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+          <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
           <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
-          <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> reports</div>
+          <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
       </div>
       {{?isMember}}<div class="actions">
-        <div class="action action-opinion"><span data-ico="comment-empty">{{#action.opinion}}</span></div>
+        <div class="action action-opinion" data-register="toggle" data-target="topic-{{id}}-opinions"><span data-ico="comment-empty">{{#action.opinion}}</span></div>
         <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
-        <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
-        <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+        <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+        <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
         <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
         <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
         {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
@@ -44,7 +44,7 @@
               <label for="topicContent" class="required"></label><input type="text" class="field-topic-content" name="topicContent" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}"/>
           </div>
           <div class="row-buttons">
-              <button data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+              <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
           </div>
       </form>
   </template>

@@ -32,30 +32,50 @@ app = (typeof app !== 'undefined') ? app : {};
     'error': 'error'
   };
   this.log = (function log (value, type, color) {
+    var types = this.logType;
     if (type=== undefined) {
-      type = this.logType.system;
+      type = types.system;
     }
-    if (type === this.logType.debug) {
-      console.debug(value);
-    } else if (!this.isProduction) {
-      if (color === undefined) {
-        console.log(type+': '+ value);
-      } else {
-        console.log(type+': '+ value, color);
-      }
+    switch (type) {
+      case types.debug:
+        console.debug(value);
+      break;
+      case types.system:
+        this.notify({notifySystem:{ message: value, status:'info' }});
+      break;
+      case types.community:
+        this.notify({notifyCommunity:{ message: value, status:'info' }});
+      break;
+      case types.message:
+        this.notify({notifyMessage:{ message: value, status:'info' }});
+      break;
+      case types.score:
+        this.notify({notifyScore:{ message: value, status:'info' }});
+      break;
+      case types.error:
+        if (value instanceof Error) {
+            console.debug(value);
+            value = value.message;
+        }
+        this.notify({notifySystem:{ message: value, status:'error' }});
+      break;
+      default:
+        if (!this.isProduction) {
+          if (color === undefined) {
+            console.log(type+': '+ value);
+          } else {
+            console.log(type+': '+ value, color);
+          }
+        }
+      break;
     }
     return value;
   }).bind(this);
+//==================================/
 
-  this.notify = (function notify (data) {
-    var dNotifications = O.ELM.notifications;
-    if (dNotifications === undefined) {
-      dNotifications = O.ELM.appContainer;
-    }
-    O.DOM.append(dNotifications,O.TPL.render(data));
-    O.ELM.refresh();
-    this.registerChildren(dNotifications.querySelectorAll('[data-register]:not(.js-registered)'));
-  }).bind(this);
+  this.clone = function clone (object) {
+    return JSON.parse(JSON.stringify(object));
+  };
 
   //==================================/
   this.confirm  = (function confirm (string, callback) {
@@ -65,7 +85,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.extend = (function extend(obj, src) {
     for (var key in src) {
-      if (src.hasOwnProperty(key)) obj[key] = src[key];
+      if (src.hasOwnProperty(key)) {
+        obj[key] = src[key];
+      }
     }
     return obj;
   }).bind(this);
@@ -140,18 +162,36 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this);
 
   //==================================/
+  function isFormFieldDirty (dElm) {
+    switch (dElm.type) {
+      case 'checkbox': return dElm.checked !== dElm.defaultChecked;
+      case 'select-one': return !dElm.options[dElm.selectedIndex].defaultSelected;
+      default:
+        return dElm.value !== dElm.defaultValue;
+    }
+  }
+
+  function getFormFieldValue (dElm) {
+    switch (dElm.type) {
+      case 'checkbox': return dElm.checked;
+      case 'select-one': return !dElm.options[dElm.selectedIndex].value;
+      default:
+        return dElm.value;
+    }
+  }
+
   this.getFormFields = (function getFormFields (formElement, onlyDirty) {
     var formFields = formElement.elements;
     var data = {};
     var errors = [];
     for (var field in formFields) {
       if (formFields.hasOwnProperty(field)) {
-        var element = formFields[field];
-        if (element.name && (!onlyDirty && element.value !== element.defaultValue)) {
-          if (typeof element.checkValidation === "function" && element.checkValidation() === false) {
+        var dElm = formFields[field];
+        if (dElm.name && dElm.name.length > 0 && !onlyDirty || isFormFieldDirty(dElm)) {
+          if (typeof dElm.checkValidation === 'function' && dElm.checkValidation() === false) {
             errors[errors.length] = element;
-          } else {
-            data[element.name] = (element.type=="checkbox") ? (element.checked) : element.value;
+          } else if (dElm.name && dElm.name.length > 0) {
+            data[dElm.name] = getFormFieldValue(dElm);
           }
         }
       }
@@ -173,45 +213,8 @@ app = (typeof app !== 'undefined') ? app : {};
     dField.setCustomValidity(message);
     var errorField = O.ELM[dField.id + 'Errors'];
     if (errorField) {
-        O.ELM[dField.id + 'Errors'].innerHTML = message;
+        errorField.innerHTML = message;
     }
-  }).bind(this);
-  //==================================/
-  this.resizeImage = (function resizeImage (imgDataURL, maxWidth, maxHeight)
-  {
-    // load image from data url
-    var imageObj = new Image();
-    imageObj.src = imgDataURL;
-
-    var ratio = 1;
-    var canvas = document.createElement('canvas');
-    canvas.style.display='none';
-    document.body.appendChild(canvas);
-    var context = canvas.getContext('2d');
-    context.drawImage(imageObj, 0, 0);
-
-    var canvasCopy = document.createElement('canvas');
-    canvasCopy.style.display='none';
-    document.body.appendChild(canvasCopy);
-    var ctx = canvas.getContext('2d');
-    var copyContext = canvasCopy.getContext('2d');
-    if(imageObj.width > maxWidth)
-      ratio = maxWidth / imageObj.width;
-    else if(imageObj.height > maxHeight)
-      ratio = maxHeight / img.height;
-    canvasCopy.width = imageObj.width;
-    canvasCopy.height = imageObj.height;
-    copyContext.drawImage(imageObj, 0, 0);
-
-    var imgWidth = imageObj.width * ratio;
-    var imgHeight =  imageObj.height * ratio;
-    canvas.width = maxWidth;
-    canvas.height = maxHeight;
-    ctx.drawImage(canvasCopy, (maxWidth - imgWidth)/2, (maxHeight - imgHeight)/2, imgWidth,  imgHeight);
-    var dataURL = canvas.toDataURL('image/png');
-    document.body.removeChild(canvas);
-    document.body.removeChild(canvasCopy);
-    return dataURL; //dataURL.replace(/^data:image\/(png|jpg);base64,/, '');
   }).bind(this);
 
   //==================================/

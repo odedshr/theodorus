@@ -21,17 +21,17 @@
           </div>
       </div>
       <div class="attributes">
-          <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> opinions</div>
-          <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-          <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
+          <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> {{#label.opinions}}</div>
+          <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+          <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
           <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
-          <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> reports</div>
+          <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
       </div>
       {{?isMember}}<div class="actions">
-        <div class="action action-opinion"><span data-ico="comment-empty">{{#action.opinion}}</span></div>
+        <div class="action action-opinion" data-register="toggle" data-target="topic-{{id}}-opinions"><span data-ico="comment-empty">{{#action.opinion}}</span></div>
         <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
-        <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
-        <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+        <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+        <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
         <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
         <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
         {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
@@ -45,7 +45,7 @@
               <label for="topicContent" class="required"></label><input type="text" class="field-topic-content" name="topicContent" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}"/>
           </div>
           <div class="row-buttons">
-              <button data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+              <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
           </div>
       </form>
   </template>
@@ -62,35 +62,52 @@
       {{.:addTopic}}
   </template>
 
+  <template data-id="profileImageSelector">
+    <div class="profileImageSelector">
+      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="imageUpload"/>
+      <div>{{image@images}}<img class="member-image-thumb" src="{{.}}" data-register="copyImage" data-target="profileImagePreview"/>{{/image@images}}</div>
+      <button data-register="imageRemove"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
+      {{?hasImage}}<button data-register="imageReset" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
+    </div>
+  </template>
+
   <template data-id="opinionList">
-      <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
+    <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
   </template>
 
   <template data-id="opinionListItem">
-      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
-      <div class="next-to-author-image">
-          {{?isMine}}<form data-register="frmSetOpinion">
-          <input type="hidden" name="id" value="{{id}}" />
-          <input type="hidden" name="topicId" value="{{topicId}}" />
-          <input type="text" class="field-opinion-content js-opinion-content" name="content" required="required" placeholder="{{#placeholder.addOpinion}}" value="{{content}}"/>
-          <button data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
+    <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+    <div class="next-to-author-image">
+      {{?isMine}}<form data-register="frmSetOpinion">
+        <input type="hidden" name="id" value="{{id}}" />
+        <input type="hidden" name="topicId" value="{{topicId}}" />
+        <input type="text" class="field-opinion-content js-opinion-content" name="content" required="required" placeholder="{{#placeholder.addOpinion}}" value="{{content}}"/>
+        <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
       </form>{{/isMine}}
-          {{?!isMine}}<div class="content">{{content}}</div>{{/isMine}}
-          {{?includeAttributes}}
-          <div class="info attributes">
-              <div class="attribute author-name">{{author.name}}</div>
-              <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
-              {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
-              {{?isArchivable}}<div class="attribute" data-ico="trash-empty" data-register="archive" data-type="opinion" data-id="{{id}}"></div>{{/isArchivable}}
-          </div>
-          <div class="stats attributes">
-              <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="opinion_{{id}}_comment_count" class="value" data-role="comment-count">{{comments}}</span> comments</div>
-              <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-              <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
-          </div>
-          {{/includeAttributes}}
+      {{?!isMine}}<div class="content">{{content}}</div>{{/isMine}}
+      <div class="details">
+        <div class="detail author-name">{{author.name}}</div>
+        <div class="detail time" title="{{time}}">{{relativeTime}}</div>
+        {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
       </div>
-      <div id="opinion-{{id}}-comments" class="comments js-list" data-role="comments" data-opinion-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
+    </div>
+    <div class="attributes">
+      <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
+      <div class="attribute endorse-count" data-ico="comment-empty"><span id="opinion_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+      <div class="attribute follow-count" data-ico="bookmark-empty"><span id="opinion_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
+      <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
+      <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
+    </div>
+    {{?isMember}}<div class="actions">
+    <div class="action action-comment" data-register="toggle" data-target="opinion-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
+    <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
+    <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+    <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+    <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
+    <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
+    {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="opinion" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+    </div>{{/isMember}}
+    <div id="opinion-{{id}}-comments" class="comments js-list" data-role="comments" data-opinion-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
   </template>
 
   <template data-id="header">
@@ -102,9 +119,8 @@
           {{?!showUserDetailsInHeader}}
           <nav class="header-navigation">
               <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
-              <a href="#signup" class="nav-link link-sign-up" title="{{#link.signUp}}" data-ico="sign-up"><span>{{#link.signUp}}</span></a>
-              <a href="#signin" class="nav-link link-sign-in" title="{{#link.signIn}}" data-ico="sign-in"><span></span></a>
-              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
+              <a href="#join" class="nav-link link-join" title="{{#link.join}}" data-ico="sign-in"  data-register="getRedirectionURL"><span>{{#link.join}}</span></a>
+              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="sendFeedback"><span>{{#link.feedback}}</span></a>
           </nav>
           {{/showUserDetailsInHeader}}
           {{?showUserDetailsInHeader}}
@@ -112,7 +128,7 @@
               <a href="#communities" class="nav-link link-communities" title="{{#link.communities}}" data-ico="community"><span>{{#link.communities}}</span></a>
               <a href="#messages" class="nav-link link-messages" title="{{#link.messages}}" data-ico="message"><span>{{#link.messages}}</span></a>
               <a href="#me" class="nav-link link-me" title="{{#link.me}}" data-ico="user"><span>{{#link.me}}</span></a>
-              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="reportBug"><span>{{#link.reportBug}}</span></a>
+              <a href="#feedback" class="nav-link link-report-bug" title="{{#link.reportBug}}" data-ico="bug" data-register="sendFeedback"><span>{{#link.feedback}}</span></a>
           </nav>
           {{/showUserDetailsInHeader}}
       </header>
@@ -120,8 +136,8 @@
   </template>
 
   <template data-id="welcomePage">
-      <aside class="visitors-info-what-is">
-          <h2>What is {{#app.title}} ?</h2>
+      <aside class="side-bar-element component visitors-info-what-is">
+          <h2 class="dialog-title">What is {{#app.title}} ?</h2>
           <div>lorem ipsum...</div>
       </aside>
 
@@ -131,69 +147,41 @@
           </ul>
       </article>
 
-      <aside class="visitor-options">
-          <div class="sign-in">
-              <h2>Sign in and speak up!</h2>
-              {{.:'signIn'}}
-          </div>
-          <div class="sign-up">
-              <h2>Sign up and join the conversation</h2>
-              {{.:'signUp'}}
+      <aside class="side-bar-element component visitor-join">
+          <div class="connect">
+              <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
+              {{.:'join'}}
           </div>
       </aside>
   </template>
 
-  <template data-id="signinPage">
+  <template data-id="joinPage">
       <div class="dialog">
-      <div class="dialog-title">{{#title.signIn}}</div>
-      {{.:'signIn'}}
+          <div class="dialog-title">{{#title.joinTheConversation}}</div>
+          {{.:'join'}}
       </div>
   </template>
 
-  <template data-id="signIn">
-      <form class="sign-in-form" data-register="frmSignIn">
+  <template data-id="join">
+      <form class="join-form" data-register="frmJoin">
           <div class="dialog-content">
-              <div>
-                  <label for="signInEmail">Email</label><input type="email" id="signInEmail" name="email"/>
+              <div class="field-email">
+                  <label for="signUpEmail" class="dialog-label required">{{#label.join}}</label>
+                  <input type="email" name="email" id="joinEmail" placeholder="{{#placeholder.email}}"
+                         class="dialog-field join-field-email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" />
+                  <div id="joinEmailErrors" class="field-message"></div>
               </div>
-              <div>
-                  <label for="signInPassword">Password</label><input type="password" id="signInPassword" name="password"/>
-                  <i title="Show password">E</i>
-              </div>
+              <div class="text-agree-to-terms">{{#text.byClickingJoin}}</div>
+              <div data-hidden="true">{{#text.onceYouJoin}}</div>
           </div>
           <div class="dialog-buttons">
-              <button>Sign In</button>
+              <button type="submit">{{#link.join}}</button>
           </div>
       </form>
   </template>
 
-  <template data-id="signupPage">
-      <div class="dialog">
-          <div class="dialog-title">{{#title.signUp}}</div>
-          {{.:'signUp'}}
-      </div>
-  </template>
-
-  <template data-id="signUp">
-      <form class="sign-up-form" data-register="frmSignUp">
-          <div class="dialog-content">
-              <div>
-                  <label for="signUpEmail">Email</label><input type="email" name="email" id="signUpEmail" />
-              </div>
-              <div>
-                  <label for="signUpPassword">Password</label><input type="password" name="password" id="signUpPassword" />
-              </div>
-              <div>
-                  <label for="signUpRetypePassword">Retype Password</label><input type="password" name="retypePassword" id="signUpRetypePassword" />
-              </div>
-              <div>
-                  By clicking the sign up, you agree to the terms of use.
-              </div>
-          </div>
-          <div class="dialog-buttons">
-              <button>Sign Up</button>
-          </div>
-      </form>
+  <template data-id="userConnectRedirectPage">
+    <div>{{.:'loading'}}</div>
   </template>
 
   <template data-id="appContainer">
@@ -201,9 +189,7 @@
       <div id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}">
           {{.:'loading'}}
       </div>
-      <div class="error-screen-too-small">{{#error.screenTooSmall}}</div>
   </template>
-
 
   <template data-id="loading">
       <div class="loading">
@@ -243,25 +229,68 @@
       <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
   </template>
 
-  <template data-id="feedbackPage">
-      <form class="form form-feedback" data-register="frmSendFeedback">
-          <input type="hidden" id="url" name="url" />
+  <template data-id="notifySystem">
+      <div class="notification system {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
 
-          <h1 class="form-title title-feedback">{{#title.reportABug}}</h1>
-          <div>
-              <label for="content"></label>
-              <textarea id="content" name="content" placeholder="{{#placeholder.feedback}}" class="feedback-content" required="required"></textarea>
-          </div>
-          <div id="screenshotRow" data-hidden="true">
-              <img id="screenshotSample" class="feedbackScreenshot" src="" />
-              <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
-              <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
-              <input type="hidden" id="image" name="image" />
-          </div>
-          <div class="button-bar">
-              <button id="feedbackSend">{{#btn.ok}}</button>
-          </div>
-      </form>
+  <template data-id="notifyCommunity">
+      <div class="notification community {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="notifyScore">
+      <div class="notification score {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="notifyMessage">
+      <div class="notification message {{status}}">
+          <span class="message">{{message}}</span>
+          <a href="#" data-register="closeNotification" data-ico="cancel" title="{{#label.close}}"></a>
+      </div>
+  </template>
+
+  <template data-id="joinMail">
+      <div style="text-align:center;"><img src="{{baseURL}}/img/logo.png" height="64" width="64" /></div>
+      <div>
+        <h1>Join The conversation!<h1>
+          <a href="{{baseURL}}/#user/connect:[authToken]/redirect:{{redirect}}">Click here</a>
+      </div>
+      <div>This link will expire at {{expire}}.</div>
+  </template>
+
+  <template data-id="inviteMail">
+      <div>TBD</div>
+  </template>
+
+  <template data-id="feedbackPage">
+    <form class="form form-feedback component" data-register="frmFeedback">
+      <input type="hidden" id="url" name="url" />
+
+      <h1 class="dialog-title title-feedback">{{#title.reportABug}}</h1>
+      <div>
+        <label for="content"></label>
+        <textarea id="content" name="content" required="required"
+          placeholder="{{#placeholder.feedback}}"
+          class="dialog-field feedback-content"></textarea>
+      </div>
+      <div id="screenshotRow" data-hidden="true">
+        <img id="screenshotSample" class="feedbackScreenshot" src="" />
+        <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
+        <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
+        <input type="hidden" id="image" name="image" />
+      </div>
+      <div class="button-bar">
+        <button type="submit">{{#btn.ok}}</button>
+      </div>
+    </form>
   </template>
 
   <template data-id="notifySuccessFeedbackSent">
@@ -279,7 +308,7 @@
               <input type="text" id="pageNotFoundURL" name="pageNotFoundURL" disabled="disabled">
               <label for="pageNotFoundDescription">because I expect to find</label>
               <textarea id="pageNotFoundDescription" name="pageNotFoundDescription"></textarea>
-              <button>{{#btn.ok}}</button>
+              <button type="submit">{{#btn.ok}}</button>
           </form>
       </article>
   </template>
@@ -298,28 +327,23 @@
       </div>
   </template>
 
-  <template data-id="communitiesPage">
-      <div class="page-header">
-          {{?isAuthenticated}}
-          <a href="#community/add" data-ico="add" class="button add"><span>{{#btn.add}}</span></i></a>
-          {{/isAuthenticated}}
-          {{.:'frmSearch'}}
+  <template data-id="communitySettingsPage">
+      <div class="community-header">
+          <h2 class="community-name">{{communityName}}</h2>
+          <div class="member-name">{{memberName}}<span class="email">{{email}}</span></div>
       </div>
-      <div data-register="communityList" class="community-list"></div>
-  </template>
-
-  <template data-id="communityList">
-      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
-  </template>
-
-  <template data-id="communityListItem">
-      <a href="#community:{{id}}" class="link-community">
-          <div class="name">{{name}}</div>
-          <div class="statistics">
-              <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-              <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
-          </div>
-      </a>
+      <form class="membership-settings-form" data-register="frmMembershipSettings">
+        {{.:'profileImageSelector'}}
+        <div class="field-memberName">
+          <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label>
+          <input type="text" id="memberName" name="name" data-register="uniqueMemberName" required="required" maxlength="100" placeholder="{{#placeholder.memberName}}" value="{{memberName}}" />
+          <div id="memberNameErrors" class="field-message"></div>
+        </div>
+        <div class="button">
+          <button type="submit"><span>{{#btn.ok}}</span></button>
+          <button data-register="btnCancel" >{{#btn.cancel}}</button>
+        </div>
+      </form>
   </template>
 
   <template data-id="communityPage">
@@ -338,84 +362,98 @@
           </div>
           {{/isMember}}
           {{?!isMember}}
-          <a class="link-community-join" href="#community:{{communityId}}/join"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
+          <a class="link-community-join" href="{{joinLink}}"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
           {{/isMember}}
       </div>
       {{?isMember}}
       <div class="page-header">
           {{.:'frmAddTopic'}}
+          <div class="topic-filter">
+            <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
+          </div>
       </div>
       {{/isMember}}
       <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
+  </template>
+
+  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
+
+  <template data-id="communitiesPage">
+      <div class="page-header">
+          {{?isAuthenticated}}
+          <a href="#community/add" data-ico="add" class="button add"><span>{{#btn.add}}</span></i></a>
+          {{/isAuthenticated}}
+          <div class="community-filter">
+            <input type="text" class="community-filter-value" placeholder="{{#placeholder.filterCommunities}}" data-register="filterCommunities"/>
+          </div>
+      </div>
+      <div data-register="communityList" class="community-list"></div>
+  </template>
+
+  <template data-id="communityList">
+      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
+  </template>
+
+  <template data-id="communityListItem">
+      <a href="#community:{{id}}" class="link-community">
+          <div class="name">{{name}}</div>
+          <div class="statistics">
+              <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+              <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+          </div>
+      </a>
   </template>
 
   <template data-id="communityJoinPage">
       <div class="community-header">
           <h2 class="community-name">{{communityName}}</h2>
       </div>
-      {{?isAuthenticated}}
       <form class="join-community-form" data-register="frmJoinCommunity">
+        {{.:'profileImageSelector'}}
         <div class="field-memberName">
           <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label>
           <input type="text" id="memberName" name="name" data-register="uniqueMemberName" required="required" maxlength="100" placeholder="{{#placeholder.memberName}}" value="{{memberName}}" />
           <div id="memberNameErrors" class="field-message"></div>
         </div>
         <div>
-            <button>{{#btn.ok}}</button>
+            <button type="submit">{{#btn.ok}}</button>
             <button data-register="btnCancel" >{{#btn.cancel}}</button>
         </div>
       </form>
-      {{/isAuthenticated}}
-      {{?!isAuthenticated}}
-      <div class="dialog">
-          <div class="dialog-title">{{#label.youMustSignUpInToJoin}}</div>
-          <div class="dialog-buttons">
-              <a class="button" href="#signup">{{#link.signUp}}</a>
-              <a class="button" href="#signin">{{#link.signIn}}</a>
-              <a class="button" data-register="btnCancel">{{#btn.cancel}}</a>
-          </div>
-      </div>
-      {{/isAuthenticated}}
   </template>
 
   <template data-id="communityAddPage">
-    <form class="add-community-form" data-register="frmAddCommunity">
-        <div>
-            <label for="communityName" class="required">{{#label.communityAddName}}</label>
-            <input type="text" id="communityName" name="name" data-register="uniqueCommunityName" required="required" maxlength="100" placeholder="{{#placeholder.communityName}}"/>
-            <div id="communityNameErrors" class="field-message"></div>
-        </div>
-        <div>
-            <label for="communityDescription" class="required">{{#label.communityAddDescription}}</label>
-            <input type="text" id="communityDescription" name="description" placeholder="{{#placeholder.communityDescription}}"/>
-        </div>
-        <div>
-            <label for="founderName" class="required">{{#label.communityAddFounderName}}</label>
-            <input type="text" id="founderName" name="founderName" required="required" maxlength="100" placeholder="{{#placeholder.communityAddFounderName}}" value="{{founderName}}"/>
-        </div>
-        <div>
-            <button>{{#btn.ok}}</button>
-            <button data-register="btnCancel" >{{#btn.cancel}}</button>
-        </div>
-    </form>
-  </template>
+    <h1></h1>
+    <form class="form form-addCommunity component" data-register="frmAddCommunity">
 
-  <template data-id="communitySettingsPage">
-      <div class="community-header">
-          <h2 class="community-name">{{communityName}}</h2>
-          <div class="member-name">{{memberName}}<span class="email">{{email}}</span></div>
+      <h1 class="dialog-title title-addCommunity">{{#title.addCommunity}}</h1>
+      <div>
+        <label for="communityName" class="required">{{#label.communityAddName}}</label>
+        <input type="text" id="communityName" name="name" maxlength="100"
+          class="dialog-field community-name"
+          data-register="uniqueCommunityName" required="required"
+          placeholder="{{#placeholder.communityName}}"/>
+        <div id="communityNameErrors" class="field-message"></div>
       </div>
-      <form class="membership-settings-form" data-register="frmMembershipSettings">
-        <img src="{{profileImage}}" id="profileImagePreview" data-register="imageUpload"/>
-        <div class="field-memberName">
-          <label for="memberName" class="required">{{#label.communityJoinMemberName}}</label>
-          <input type="text" id="memberName" name="name" data-register="uniqueMemberName" required="required" maxlength="100" placeholder="{{#placeholder.memberName}}" value="{{memberName}}" />
-          <div id="memberNameErrors" class="field-message"></div>
-        </div>
-        <div class="button">
-          <button><span>{{#btn.ok}}</span></button>
-        </div>
-      </form>
+      <div>
+        <label for="communityDescription" class="required">{{#label.communityAddDescription}}</label>
+        <textarea id="communityDescription" name="description"
+          placeholder="{{#placeholder.communityDescription}}"
+          class="dialog-field community-description"></textarea>
+      </div>
+      <div>
+        <label for="founderName" class="required">{{#label.communityAddFounderName}}</label>
+        <input type="text" id="founderName" name="founderName" maxlength="100"
+          required="required" value="{{founderName}}"
+          class="dialog-field founder-name"
+          placeholder="{{#placeholder.communityAddFounderName}}"/>
+      </div>
+      {{.:'profileImageSelector'}}
+      <div class="dialog-buttons">
+        <button type="submit">{{#btn.ok}}</button>
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
+      </div>
+    </form>
   </template>
 
   <template data-id="commentList">
@@ -428,18 +466,28 @@
       <div class="next-to-author-image">
           {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
           {{?!isEditable}}<div class="content">{{content}}</div>{{/isEditable}}
-          <div class="info attributes">
-              <div class="attribute author-name">{{author.name}}</div>
-              <div class="attribute time" title="{{time}}">{{relativeTime}}</div>
+          <div class="details">
+              <div class="detail author-name">{{author.name}}</div>
+              <div class="detail time" title="{{time}}">{{relativeTime}}</div>
               {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
-              {{?isEditable}}<div class="attribute" data-ico="trash-empty" data-register="archive" data-type="comment" data-id="{{id}}"></div>{{/isEditable}}
-          </div>
-          <div class="stats attributes">
-              <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="opinion_{{id}}_comment_count" class="value" data-role="comment-count">{{comments}}</span> comments</div>
-              <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> endorsements</div>
-              <div class="attribute follow-count" data-ico="bookmark-empty"><span id="topic_{{id}}_follow_count" class="value">{{follow}}</span> followers</div>
           </div>
       </div>
+      <div class="attributes">
+        <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
+        <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+        <div class="attribute follow-count" data-ico="bookmark-empty"><span id="comment_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
+        <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
+        <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
+      </div>
+      {{?isMember}}<div class="actions">
+      <div class="action action-comment" data-register="toggle" data-target="comment-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
+      <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
+      <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+      <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+      <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
+      <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
+      {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+      </div>{{/isMember}}
       <div id="comment-{{id}}-comments" class="comments js-list" data-role="comments" data-comment-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
   </template>
 
@@ -449,7 +497,7 @@
           <input type="hidden" name="opinionId" value="{{opinionId}}"/>
           <input type="hidden" name="parentId" value="{{parentId}}"/>
           <input type="text" class="field-comment-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" value="{{content}}"/>
-          <button data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+          <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
       </form>
   </template>
 

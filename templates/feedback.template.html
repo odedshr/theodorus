@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Templates</title>
+  <meta charset="UTF-8">
+  <title>Templates</title>
 </head>
 <body>
   <template data-id="feedbackPage">
-      <form class="form form-feedback" data-register="frmSendFeedback">
-          <input type="hidden" id="url" name="url" />
+    <form class="form form-feedback component" data-register="frmFeedback">
+      <input type="hidden" id="url" name="url" />
 
-          <h1 class="form-title title-feedback">{{#title.reportABug}}</h1>
-          <div>
-              <label for="content"></label>
-              <textarea id="content" name="content" placeholder="{{#placeholder.feedback}}" class="feedback-content" required="required"></textarea>
-          </div>
-          <div id="screenshotRow" data-hidden="true">
-              <img id="screenshotSample" class="feedbackScreenshot" src="" />
-              <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
-              <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
-              <input type="hidden" id="image" name="image" />
-          </div>
-          <div class="button-bar">
-              <button id="feedbackSend">{{#btn.ok}}</button>
-          </div>
-      </form>
+      <h1 class="dialog-title title-feedback">{{#title.reportABug}}</h1>
+      <div>
+        <label for="content"></label>
+        <textarea id="content" name="content" required="required"
+          placeholder="{{#placeholder.feedback}}"
+          class="dialog-field feedback-content"></textarea>
+      </div>
+      <div id="screenshotRow" data-hidden="true">
+        <img id="screenshotSample" class="feedbackScreenshot" src="" />
+        <input type="checkbox" id="feedbackIncludesScreenshot" name="feedbackIncludesScreenshot" value="true"/>
+        <label for="feedbackIncludesScreenshot">{{#label.includeScreenshot}}</label>
+        <input type="hidden" id="image" name="image" />
+      </div>
+      <div class="button-bar">
+        <button type="submit">{{#btn.ok}}</button>
+      </div>
+    </form>
   </template>
 
   <template data-id="notifySuccessFeedbackSent">
