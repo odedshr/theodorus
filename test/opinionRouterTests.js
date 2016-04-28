@@ -70,7 +70,7 @@ describe('opinionRouterRouter', function () {
           .end(testUtils.parseResponse.bind (null, onFailedToAddOpinion));
       });
 
-      it ('successfully add a topic', function addTopic(done) {
+      it ('successfully add an opinion', function addTopic(done) {
         function onOpinionAdded (data) {
           assert.equal ( data.opinion.content, opinionContent1, 'content is as expected');
           assert.equal ( data.topic.opinions, 1, 'topic has one opinion');
@@ -105,7 +105,7 @@ describe('opinionRouterRouter', function () {
     describe('GET /topic/[topicId]/opinions', function getOpinionList() {
       it ('successfully get the opinion list', function getOpinions(done) {
         function gotOpinions (data) {
-          assert.equal ( data.opinions.length,1, 'topic list has 1 topic');
+          assert.equal ( data.opinions.length,1, 'opinion list has 1 opinion');
           var opinion = data.opinions[0];
           assert.equal ( data.authors[opinion.authorId].name, founderName, 'author name is as expected');
           assert.equal ( data.history[opinion.authorId][0].content, opinionContent1, 'history content is as expected');

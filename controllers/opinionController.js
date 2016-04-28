@@ -148,21 +148,21 @@
         after: sergeant.stopIfNotFound,
         finally: sergeant.remove
       },
-      member: {table: db.membership, after: checkPermission.bind(null, 'list-opinions', db)},
+      member: { table: db.membership, after: checkPermission.bind(null, 'list-opinions', db)},
       opinions: {
         table: db.opinion,
         before: listPrepareOpinionsQuery.bind(null, status),
-        load: {topicId: topicId, status: [status.published, status.history]}, multiple: {order: 'modified'},
-        after: listSeparateHistory.bind(null, status), finally: sergeant.fullJson
-      },
-      history: { finally: sergeant.jsonGroup.bind(null,'authorId') },
+        load: { topicId: topicId, status: [status.published, status.history]}, multiple: {order: 'modified'},
+        after: listSeparateHistory.bind(null, status), finally: sergeant.fullJson },
+      history: { table: db.opinion, finally: sergeant.jsonGroup.bind(null,'authorId') },
       draft: { finally: sergeant.fullJson },
-      authors: {table: db.membership, before: listPrepareAuthorsQuery, multiple: {}, finally: sergeant.jsonMap},
-      viewpoints: {table: db.opinionViewpoints, multiple: {}, finally: sergeant.jsonMap}
+      authors: { table: db.membership, before: listPrepareAuthorsQuery, multiple: {},
+        finally: sergeant.jsonMap},
+      viewpoints: { table: db.opinionViewpoint, multiple: {}, finally: sergeant.jsonMap}
     };
 
     if (optionalUser !== undefined) {
-      tasks.member.load = {userId: optionalUser.id};
+      tasks.member.load = { userId: optionalUser.id };
       tasks.member.before = listPrepareMemberQuery;
       tasks.viewpoints.before = listPrepareViewpointQuery;
     }
@@ -182,18 +182,20 @@
     if (member) {
       var opinions = data.opinions;
       var count = opinions.length;
-      var opinionIds = [];
-      while (count) {
-        opinionIds[count] = opinions[count].id;
+      if (count) {
+        var opinionIds = [];
+        while (count--) {
+          opinionIds[count] = opinions[count].id;
+        }
+        tasks.viewpoints.load = {id: opinionIds, memberId: member.id};
       }
-      tasks.viewpoints.load = {id: opinionIds, memberId: member.id};
     }
   }
 
   function listPrepareOpinionsQuery(status, repository, tasks) {
     var member = repository.member;
     if (member) {
-      tasks.opinions.load.or = [tasks.opinions.load.status, {status: status.draft, authorId: member.id}];
+      tasks.opinions.load.or = [{status: tasks.opinions.load.status}, {status: status.draft, authorId: member.id}];
       delete tasks.opinions.load.status;
     }
   }

@@ -89,7 +89,7 @@
   }
 
   function getCheckAuthorImage (files, data) {
-    data.hasImage = controllers.profileImage.existsSync (files, data.author.id);
+    data.author.hasImage = controllers.profileImage.existsSync (files, data.author.id);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,10 +97,14 @@
   function list (optionalUser, communityId, db, callback) {
     var tasks = {
       community: { table: db.community, load: communityId, after: sergeant.stopIfNotFound, finally: sergeant.jsonMap },
-      topics: { table: db.topic, load: { communityId: communityId, status: db.topic.model.status.published}, multiple: {order: 'modified'}, finally: sergeant.json },
-      authors: { table: db.membership, before: prepareAuthorsQuery, multiple: {}, finally: sergeant.jsonMap },
-      member: { table: db.membership, before: prepareMemberQuery.bind(null, optionalUser), after: listOnlyIfHasPermissions.bind (null,db.community.model.type.exclusive), finally: sergeant.remove },
-      viewpoints: { table: db.topicViewpoint, before: prepareViewpointsQuery, multiple: {}, finally: sergeant.jsonMap.bind (null,'topicId')}
+      topics: { table: db.topic, load: { communityId: communityId, status: db.topic.model.status.published},
+        multiple: {order: 'modified'}, finally: sergeant.fullJson },
+      authors: { table: db.membership, before: prepareAuthorsQuery, multiple: {},
+        finally: sergeant.jsonMap },
+      member: { table: db.membership, before: prepareMemberQuery.bind(null, optionalUser),
+        after: listOnlyIfHasPermissions.bind (null,db.community.model.type.exclusive), finally: sergeant.remove },
+      viewpoints: { table: db.topicViewpoint, before: prepareViewpointsQuery, multiple: {},
+        finally: sergeant.jsonMap.bind (null,'topicId')}
     };
 
     sergeant (tasks, 'community,topics,authors,member,viewpoints', callback);

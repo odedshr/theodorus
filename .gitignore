@@ -48,3 +48,4 @@ Thumbs.db
 environment_variables.json
 # user-files is the default folder for storing user files
 user-files
+npm-debug.log

@@ -177,7 +177,9 @@
     if (communityId !== undefined) {
       membership.communityId = communityId;
     }
-    var onceMembershipIsSaved = membershipImage ? saveMembershipImage.bind(null,membershipImage,files, callback) : callback;
+    membership.hasImage = !!membershipImage;
+    var onceMembershipIsSaved = membershipImage ? saveMembershipImage.bind(null, membershipImage, files, db, callback) : callback;
+
 
     var tasks  ={
       current : { table:db.membership, load:{ userId: authUser.id }, finally: sergeant.remove },
@@ -188,7 +190,8 @@
                     before: setCommunityType.bind(null, membership, db),
                     beforeSave: setPrepareSave.bind(null, membership, db),
                     save: true,
-                    after: setAfterAdd.bind(null, db), finally: sergeant.json }
+                    after: setAfterAdd.bind(null, db), finally: sergeant.json },
+      updateCommunity: { table:db.community, finally: sergeant.remove }
     };
 
     membership.userId = authUser.id; // this is relevant for new memberships
@@ -255,16 +258,21 @@
     var community = data.community;
     var user = data.user;
 
-    membership.communityId = community.id; // for updates that start with membership.id
-    membership.type = communityTypes.public;
-    membership.status = status.active;
-
     if (community.isFit(user)) {
       if (current) {
+        // user was a member previously
         sergeant.update(membership, current);
+        current.hasImage = membership.hasImage;
+        membership = current;
+        membership.status = status.active; //status is not manual and doesn't change via update
       } else {
+        membership  = db.membership.model.getNew(membership);
+      }
+      if (! (current && current.stats === db.membership.model.status.active)) {
+        // user isn't not an active member, therefore community count should be updated
         updateCommunityMemberCount ( db,1, data);
-        community.save();
+        tasks.updateCommunity.data = community;
+        tasks.updateCommunity.save = true;
       }
     } else {
       if (current) {
@@ -274,7 +282,7 @@
       }
     }
 
-    tasks.membership.data = current ? current : db.membership.model.getNew(membership);
+    tasks.membership.data = membership;
     return db.membership.model.isValid(membership);
   }
   function setAfterAdd (db, data) {
@@ -284,9 +292,9 @@
       return true;
     }
   }
-  function saveMembershipImage (membershipImage,files, callback, data) {
-    controllers.profileImage.saveProfileImageFile(data.membership.id, membershipImage, files, callback.bind(null, data));
-
+  function saveMembershipImage (membershipImage,files, db, callback, data) {
+    files.set(controllers.profileImage.getImageFilename(data.membership.id),membershipImage);
+    callback(data);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

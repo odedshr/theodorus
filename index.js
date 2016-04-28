@@ -38,7 +38,7 @@
   try {
     // Add headers
     app.use(setHeaders);
-    app.use(bodyParser.json()); // for parsing application/json
+    app.use(bodyParser.json({limit: '50mb'})); // for parsing application/json
     app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
     try {

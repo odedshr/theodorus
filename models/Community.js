@@ -100,8 +100,9 @@
       id: community.id,
       name: community.name,
       description: community.description,
-      type: community.type,
-      topics: community.topics
+      members: community.members,
+      topics: community.topics,
+      type: community.type
     } :{
       id: community.id,
       status: community.status,
@@ -132,7 +133,8 @@
     if (comparedTo === 0) {
       return true;
     } else {
-      return (comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message)) <= Math.abs(comparedTo);
+      var stringSize = comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message);
+      return stringSize <= Math.abs(comparedTo);
     }
   }
 

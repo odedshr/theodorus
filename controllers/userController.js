@@ -22,7 +22,7 @@
       authToken.email = email;
       var encodedToken = Encryption.encode (authToken);
 
-      if (content === undefined || content.indexOf('[authToken]')) {
+      if (content === undefined || content.indexOf('[authToken]') === -1) {
         content = encodedToken;
       } else {
         content = content.replace (/\[authToken]/g, encodedToken);
@@ -33,8 +33,10 @@
           email: email,
           subject: subject,
           text: text,
-          html: content
-        }), callback);
+          html: content,
+          token: encodedToken
+        }));
+        callback({status: 'file-stored' });
       } else {
         mailer.send(email, '', subject, text, content, callback);
         log('token sent to ' + email + ': '+ encodedToken);

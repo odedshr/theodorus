@@ -123,6 +123,7 @@
     community = db.community.model.getNew( community );
     founder =  db.membership.model.getNew( founder );
     founder.userId = authUser.id;
+    founder.hasImage = !!founderImage;
     var tasks = {
       existingCommunity: { table:db.community, load:{ name : community.name}, after:sergeant.stopIfFound, finally:sergeant.remove },
       communityWithoutFounder: { table: db.community, data: community, save: true, finally:sergeant.remove  },
@@ -149,10 +150,9 @@
     }
 
     if (founderImage !== undefined) {
-      controllers.saveProfileImageFile(data.founder.id,founderImage,files,callback.bind(null,data));
-    } else {
-      callback(data);
+      files.set(controllers.profileImage.getImageFilename(data.founder.id),founderImage);
     }
+    callback(data);
   }
 
   function update (authUser,  community, db, callback) {

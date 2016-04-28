@@ -3,7 +3,7 @@
 
   module.exports = function (controllers) {
     return {
-      '/membership/image': {
+      '/membership/all/images': {
         get: {
           description: 'Return all memberships of current user that have an image',
           response: {'200': {memberships: 'array[memberships]'}},

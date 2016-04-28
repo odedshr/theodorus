@@ -1,7 +1,7 @@
 (function profileImageControllerClosure() {
   'use strict';
 
-  var chain = require('../helpers/chain.js');
+  var sergeant = require('../helpers/sergeant.js');
   var Encryption = require ('../helpers/Encryption.js');
   var Errors = require('../helpers/Errors.js');
 
@@ -9,36 +9,32 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function archive (authUser, membershipId, files, db, callback) {
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipId }, continueIf: chain.onlyIfExists }],
-      deleteProfileImageFile.bind(null, membershipId,image, files, callback), callback);
-  }
-
-  function deleteProfileImageFile (membershipId, files, callback) {
-    files.set(membershipId+'.png', undefined, callback);
+    set (authUser, membershipId, undefined, files, db, callback);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function getAllProfileImages (authUser, files, db, callback) {
-    chain ([{name:'memberships', table:db.membership, parameters: {userId: authUser.id }, multiple: {} }], getAllProfileImagesOnMembershipsLoaded.bind(null, files, callback));
+  function list (authUser, db, callback) {
+    sergeant ({
+      images : { table:db.membership, load: { userId: authUser.id, hasImage: true}, multiple: {},
+        after: listGetImages, finally: sergeant.json}
+    }, 'images', callback);
   }
 
-  function getAllProfileImagesOnMembershipsLoaded (files, callback, data) {
+  function listGetImages (data) {
     var images = [];
-    var memberships = data.memberships;
+    var memberships = data.images;
     var count = memberships.length;
     while(count--) {
-      var membershipId = memberships[count].id;
-      if (files.exists(membershipId+'.png')) {
-        images[images.length] = membershipId;
-      }
+      images[images.length] = memberships[count].id;
     }
-    callback(images);
+    data.images = images;
   }
 
-  function getProfileImage (membershipId, files, callback) {
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function get (membershipId, files, callback) {
     files.get(membershipId+'.png', function (img) {
-      //callback((img instanceof Error) ? { _redirect: '/1px_transparent.png'} : { _file: 'image/png', content: img });
       if (img instanceof Error) {
         callback( { _status: 404 });
       } else {
@@ -47,19 +43,32 @@
     });
   }
 
-  function setProfileImage (authUser, membershipId, image, files, db, callback) {
-    chain ([{name:'membership', table:db.membership, parameters: {userId: authUser.id, id: membershipId }, continueIf: chain.onlyIfExists }],
-      saveProfileImageFile.bind(null, membershipId,image, files, callback), callback);
+  function set (authUser, membershipId, image, files, db, callback) {
+    if (image !== undefined && image.length === 0) {
+      image = undefined;
+    }
+    sergeant ({
+      membership : { table: db.membership, load: { userId: authUser.id, id: membershipId },
+        beforeSave: sergeant.and(sergeant.stopIfNotFound, setPrepareMembership.bind(null, image, files)),
+        save: true,
+        finally: sergeant.json }},
+      'membership',  callback);
   }
 
-  function saveProfileImageFile (membershipId,data,files, callback) {
-    files.set(membershipId+'.png',data, callback);
+  function setPrepareMembership (imageData,files, data) {
+    var membership = data.membership;
+    membership.hasImage = (imageData !== undefined);
+    return files.set(getImageFilename(membership.id),imageData);
+  }
+
+  function getImageFilename (membershipId) {
+    return membershipId+'.png';
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function existsSync (files, membershipId) {
-    return files.exists(membershipId+'.png');
+    return files.exists(getImageFilename(membershipId));
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,10 +82,9 @@
 
   module.exports.archive = archive;
   module.exports.existsSync = existsSync;
-  module.exports.get = getProfileImage;
-  module.exports.list = getAllProfileImages;
-  module.exports.set = setProfileImage;
+  module.exports.get = get;
+  module.exports.list = list;
+  module.exports.set = set;
+  module.exports.getImageFilename = getImageFilename;
 
-
-  module.exports.saveProfileImageFile = saveProfileImageFile;
 })();

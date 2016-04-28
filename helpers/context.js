@@ -203,6 +203,7 @@
           try {
             value = action.apply(this, args);
           } catch (err) {
+            log(err);
             writeToRes(Errors.systemError(err, args, req.url));
             return false;
           }

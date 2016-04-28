@@ -36,9 +36,8 @@
       });
 
       it('should successfully request authentication token', function (done) {
-        function onTokenStored(error, response) {
-          assert.ok(error === null, 'no errors requesting token');
-          assert.ok(response && (JSON.parse(response.text).status === 'file-stored'), "token file stored");
+        function onTokenStored(data) {
+          assert.ok(data.status === 'file-stored', 'token file stored');
           var file = require('../user-files/debug_' + email + '.json');
           assert.ok(file.email === email, 'token sent to right email');
           done();
@@ -48,7 +47,7 @@
           .post('/user/connect')
           .send({email: email})
           .expect(200) //Status code
-          .end(onTokenStored);
+          .end(testUtils.parseResponse.bind (null, onTokenStored));
       });
     });
 

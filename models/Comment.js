@@ -31,20 +31,21 @@
       getEditables: getEditables
     },
     validations: {},
-    getNew: function getNew (membershipId, communityId, opinionId, parentId, content, iStatus) {
+    getNew: function getNew ( comment ) {
       var now = new Date ();
       return {
-        authorId : membershipId,
-        communityId: communityId,
-        opinionId: opinionId,
-        parentId: parentId,
-        content: content,
-        status: status[iStatus] ? status[iStatus] : status.published,
-        created: now,
+        id : comment.id,
+        authorId : comment.authorId,
+        communityId: comment.communityId,
+        opinionId: comment.opinionId,
+        parentId: comment.parentId,
+        content: comment.content,
+        status: status[comment.status] ? status[comment.status] : status.published,
+        created: comment.id ? comment.created : now,
         modified: now,
-        endorse: 0,
-        report: 0,
-        comments: 0
+        endorse: comment.id ? comment.endorse : 0,
+        report: comment.id ? comment.report : 0,
+        comments: comment.id ? comment.comments : 0
       };
     }
   };
@@ -53,7 +54,8 @@
     return isMinimal ? {
       id: post.id,
       content: post.content,
-      authorId: post.authorId
+      authorId: post.authorId,
+      comments: post.comments
     } : {
       id: post.id,
       status: post.status,

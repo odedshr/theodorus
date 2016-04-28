@@ -45,16 +45,16 @@
           handler: controllers.comment.archive
         }
       },
-      '/comment/[commentId]/comments': {
+      '/comment/[rootCommentId]/comments': {
         get: {
           description: 'get comment\'s comment',
-          parameters: {commentId: 'id'},
+          parameters: {rootCommentId: 'id'},
           response: {'200': { comments: 'array[comment]'}},
           handler: controllers.comment.list
         },
-        post: {
+        put: {
           description: 'add a comment',
-          parameters: {comment: 'comment', commentId: 'id'},
+          parameters: {comment: 'comment', rootCommentId: 'id'},
           response: {'200': {comment: 'comment'}},
           handler: controllers.comment.set
         }

@@ -14,7 +14,7 @@
   var dbModels = {};
   var url = config('testsURL');
 
-  describe('communityRouterRouter', function () {
+  describe('ProfileImageRouterTests', function () {
     describe('GET /membership/image', function () {
       // get all membership images urls
     });

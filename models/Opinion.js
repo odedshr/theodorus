@@ -8,31 +8,6 @@
 
   var editableFields = ['content'];
 
-  function toJSON (post, isMinimal) {
-    return isMinimal ? {
-      id: post.id,
-      status: post.status,
-      content: post.content,
-      authorId: post.authorId
-    } : {
-      id: post.id,
-      status: post.status,
-      created: post.created,
-      modified: post.modified,
-      content: post.content,
-      endorse: post.endorse,
-      report: post.report,
-      comments: post.comments,
-      authorId: post.authorId,
-      communityId: post.communityId,
-      history: post.history ? utils.toList(post.history) : undefined
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
-
   module.exports = {
     name: 'opinion',
     status: status,
@@ -74,6 +49,31 @@
     }
   };
 
+  function toJSON (post, isMinimal) {
+    return isMinimal ? {
+      id: post.id,
+      status: post.status,
+      content: post.content,
+      authorId: post.authorId,
+      comments: post.comments
+    } : {
+      id: post.id,
+      status: post.status,
+      created: post.created,
+      modified: post.modified,
+      content: post.content,
+      endorse: post.endorse,
+      report: post.report,
+      comments: post.comments,
+      authorId: post.authorId,
+      communityId: post.communityId,
+      history: post.history ? utils.toList(post.history) : undefined
+    };
+  }
+
+  function getEditables () {
+    return editableFields;
+  }
 })();
 
 /*

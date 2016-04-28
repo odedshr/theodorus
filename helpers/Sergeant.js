@@ -93,6 +93,9 @@
   function doSave (repository, tasks, taskName, stop, next) {
     var task = tasks[taskName];
     if ( task.save === true) {
+      if (task.table === undefined) {
+        return stop (Errors.systemError('save-task-with-no-table'));
+      }
       var item = task.data;
       if ( item === undefined || item === null ) {
         item = repository[taskName];
@@ -176,8 +179,10 @@
       return item;
     } else if (item.toJSON) {
       return item.toJSON(isMinimal);
-    } else {
+    } else if (item instanceof Object){
       return JSON.stringify(item);
+    } else {
+      return item;
     }
   }
 
