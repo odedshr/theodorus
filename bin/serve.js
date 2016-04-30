@@ -5,16 +5,12 @@
   var bodyParser = require('body-parser');
   var app = express();
 
-  var config = require('./helpers/config.js');
-  var log = require('./helpers/logger.js');
-  var Context = require('./helpers/context.js');
-  var db = require('./helpers/db.js');
-  var FileManager = require('./helpers/FileManager.js')(config('storedFilesFolder'));
-  var Mailer = require('./helpers/Mailer.js')(config('mail'));
-  var Errors = require('./helpers/Errors.js');
-  var iterateFiles = require('./helpers/iterateFiles.js');
+  var config = require('./../helpers/config.js');
+  var Errors = require('./../helpers/Errors.js');
+  var log = require('./../helpers/logger.js');
+  var db = require('./../helpers/db.js');
 
-  var controllersFolder = './controllers';
+  var populate = require('./../helpers/RouteManager.js');
 
   function setHeaders(req, res, next) {
     if (req.headers.origin !== undefined) {
@@ -52,30 +48,7 @@
 
     app.use(express.static('./static/www'));
 
-    var controllers = {};
-    iterateFiles(controllersFolder, function perController(controller, controllerName) {
-      controllers[controllerName.substr(0, controllerName.indexOf('Controller'))] = controller;
-      controller.setControllers(controllers)
-    });
-    var routes = controllers.system.getRoutes(controllers);
-    var urls = Object.keys(routes);
-
-    while (urls.length) {
-      var url = urls.pop();
-      var urlDef = routes[url];
-      var methods = Object.keys(urlDef);
-
-      while (methods.length) {
-        var method = methods.pop();
-        var def = urlDef[method];
-        if (def.handler) {
-          var context = new Context(url, def, FileManager, Mailer);
-          app[method](context.getURL(), context);
-        } else {
-          throw new Error(' no handler for ' + method + url);
-        }
-      }
-    }
+    populate(app, config);
 
     app.set('port', config('port'));
     app.set('ip', config('ipAddress'));
