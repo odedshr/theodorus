@@ -27,14 +27,11 @@
   // files that should be initially copied (once) to the output
   var staticFiles = [
       'fonts','i18n','vendor','img',
-      'crossdomain.xml',
-      'favicon.ico',
-      'humans.txt',
+      { src : 'static', isFlat: true }, //copy folder content but not the folder itself
       'LICENSE',
       'package.json',
       'params.json',
-      'README.md',
-      'robots.txt'
+      'README.md'
   ];
   // location of files:
   var stylesheetFolder = 'less';
@@ -120,19 +117,28 @@
     }
   }
 
-  function copyStaticFiles (files, targets) {
+  function copyStaticFiles (files, targets, isFlat) {
     var count = files.length;
     while (count--) {
-      var file = files[count];
+      var file = files[count], flatten = isFlat;
+      if (typeof file === 'object' && !Array.isArray(file)) {
+        flatten = file.isFlat;
+        file = file.src;
+      } else {
+        file = files[count];
+      }
       if (fs.existsSync(file)){
         var targetCount = targets.length;
         while (targetCount--) {
           var target = targets[targetCount];
           if(fs.lstatSync(file).isDirectory()) {
-            fs.mkdirSync(target+'/'+file);
-            copyStaticFiles (getFileList(file), [ target ]);
+            if (!flatten) {
+              fs.mkdirSync(target+'/'+file);
+            }
+            copyStaticFiles (getFileList(file), [ target ], flatten);
           } else {
-            copyFile(file, target +'/'+file);
+            var destination = isFlat ? file.substr(file.lastIndexOf('/')+1) : file;
+            copyFile(file, target +'/'+destination);
           }
         }
       } else {

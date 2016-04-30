@@ -1,19 +1,19 @@
-[![Build Status](https://travis-ci.org/odedshr/theodorus.svg?branch=master)](https://travis-ci.org/odedshr/theodorus) [![Dependency Status](https://david-dm.org/odedshr/theodorus.svg?theme=shields.io)](https://david-dm.org/odedshr/theodorus) [![license](http://img.shields.io/badge/license-GNU-brightgreen.svg)](https://github.com/odedshr/theodorus/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/odedshr/theodorus.svg?branch=gh-pages.src)](https://travis-ci.org/odedshr/theodorus) [![Dependency Status](https://david-dm.org/odedshr/theodorus.svg?theme=shields.io)](https://david-dm.org/odedshr/theodorus) [![license](http://img.shields.io/badge/license-GNU-brightgreen.svg)](https://github.com/odedshr/theodorus/blob/master/LICENSE)
 
 # Theodorus - A Stub to Democracy
 
-![Theodorus](https://raw.githubusercontent.com/odedshr/theodorus/master/static/themes/default.rtl/img/theodorus_logo_small.png "Theodorus")
+![Theodorus](https://raw.githubusercontent.com/odedshr/theodorus/gh-pages.src/img/logo.png "Theodorus")
 
-Theodorus is a decision-making system, allowing users to collabirately craft a law proposal.
+Theodorus is a decision-making system, allowing users to collaboratively craft a law proposal.
 Any user may raise an `idea` for a law and if there are enough people voting for the idea,
 it will become a `discussion`. Users then may propose their own version for each of the law's section and vote for
 the favorite alternative. Once enough people support the law it will turn to a `A bill` and be given a limited
 time in which all participants vote in favor or against turning it into a `Law`.
 
-The goal of Theodorus is to provide an easy-to-use [Direct Democoracy](http://en.wikipedia.org/wiki/Direct_democracy),
+The goal of Theodorus is to provide an easy-to-use [Direct Democracy](http://en.wikipedia.org/wiki/Direct_democracy),
 to educate people to participate in the political debate and encourage them to express themselves politically.
 
-* This is my first opensource proejct at github, so I'm still learning the trade. Please bare with me.
+* This is my first open-source project at github, so I'm still learning the trade. Please bare with me.
 ** I will appreciate any feedback regarding the project itself and its maintenance.
 
 ## Models
@@ -40,7 +40,7 @@ to educate people to participate in the political debate and encourage them to e
   - he can link it to different memberships
   - user can add up to 10 different profileImages
   - User can only remove profilesImages that are not linked to a membership
-* Message can be either: 
+* Message can be either:
   - Topic is the beginning of a discussion in a community.
       - It contains a message of 140 characters
       - It may contain up to 140 different links
@@ -136,4 +136,4 @@ cd /runtime/theodorus-profile-images
 - 2014/09/14 - 0.22 - changing topic status from idea to discussion to draft
 
 1. proposal should be at the top of the list, espcially its deadline and current-status
-2. 
+2.
