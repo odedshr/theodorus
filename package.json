@@ -2,43 +2,29 @@
   "name": "theodorus.ui",
   "description": "Theodorus.ui is a front-end example for Thedorus",
   "version": "0.1.0",
-  "main": "gulpfile.js",
+  "main": "etc/serve.js",
   "private": true,
   "engines": {
-    "node": ">= 0.6.0",
+    "node": ">= 0.10.0",
     "npm": ">= 1.0.0"
   },
   "scripts": {
-    "start": "node_modules/.bin/supervisor app",
+    "start": "node etc/serve.js",
     "test": "node_modules/.bin/mocha -w"
   },
   "dependencies": {},
   "devDependencies": {
-    "browser-sync": "^2.11.1",
+    "bindings": "^1.2.1",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
+    "chokidar": "^1.4.3",
     "chromedriver": "^2.21.2",
-    "del": "^0.1.3",
-    "findup-sync": "^0.3.0",
-    "graceful-fs": "^4.1.3",
-    "gulp": "^3.9.1",
-    "gulp-concat": "^2.6.0",
-    "gulp-connect": "^2.3.1",
-    "gulp-jekyll-stream": "^0.1.0",
-    "gulp-less": "^3.0.5",
-    "gulp-livereload": "^3.8.1",
-    "gulp-merge": "^0.1.1",
-    "gulp-sequence": "^0.4.4",
-    "gulp-spawn": "^0.3.0",
-    "gulp-uglify": "^1.5.1",
-    "gulp-watch": "^4.3.5",
-    "less-plugin-autoprefix": "^1.5.1",
-    "less-plugin-clean-css": "^1.5.1",
-    "minimist": "^1.2.0",
+    "deasync": "^0.1.5",
+    "less": "^2.6.1",
     "mocha": "^2.4.5",
-    "pretty-hrtime": "^1.0.2",
-    "run-sequence": "^1.1.4",
+    "node-static": "^0.7.7",
     "selenium-webdriver": "^2.48.2",
-    "tiny-lr": "^0.2.1"
+    "supertest": "^1.2.0",
+    "uglify-js": "^2.6.2"
   }
 }
