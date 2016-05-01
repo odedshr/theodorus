@@ -19,10 +19,6 @@
     return request(url);
   }
 
-  function buildOperation (method, url) {
-
-  }
-
   function getTokenFile (email) {
     return '../user-files/'+email+'-test.json';
   }

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "test": "node_modules/.bin/mocha -w",
+    "test": "node_modules/.bin/mocha",
     "supervise": "node_modules/.bin/supervisor index.js"
   },
   "dependencies": {
