@@ -44,8 +44,8 @@ ehthumbs.db
 Thumbs.db
 .idea
 
-/node_modules/node_xslt/*.*
 environment_variables.json
 # user-files is the default folder for storing user files
+node_modules
 user-files
 npm-debug.log

@@ -14,7 +14,7 @@
     "supervise": "node_modules/.bin/supervisor ./bin/serve.js"
   },
   "dependencies": {
-    "addressparser": "^1.0.1", // needed for nodemailer
+    "addressparser": "^1.0.1",
     "body-parser": "*",
     "cookie-parser": "^1.4.0",
     "express": "^5.0.0-alpha.2",
