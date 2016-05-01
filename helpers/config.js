@@ -1,7 +1,7 @@
 ;(function config() {
   'use strict';
 
-  var variables = require('./default.config.json'),
+  var variables = require('../default.config.json'),
 
     getConfig = function getConfig(varName, isRequired) {
       var variable = process.env[varName];

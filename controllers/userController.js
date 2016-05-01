@@ -11,7 +11,7 @@
 
   var tokenExpiration = 1000 * 60 * 60;// == 1 HOUR
 
-  function connect (email, subject, content, authToken, mailer, files, callback) {
+  function connect (email, subject, content, authToken, mailer, callback) {
     tryCatch (function tryCatchConnect () {
       if (email === undefined ) {
         callback (Errors.missingInput('email'));
@@ -28,19 +28,8 @@
         content = content.replace (/\[authToken]/g, encodedToken);
       }
       var text = content.replace(/(<br(\s?\/)?>|<\/p>|<\/div>)/gm, '\n').replace(/<(?:.|\n)*?>/gm, '');
-      if (email.indexOf('@test.suite.') > -1) {
-        files.set('debug_'+email+'.json', JSON.stringify({
-          email: email,
-          subject: subject,
-          text: text,
-          html: content,
-          token: encodedToken
-        }));
-        callback({status: 'file-stored' });
-      } else {
-        mailer.send(email, '', subject, text, content, callback);
-        log('token sent to ' + email + ': '+ encodedToken);
-      }
+      mailer.send(email, '', subject, text, content, callback);
+      log('token sent to ' + email + ': '+ encodedToken);
     },callback);
   }
   exports.connect = connect;

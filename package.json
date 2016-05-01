@@ -1,38 +1,40 @@
 {
   "name": "theodorus",
   "description": "Theodorus is a back-end for online democratic communite",
-  "version": "0.2.1",
-  "main": "index.js",
+  "version": "0.2.2",
+  "main": "bin/serve.js",
   "private": true,
   "engines": {
     "node": ">= 0.10.0",
     "npm": ">= 1.0.0"
   },
   "scripts": {
-    "start": "node_modules/.bin/supervisor app",
-    "test": "node_modules/.bin/mocha -w"
+    "start": "node bin/serve.js",
+    "test": "node_modules/.bin/mocha -w",
+    "supervise": "node_modules/.bin/supervisor ./bin/serve.js"
   },
   "dependencies": {
-    "backbone": "^1.2.3",
+    "addressparser": "^1.0.1", // needed for nodemailer
     "body-parser": "*",
     "cookie-parser": "^1.4.0",
     "express": "^5.0.0-alpha.2",
     "formidable": "^1.0.17",
     "imagemagick": "*",
     "jwt-simple": "*",
-    "lodash": "^4.6.1",
+    "lodash": "^4.11.1",
     "md5": "*",
     "minimatch": "*",
     "mysql": "^2.10.0",
     "node-pre-gyp": "^0.6.19",
     "orm": "^2.1.30",
-    "sqlite3": "^3.1.1",
+    "sqlite3": "^3.1.0",
     "strip-json-comments": "*",
     "underscore": "^1.8.3",
-    "winston": "^1.1.1"
+    "winston": "^1.1.1",
+    "jade": "^1.11.0",
+    "graceful-fs": "^4.1.3"
   },
   "devDependencies": {
-    "minimatch": "*",
     "mocha": "^2.3.3",
     "qunitjs": "*",
     "should": "^7.1.1",

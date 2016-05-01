@@ -1,11 +1,14 @@
 (function RouterManagerEnclosure () {
 
-  var Context = require('./context.js');
-  var iterateFiles = require('./iterateFiles.js');
+  var Context = require('../helpers/context.js');
+  var iterateFiles = require('../helpers/iterateFiles.js');
 
-  var controllersFolder = '../controllers';
+  var controllersFolder = './controllers';
 
-  function populate (app) {
+  function populate (app, config) {
+    var FileManager = require('../helpers/FileManager.js')(config('storedFilesFolder'));
+    var Mailer = require('../helpers/Mailer.js')(config('mail'),FileManager);
+
     var controllers = {};
     iterateFiles(controllersFolder, function perController(controller, controllerName) {
       controllers[controllerName.substr(0, controllerName.indexOf('Controller'))] = controller;

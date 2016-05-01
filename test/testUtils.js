@@ -4,12 +4,14 @@
   var assert = require('assert');
   var fs = require('fs');
   var md5 = require('md5');
-  var request = require('supertest');
+  //var request = require('supertest');
   var should = require('should');
   var winston = require('winston');
 
   var config = require('../helpers/config.js');
   var db = require('../helpers/db.js');
+
+  var request = require('../test/mockRequest.js');
 
   var url = config('testsURL');
 
@@ -17,8 +19,12 @@
     return request(url);
   }
 
+  function buildOperation (method, url) {
+
+  }
+
   function getTokenFile (email) {
-    return '../user-files/debug_'+email+'.json';
+    return '../user-files/'+email+'-test.json';
   }
   function setToken (callback, err, response) {
     if (err) {
@@ -29,7 +35,7 @@
   }
 
   function removeTokenFileOf (email) {
-    var filename = './user-files/debug_'+email+'.json';
+    var filename = './user-files/'+email+'-test.json';
 
     if (fs.existsSync(filename)) {
       fs.unlinkSync (filename);
@@ -50,7 +56,7 @@
   function sendTokenRequest (email, callback) {
     var tokenFile = getTokenFile(email);
     if (!fs.existsSync(tokenFile)) {
-      (REST ()).post('/user/connect').send({email: email}).end(getAuthToken.bind(null, tokenFile, callback));
+      (REST ()).post('/user/connect').send({email: email, subject:'test'}).end(getAuthToken.bind(null, tokenFile, callback));
     } else {
       getAuthToken(tokenFile, callback);
     }
@@ -58,7 +64,8 @@
 
   function parseResponse (callback, error, response) {
     if (error !== null) {
-      throw error;
+      callback (error);
+      return;
     }
     try {
       callback (response.text.length > 0 ? JSON.parse(response.text) : undefined);

@@ -3,34 +3,30 @@
 
   var assert = require('assert');
   var fs = require('fs');
-  var md5 = require('md5');
   var request = require('supertest');
   var should = require('should');
-  var winston = require('winston');
 
-  var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
-
-  var url = config('testsURL');
+  var testUtils = require('../test/testUtils.js');
 
   describe('systemRouterTest', function systemRouterTest () {
     describe('/system/ping', function getSystemPing() {
       it('should return pong', function shouldReturnPong (done) {
-        request(url)
+        function gotPong (data) {
+          assert.ok(data.result === 'pong', 'result is pong');
+          done();
+        }
+
+        testUtils.REST()
           .get('/system/ping')
           .expect(200)
-          .end(function gotPong (error, response) {
-            assert.ok(error === null, 'no errors requesting token');
-            assert.ok(JSON.parse(response.text).result === 'pong', 'result is pong');
-            done();
-          });
+          .end(testUtils.parseResponse.bind (null, gotPong));
       });
     });
     describe('/system/version', function getSystemVersion () {
       it('should get right version number', function shouldGetVersion (done) {
         var version = require('../package.json').version;
 
-        request(url)
+        testUtils.REST()
           .get('/system/version')
           .expect(200)
           .end(function gotVersion (error, response) {
@@ -44,7 +40,7 @@
       it('should get the api', function shouldGetAPI(done) {
         var version = require('../package.json').version;
 
-        request(url)
+        testUtils.REST()
           .get('/system/api')
           .expect(200)
           .end(function gotAPI(error, response) {

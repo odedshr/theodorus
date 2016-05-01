@@ -123,7 +123,7 @@
       parameters = (parameters !== null) ? parameters[1].replace(/\s/g, '').split(',') : [];
       var parameterCount = parameters.length;
 
-      var context = function Context(req, res, next) {
+      var context = function Context(req, res) {
         var args = [];
         var input = read(req, url, urlPattern);
         var i;

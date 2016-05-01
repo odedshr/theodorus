@@ -5,12 +5,12 @@
   var bodyParser = require('body-parser');
   var app = express();
 
-  var config = require('./../helpers/config.js');
-  var Errors = require('./../helpers/Errors.js');
-  var log = require('./../helpers/logger.js');
-  var db = require('./../helpers/db.js');
+  var config = require('../helpers/config.js');
+  var Errors = require('../helpers/Errors.js');
+  var log = require('../helpers/logger.js');
+  var db = require('../helpers/db.js');
 
-  var populate = require('./../helpers/RouteManager.js');
+  var populate = require('../helpers/RouteManager.js');
 
   function setHeaders(req, res, next) {
     if (req.headers.origin !== undefined) {

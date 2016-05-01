@@ -10,7 +10,7 @@
 
   describe('UserRouterRouter', function () {
     var email = 'router@test.suite.user';
-    var tokenFile = './user-files/debug_'+email+'.json';
+    var tokenFile = './user-files/'+email+'-test.json';
     var token ='';
 
     after(function afterAllTests() {
@@ -21,8 +21,8 @@
 
     describe('POST /user/connect', function postUserConnect() {
       it('should failed to get authentication token when no email', function (done) {
-        function onFailedToGetConnectionToken(error, response) {
-          var content = JSON.parse(response.text);
+        function onFailedToGetConnectionToken(data) {
+          var content = JSON.parse(data.message);
           assert.ok(content.message === 'missing-input', 'error is a missing input');
           assert.ok(content.details.key === 'email', 'missing input is email');
           done();
@@ -32,20 +32,20 @@
           .post('/user/connect')
           .send({})
           .expect(500)
-          .end(onFailedToGetConnectionToken);
+          .end(testUtils.parseResponse.bind (null, onFailedToGetConnectionToken));
       });
 
       it('should successfully request authentication token', function (done) {
         function onTokenStored(data) {
-          assert.ok(data.status === 'file-stored', 'token file stored');
-          var file = require('../user-files/debug_' + email + '.json');
-          assert.ok(file.email === email, 'token sent to right email');
+          assert.ok(data.output === 'stored', 'token file stored');
+          var file = require('../user-files/' + email + '-test.json');
+          assert.ok(file.to === email, 'token sent to right email');
           done();
         }
 
         testUtils.REST()
           .post('/user/connect')
-          .send({email: email})
+          .send({email: email, subject:'test'})
           .expect(200) //Status code
           .end(testUtils.parseResponse.bind (null, onTokenStored));
       });
@@ -85,12 +85,8 @@
       });
 
       it('should successfully update a user', function (done) {
-        function gotUpdatedUser (error, response) {
-          assert.ok(error === null, 'no errors requesting token');
-          if (response) {
-            var user = JSON.parse(response.text).user;
-            assert.ok((user.isFemale === true), "user is female");
-          }
+        function gotUpdatedUser (data) {
+          assert.ok((data.user.isFemale === true), "user is female");
           done();
         }
 
@@ -99,7 +95,7 @@
           .set('authorization', token)
           .send({ user: {isFemale: true}})
           .expect(200)
-          .end(gotUpdatedUser); //Status code
+          .end(testUtils.parseResponse.bind (null, gotUpdatedUser)); //Status code
       });
     });
 
