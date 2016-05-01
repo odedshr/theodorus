@@ -40,6 +40,8 @@
       callback({output:'stored'});
     } else if (transporter !== undefined) {
       transporter.sendMail(mailOptions, onMailSent.bind({},callback));
+    } else {
+      log(JSON.stringify('variable THEODORUS_MAIL not set'));
     }
     if (transporter !== undefined && files !== undefined) {
       log(JSON.stringify(mailOptions));
@@ -47,7 +49,7 @@
   }
 
   function onMailSent (callback, error, info) {
-    callback (error ? new Error (error) : info);
+    callback (error ? new Error (error) : {output:'sent', details: info});
   }
 
   module.exports = init;

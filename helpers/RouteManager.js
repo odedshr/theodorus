@@ -7,7 +7,7 @@
 
   function populate (app, config) {
     var FileManager = require('../helpers/FileManager.js')(config('storedFilesFolder'));
-    var Mailer = require('../helpers/Mailer.js')(config('mail'),FileManager);
+    var Mailer = require('../helpers/Mailer.js')(config('THEODORUS_MAIL'),FileManager);
 
     var controllers = {};
     iterateFiles(controllersFolder, function perController(controller, controllerName) {
