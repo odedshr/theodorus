@@ -168,7 +168,7 @@ app = (typeof app !== 'undefined') ? app : {};
     this.api.get ('community/', callback, true);
   }).bind(this);
 
-  this.api.getMyCommunities = (function getMyCommunities (callback) {
+  this.api.getMyMemberships = (function getMyMemberships (callback) {
     this.api.get ('membership/', callback);
   }).bind(this);
 

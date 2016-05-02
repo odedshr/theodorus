@@ -6,14 +6,17 @@
   var chokidar = require('chokidar');
   var staticServer = require('node-static');
 
-  var TPL = require ('../vendor/o.min.js');
-  var color = require ('../etc/console-colour.js');
+  var TPL = require ('./vendor/o.min.js');
+  var color = require ('./etc/console-colour.js');
 
   //////////////////////////////////////////////////////////////// configuration
   // static server will run on port
   var isDebug = true; // if true server will run from devFolder
   var port = 8080;
-  var packageJson = require ('../package.json'); // used to take app.name+ ver
+  var packageJson = require ('./package.json'); // used to take app.name+ ver
+
+  var debugServer = 'https://theo-dorus.rhcloud.com/'; //'http://localhost:5000/';
+  var productionServer = 'https://theo-dorus.rhcloud.com/';
 
   // two version will be built - develop and minimised production
   var prdFolder = '_deploy.prd';
@@ -249,15 +252,16 @@
             stylesheets:{ stylesheet: getFileList ( prdFolder.concat('/',cssFolder), prdFolder+'/' ) },
             scripts: { script: getFileList ( prdFolder.concat('/',jsFolder), prdFolder+'/' ) },
             environment : 'prod',
-            server : 'https://theo-dorus.rhcloud.com/'
+            server : productionServer
         },
         dev: {
             stylesheets: { stylesheet: getFileList ( devFolder.concat('/',cssFolder), devFolder+'/' )  },
             scripts: { script: getFileList ( devFolder.concat('/',jsFolder), devFolder+'/' ) },
             environment : 'debug',
-            server : 'http://localhost:5000/'
-        }//''
+            server : debugServer
+        }
     };
+    TPL.loadLanguage('../i18n/en-us.json');
 
     var rendered = TPL.render (indexHTML, data.dev);
     fs.writeFile(devFolder.concat('/index.html'), rendered, onError);

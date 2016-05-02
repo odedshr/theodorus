@@ -13,7 +13,16 @@ app = (typeof app !== 'undefined') ? app : {};
 
   function getBaseURL () {
     //return location.protocol+'//'+location.host;
-    return location.href.substr(0,location.href.indexOf('#'));
+    var url = location.href;
+    var endOfString = url.indexOf('/#');
+    if (endOfString === -1) {
+      if (url.substr(url.length-1)) {
+        url = url.substr(0,url.length-1);
+      }
+      return url;
+    } else {
+      return url.substr(0,endOfString);
+    }
   }
 
   this.registry.frmJoin = { attributes: { onsubmit : onJoinSubmitted.bind(this)} };

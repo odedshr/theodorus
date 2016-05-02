@@ -15,19 +15,19 @@ app = (typeof app !== 'undefined') ? app : {};
     }
 
     this.api.async([
-        this.api.getMyCommunities.bind(this),
+        this.api.getMyMemberships.bind(this),
         this.api.getAllUserImages.bind(this)
       ],
       onCommunityAddDataLoaded.bind(this,callback));
   }
 
   function onCommunityAddDataLoaded (callback, data) {
-    var communities = data.getMyCommunities.communities;
+    var memberships = data.getMyMemberships.memberships;
     var maxName = '', maxCount = 0;
     var count = {};
-    var i = communities.length;
+    var i = memberships.length;
     while (i--) {
-      var name = communities[i].membershipName;
+      var name = memberships[i].name;
       var nameCount = count[name];
       nameCount = (count[name] === undefined) ? 1 : nameCount + 1;
       count[name] = nameCount;
