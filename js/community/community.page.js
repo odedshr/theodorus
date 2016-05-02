@@ -8,9 +8,9 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.communityPage = { preprocess: (function registerCommunityPage (dElm, callback) {
     var communityId = this.state.community;
     if (communityId !== undefined && communityId.length > 0) {
-      this.api.async([
-          this.api.getCommunity.bind(this,communityId)
-        ],
+      this.api.async({
+          'getCommunity':this.api.getCommunity.bind(this,communityId)
+        },
         onDataLoaded.bind(this,callback));
     } else {
       this.updateURL('communities','');

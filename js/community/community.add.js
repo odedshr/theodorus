@@ -14,10 +14,10 @@ app = (typeof app !== 'undefined') ? app : {};
       return false;
     }
 
-    this.api.async([
-        this.api.getMyMemberships.bind(this),
-        this.api.getAllUserImages.bind(this)
-      ],
+    this.api.async({
+        'getMyMemberships': this.api.getMyMemberships.bind(this),
+        'getAllUserImages': this.api.getAllUserImages.bind(this)
+      },
       onCommunityAddDataLoaded.bind(this,callback));
   }
 

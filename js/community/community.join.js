@@ -10,10 +10,10 @@ app = (typeof app !== 'undefined') ? app : {};
     document.title = O.TPL.translate('title.communityJoin');
     var communityId = this.state.community;
     if (communityId !== undefined && communityId.length > 0) {
-      this.api.async([
-          this.api.getCommunity.bind(this,communityId),
-          this.api.getAllUserImages.bind(this)
-        ],
+      this.api.async({
+          'getCommunity': this.api.getCommunity.bind(this,communityId),
+          'getAllUserImages': this.api.getAllUserImages.bind(this)
+        },
         onJoinCommunityDetailsLoaded.bind(this,callback));
     } else {
       this.updateURL('communities','');

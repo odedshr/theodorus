@@ -103,14 +103,14 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-  this.api.async = (function async (methods, callback) {
-    var tasks = methods.slice().reverse();
+  this.api.async = (function async (tasks, callback) {
+    var taskNames = Object.keys(tasks);
     var output = {};
-    var tasksCompleted = { counter : tasks.length };
+    var tasksCompleted = { counter : taskNames.length };
 
-    while (tasks.length) {
-      var task = tasks.pop();
-      var taskName = task.name.split(' ').pop();
+    while (taskNames.length) {
+      var taskName = taskNames.pop();
+      var task = tasks[taskName];
       task(whenAsyncTaskIsDone.bind(this,taskName, tasksCompleted,callback, output));
     }
   }).bind(this);

@@ -15,7 +15,7 @@
   var port = 8080;
   var packageJson = require ('./package.json'); // used to take app.name+ ver
 
-  var debugServer = 'https://theo-dorus.rhcloud.com/'; //'http://localhost:5000/';
+  var debugServer = 'http://localhost:5000/';
   var productionServer = 'https://theo-dorus.rhcloud.com/';
 
   // two version will be built - develop and minimised production
