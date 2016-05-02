@@ -28,9 +28,18 @@
         content = content.replace (/\[authToken]/g, encodedToken);
       }
       var text = content.replace(/(<br(\s?\/)?>|<\/p>|<\/div>)/gm, '\n').replace(/<(?:.|\n)*?>/gm, '');
-      mailer.send(email, '', subject, text, content, callback);
-      log('token sent to ' + email + ': '+ encodedToken);
+      mailer.send(email, '', subject, text, content, onConnectMailSent.bind(null,email,encodedToken,  callback));
+
     },callback);
+  }
+  function onConnectMailSent (email,encodedToken,  callback, data) {
+    if (data instanceof Error) {
+      log ('failed to send to ' + email + ': '+ encodedToken);
+      log (data);
+    } else {
+      log ('token sent to ' + email + ': '+ encodedToken);
+    }
+    callback (data);
   }
   exports.connect = connect;
 
