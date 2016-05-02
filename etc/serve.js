@@ -57,17 +57,16 @@
 
   function deleteFolderRecursive (path) {
     if( fs.existsSync(path) ) {
-      var files = fs.readdirSync(path);
-      while (files.length) {
-        var file = files.pop();
-        var curPath = path + "/" + file;
-        if(fs.lstatSync(curPath).isDirectory()) { // recurse
-          deleteFolderRecursive(curPath);
-        } else { // delete file
-          fs.unlinkSync(curPath);
+      if(fs.lstatSync(path).isDirectory()) { // recurse
+        var files = fs.readdirSync(path);
+        while (files.length) {
+          var file = files.pop();
+          deleteFolderRecursive(path + "/" + file);
         }
+        fs.rmdirSync(path);
+      } else { // delete file
+        fs.unlinkSync(path);
       }
-      fs.rmdirSync(path);
     }
   }
 
@@ -98,7 +97,10 @@
     while (folders.length) {
         var folder = folders.pop();
         if( fs.existsSync(folder) ) {
-          deleteFolderRecursive (folder);
+          var files = getFileList(folder);
+          while (files.length) {
+            deleteFolderRecursive (folder + '/' + files.pop());
+          }
         }
     }
   }
@@ -132,7 +134,7 @@
         while (targetCount--) {
           var target = targets[targetCount];
           if(fs.lstatSync(file).isDirectory()) {
-            if (!flatten) {
+            if (!flatten && !fs.existsSync(target+'/'+file)) {
               fs.mkdirSync(target+'/'+file);
             }
             copyStaticFiles (getFileList(file), [ target ], flatten);
