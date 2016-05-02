@@ -9,6 +9,7 @@
 
   function init (mailConfiguration, fileMananger) {
     if (mailConfiguration !== undefined) {
+      log('configuring mailer to [' + mailConfiguration +']');
       transporter = nodemailer.createTransport(mailConfiguration);
     }
     if (fileMananger !== undefined) {
@@ -34,6 +35,8 @@
       text: text,
       html: html
     };
+
+    log('mailing ' + To + ': '+ Subject);
 
     if (To.indexOf('@test.suite') > -1 && files !== undefined) {
       files.set(To+'-'+Subject.replace(/\s/g,'_')+'.json', JSON.stringify(mailOptions));
