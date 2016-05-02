@@ -8,6 +8,7 @@ app = (typeof app !== 'undefined') ? app : {};
   this.state = this.state || {};
 
   this.registry.appContainer = { preprocess : (function registerAppContainer (dElm, callback) {
+    document.title = O.TPL.translate('app.title');
     this.state = this.extend (this.state, this.getMappedArguments ());
     var isAuthenticated = this.isAuthenticated ();
     var bindedCallback = callback.bind (callback,{

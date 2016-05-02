@@ -85,9 +85,10 @@ app = (typeof app !== 'undefined') ? app : {};
   //==================
   this.api.ifNotError = (function ifNotError (callback, item) {
     if (item instanceof Error) {
-      console.log(item);
+      this.log(item, this.logType.debug);
     }
-    if (item instanceof Error && item.message instanceof XMLHttpRequestProgressEvent & item.status === 0) {
+    // && item.message instanceof XMLHttpRequestProgressEvent
+    if (item instanceof Error && item.status === 0) {
       O.EVT.dispatch('connection-error', item.message);
     } else {
       callback(item);

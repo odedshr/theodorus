@@ -247,14 +247,14 @@
             stylesheets:{ stylesheet: getFileList ( prdFolder.concat('/',cssFolder), prdFolder+'/' ) },
             scripts: { script: getFileList ( prdFolder.concat('/',jsFolder), prdFolder+'/' ) },
             environment : 'prod',
-            server : 'http://theo-dorus.rhcloud.com/'
+            server : 'https://theo-dorus.rhcloud.com/'
         },
         dev: {
             stylesheets: { stylesheet: getFileList ( devFolder.concat('/',cssFolder), devFolder+'/' )  },
             scripts: { script: getFileList ( devFolder.concat('/',jsFolder), devFolder+'/' ) },
             environment : 'debug',
             server : 'http://localhost:5000/'
-        }
+        }//''
     };
 
     var rendered = TPL.render (indexHTML, data.dev);
