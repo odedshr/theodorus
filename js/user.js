@@ -11,8 +11,9 @@ app = (typeof app !== 'undefined') ? app : {};
     return true;
   }
 
-  function getDomain () {
-    return location.protocol+'//'+location.host;
+  function getBaseURL () {
+    //return location.protocol+'//'+location.host;
+    return location.href.substr(0,location.href.indexOf('#'));
   }
 
   this.registry.frmJoin = { attributes: { onsubmit : onJoinSubmitted.bind(this)} };
@@ -27,7 +28,7 @@ app = (typeof app !== 'undefined') ? app : {};
       var mailSubject = O.TPL.translate('mailSubject.joinTheConversation');
       var mailContent = O.TPL.render({
         joinMail: {
-          baseURL: getDomain(),
+          baseURL: getBaseURL(),
           redirect: encodeURIComponent(redirect),
           expire: moment().add(1,'hours').format('k:mm (MMM Do YYYY)')
         }
