@@ -130,4 +130,24 @@
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function testEmail (mailer, callback) {
+    log('testing mail');
+    try {
+      mailer.send('odedshr@gmail.com', '', 'testSubject', 'textContent', 'htmlContent',  function onConnectMailSent (data) {
+        if (data instanceof Error) {
+          log ('failed to send to odedshr@gmail.com');
+        } else {
+          log ('token sent to  odedshr@gmail.com');
+        }
+        log (data);
+        callback (data);
+      });
+    }
+    catch (err) {
+      log ('exception!!!');
+      log (err);
+      callback (err);
+    }
+  }
+    exports.testEmail = testEmail;
 })();
