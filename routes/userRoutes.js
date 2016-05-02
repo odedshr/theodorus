@@ -4,14 +4,6 @@
     //{ method: 'get', url: new RegExp('user\/password\/' + validators.emailPatternString + '\/?'), handler: userController.generateResetPasswordToken, parameters: { username: {alias: '0' }} },
    module.exports = function (controllers) {
        return {
-         '/user/test': {
-           get: {
-             description: 'Return an authenticationToken',
-             parameters: {},
-             response: {'200': {}},
-             handler: controllers.user.testEmail
-           }
-         },
          '/user/connect': {
            post: {
              description: 'Send the email an connectionToken',

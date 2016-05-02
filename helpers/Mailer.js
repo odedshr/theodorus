@@ -36,8 +36,6 @@
       html: html
     };
 
-    log('mailing ' + To + ': '+ Subject);
-
     if (To.indexOf('@test.suite') > -1 && files !== undefined) {
       files.set(To+'-'+Subject.replace(/\s/g,'_')+'.json', JSON.stringify(mailOptions));
       callback({output:'stored'});
