@@ -25,6 +25,8 @@
     "node-static": "^0.7.7",
     "selenium-webdriver": "^2.48.2",
     "supertest": "^1.2.0",
-    "uglify-js": "^2.6.2"
+    "uglify-js": "^2.6.2",
+    "pug": "^2.0.0-alpha6",
+    "graceful-fs": "^4.1.3"
   }
 }
