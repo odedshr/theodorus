@@ -1,0 +1,32 @@
+{
+  "name": "theodorus.ui",
+  "description": "Theodorus.ui is a front-end example for Thedorus",
+  "version": "0.1.0",
+  "main": "etc/serve.js",
+  "private": true,
+  "engines": {
+    "node": ">= 0.10.0",
+    "npm": ">= 1.0.0"
+  },
+  "scripts": {
+    "start": "node etc/serve.js",
+    "test": "node_modules/.bin/mocha -w"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "bindings": "^1.2.1",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.2.0",
+    "chokidar": "^1.4.3",
+    "chromedriver": "^2.21.2",
+    "deasync": "^0.1.5",
+    "less": "^2.6.1",
+    "mocha": "^2.4.5",
+    "node-static": "^0.7.7",
+    "selenium-webdriver": "^2.48.2",
+    "supertest": "^1.2.0",
+    "uglify-js": "^2.6.2",
+    "pug": "^2.0.0-alpha6",
+    "graceful-fs": "^4.1.3"
+  }
+}

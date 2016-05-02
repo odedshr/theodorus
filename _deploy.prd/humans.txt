@@ -1,0 +1,19 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Oded Sharon -- Developer -- @odedhshr
+
+# THANKS
+
+    Nir Elimeleh
+    Yuri Feldman
+    Yaron Karasik
+    Gil Sharon
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3
+    jQuery, Modernizr
+    Node.js
