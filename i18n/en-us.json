@@ -41,6 +41,7 @@
     "post.xJoinedCommunity":"Hello! I'm {name}",
     "label.noTopics":"No topics to show",
     "label.noOpinion":"No opinions to show",
+    "label.noSelfOpinion": "What do you think?",
     "label.noComments":"No comments to show",
     "label.noCommunities":"No communities to show",
     "error.cannotJoinCommunityWithoutId" : "One cannot join community that has no ID",
@@ -83,6 +84,9 @@
     "message.namedAlreadyBeingUsed": "Name already being used",
     "btn.remove": "Remove",
     "btn.original": "Original",
-    "error.imageTooBig": "images must be smaller than [width]x[height]"
+    "error.imageTooBig": "images must be smaller than [width]x[height]",
+    "error.tooLong": "Content is too long",
+    "error.words": "words",
+    "error.characters": "characters"
   }
 }
