@@ -7,14 +7,14 @@
 <body>
   <template data-id="commentList">
       {{.:'frmSetComment'}}
-      <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
+      <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item post comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
   </template>
 
   <template data-id="commentListItem">
       <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
       <div class="next-to-author-image">
+          <div class="content js-content" {?isEditable}}data-register="editComment"{/isEditable}}>{{mdContent}}</div>
           {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
-          {{?!isEditable}}<div class="content">{{content}}</div>{{/isEditable}}
           <div class="details">
               <div class="detail author-name">{{author.name}}</div>
               <div class="detail time" title="{{time}}">{{relativeTime}}</div>
@@ -31,21 +31,26 @@
       {{?isMember}}<div class="actions">
       <div class="action action-comment" data-register="toggle" data-target="comment-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
       <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
-      <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
-      <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+      <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+      <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
       <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
-      <!-- div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div -->
-      {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+      {{?isEditable}}<div class="action action-edit" data-register="editComment"><span data-ico="pencil">{{#action.edit}}</span></div>
+      <div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isEditable}}
       </div>{{/isMember}}
       <div id="comment-{{id}}-comments" class="comments js-list" data-role="comments" data-comment-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
   </template>
 
   <template data-id="frmSetComment">
-      <form class="form set add-comment-form" data-register="frmSetComment">
+      <form class="form set add-comment-form" data-register="frmSetComment" {{?isReadMode}}data-hidden{{/isReadMode}}>
           <input type="hidden" name="id" value="{{id}}"/>
           <input type="hidden" name="opinionId" value="{{opinionId}}"/>
           <input type="hidden" name="parentId" value="{{parentId}}"/>
-          <input type="text" class="field-comment-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" value="{{content}}"/>
+          <div class="row-post-content">
+            <label for="commentContent" class="required"></label>
+            <div class="field-wrapper" data-count="{{contentLength}}">
+              <textarea type="text" class="field-post-content js-opinion-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" data-register="postContent">{{content}}</textarea>
+            </div>
+          </div>
           <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
       </form>
   </template>

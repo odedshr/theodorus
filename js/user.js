@@ -95,12 +95,15 @@ function gotAuthToken (callback, response) {
 this.registry.btnSignOut = { attributes: { onclick : onSignOutClicked.bind(this)} };
 
 function onSignOutClicked (evt) {
-  O.COOKIE('authToken','');
-  this.state.email = '';
-  this.api.clearCache();
+  this.signout();
   this.goToStateRedirect();
   return false;
 }
+this.signout = (function () {
+  O.COOKIE('authToken','');
+  this.state.email = '';
+  this.api.clearCache();
+}).bind(this);
 
 ////////////////////////////////////////////////////////////////////////////////
 

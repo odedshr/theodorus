@@ -10,6 +10,7 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this) };
 
   function opinionListOnLoaded (topicId, callback, data) {
+    var item, viewpoint;
     var getProfileImageURL = this.api.getProfileImageURL;
     var community = this.state.communityJSON;
     var membershipId = community.membership ? community.membership.id : false;
@@ -18,27 +19,31 @@ app = (typeof app !== 'undefined') ? app : {};
     var count = opinions.length;
     var myOpinion;
 
+    this.addImagesToAuthors (authors);
+
     while (count--) {
-      var item = opinions[count];
+      item = opinions[count];
       item.author = authors[item.authorId];
+      item.mdContent = marked(item.content);
       item.isMember = !!membershipId;
       item.isMine = (membershipId === item.author.id);
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
+      item.hasStats = true;
 
       if (item.isMine) {
         myOpinion = item;
-
-        item.isArchivable = (item.comments === 0) && (item.endorse === 0);
+        item.isEditable = (item.comments === 0) && (item.endorse === 0);
         opinions.splice(count,1);
       }
-    }
-    var authorIds = Object.keys(authors);
-    count = authorIds.length;
-    while (count--) {
-      var id = authorIds[count];
-      var author = authors[id];
-      author.image = (!!author.hasImage) ? this.api.getProfileImageURL(id) : '';
+      viewpoint = data.viewpoints[item.id];
+      if (viewpoint) {
+        item.isEndorsed = !!viewpoint.endorse;
+        item.isFollowed = !!viewpoint.follow;
+        item.isRead = !!viewpoint.read;
+      } else {
+        item.isEndorsed = item.isFollowed = item.isRead = false;
+      }
     }
     if (membershipId) {
       if (myOpinion === undefined) {
@@ -47,18 +52,23 @@ app = (typeof app !== 'undefined') ? app : {};
             name : community.membership.name,
             image : getProfileImageURL(membershipId) },
           content: '',
+          mdContent: '',
           id: '',
           isMine: true,
+          isEditable: true,
           relativeTime: ''
         };
       }
       myOpinion.topicId = topicId;
+      myOpinion.isReadMode = true;
+      myOpinion.contentLength = this
+        .getPostLengthString(myOpinion.content, community.opinionLength);
       opinions.unshift(myOpinion);
     }
     callback( { opinions: { opinion: opinions } } );
   }
 
-  //==========================
+  //////////////////////////////////////////////////////////////////////////////
 
   this.registry.frmSetOpinion = { attributes : { onsubmit : setOpinion.bind(this) }};
 

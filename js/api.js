@@ -85,11 +85,16 @@ app = (typeof app !== 'undefined') ? app : {};
   //==================
   this.api.ifNotError = (function ifNotError (callback, item) {
     if (item instanceof Error) {
-      this.log(item, this.logType.debug);
-    }
-    // && item.message instanceof XMLHttpRequestProgressEvent
-    if (item instanceof Error && item.status === 0) {
-      O.EVT.dispatch('connection-error', item.message);
+      switch (item.status) {
+        case 0:   // && item.message instanceof XMLHttpRequestProgressEvent
+          O.EVT.dispatch('connection-error', item.message);
+          break;
+        case 401:// unauthorized
+          this.handleUnauthorized();
+          break;
+        default:
+          this.log(item, this.logType.debug);
+      }
     } else {
       callback(item);
     }

@@ -11,28 +11,48 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this) };
 
   function commentListOnLoaded ( opinionId, parentId, callback, data) {
+    var item, viewpoint;
     var list = data.comments || [];
+    var community = this.state.communityJSON;
     var authors = data.authors || {};
-    var membershipId = this.state.communityJSON.membership ? this.state.communityJSON.membership.id : false;
+    var membershipId = community.membership ? community.membership.id : false;
     var count = list.length;
+
+    this.addImagesToAuthors (authors);
+
     while (count--) {
-      var item = list[count];
+      item = list[count];
       item.author = authors[item.authorId];
-      item.author.image = this.api.getProfileImageURL(item.author.id);
+      item.mdContent = marked(item.content);
       item.isEditable = (membershipId === item.author.id) && (item.comments === 0) && (item.endorse === 0);
-      item.isArchivable = item.isEditable;
       item.isMember = !!membershipId;
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
       if (item.isEditable) {
         item.opinionId = (opinionId ? opinionId : '');
         item.parentId = (parentId ? parentId : '');
+        item.isReadMode = true;
+        item.contentLength = this.getPostLengthString(item.content, community.opinionLength);
+      }
+      viewpoint = data.viewpoints[item.id];
+      if (viewpoint) {
+        item.isEndorsed = !!viewpoint.endorse;
+        item.isFollowed = !!viewpoint.follow;
+        item.isRead = !!viewpoint.read;
+      } else {
+        item.isEndorsed = item.isFollowed = item.isRead = false;
       }
     }
-    callback( { id: '', opinionId : (opinionId ? opinionId : ''), parentId : (parentId ? parentId : ''), content : '', comments: { comment: list } } );
+    callback( { id: '',
+      opinionId : (opinionId ? opinionId : ''),
+      parentId : (parentId ? parentId : ''),
+      content : '',
+      isReadMode: false,
+      contentLength: this.getPostLengthString('', community.opinionLength),
+      comments: { comment: list } } );
   }
 
-  //==========================
+  //////////////////////////////////////////////////////////////////////////////
 
   this.registry.frmSetComment = { attributes: { onsubmit : setComment.bind(this)} };
 

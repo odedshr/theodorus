@@ -5,19 +5,19 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.registry = this.registry || {};
 
-  this.registry.communityPage = { preprocess: (function registerCommunityPage (dElm, callback) {
+  this.registry.communityPage = { preprocess: (function registerCommunityPage(dElm, callback) {
     var communityId = this.state.community;
     if (communityId !== undefined && communityId.length > 0) {
       this.api.async({
-          'getCommunity':this.api.getCommunity.bind(this,communityId)
+          getCommunity : this.api.getCommunity.bind(this, communityId)
         },
-        onDataLoaded.bind(this,callback));
+        onDataLoaded.bind(this, callback));
     } else {
-      this.updateURL('communities','');
+      this.updateURL('communities', '');
     }
-  }).bind(this)} ;
+  }).bind(this) } ;
 
-  function onDataLoaded (callback, data) {
+  function onDataLoaded(callback, data) {
     var community = data.getCommunity.community;
     var membership = data.getCommunity.membership;
     document.title = community.name;
@@ -27,22 +27,30 @@ app = (typeof app !== 'undefined') ? app : {};
     var isMember = (!!membership && (membership.status === 'active'));
 
     var dataForDisplay  = {
-      communityId : community.id,
-      communityName : community.name,
-      isMember : isMember,
-      topics : { topic: [] }
+      communityId: community.id,
+      communityName: community.name,
+      isMember: isMember,
+      topics: { topic: [] },
+      id: '',
+      content: '',
+      contentLength : this.getPostLengthString('', community.topicLength)
     };
     if (dataForDisplay.isMember) {
-      dataForDisplay.memberName = community.membership.name ? data.getCommunity.membership.name : '';
+      dataForDisplay.memberName = community.membership.name ?
+        data.getCommunity.membership.name : '';
     } else {
-      dataForDisplay.joinLink = this.isAuthenticated() ? '#community:{{communityId}}/join' : '#join';
+      dataForDisplay.joinLink = this.isAuthenticated() ?
+      '#community:{{communityId}}/join' : '#join';
     }
+
     dataForDisplay.email = this.state.user ? this.state.user.email : '';
     callback(dataForDisplay);
   }
 
   //=================================// Leaving a Community
-  this.registry.btnLeave = { attributes: { onclick: onRequestQuitCommunity.bind(this) } };
+  this.registry.btnLeave = { attributes: {
+    onclick: onRequestQuitCommunity.bind(this)
+  } };
 
   function onRequestQuitCommunity (evt) {
     this.confirm (O.TPL.translate('confirm.leaveCommunity'),onLeaveCommunityConfirmed.bind(this));
@@ -60,4 +68,5 @@ app = (typeof app !== 'undefined') ? app : {};
     delete this.state.communityJSON;
     this.updateURL('community/', O.TPL.translate('pageTitle.community'));
   }
-  return this;}).call(app);
+
+return this;}).call(app);

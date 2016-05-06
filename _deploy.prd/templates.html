@@ -6,51 +6,6 @@
 </head>
 <body>
 
-  <template data-id="commentList">
-      {{.:'frmSetComment'}}
-      <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
-  </template>
-
-  <template data-id="commentListItem">
-      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
-      <div class="next-to-author-image">
-          {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
-          {{?!isEditable}}<div class="content">{{content}}</div>{{/isEditable}}
-          <div class="details">
-              <div class="detail author-name">{{author.name}}</div>
-              <div class="detail time" title="{{time}}">{{relativeTime}}</div>
-              {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
-          </div>
-      </div>
-      <div class="attributes">
-        <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
-        <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
-        <div class="attribute follow-count" data-ico="bookmark-empty"><span id="comment_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
-        <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
-        <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
-      </div>
-      {{?isMember}}<div class="actions">
-      <div class="action action-comment" data-register="toggle" data-target="comment-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
-      <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
-      <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
-      <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
-      <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
-      <!-- div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div -->
-      {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
-      </div>{{/isMember}}
-      <div id="comment-{{id}}-comments" class="comments js-list" data-role="comments" data-comment-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
-  </template>
-
-  <template data-id="frmSetComment">
-      <form class="form set add-comment-form" data-register="frmSetComment">
-          <input type="hidden" name="id" value="{{id}}"/>
-          <input type="hidden" name="opinionId" value="{{opinionId}}"/>
-          <input type="hidden" name="parentId" value="{{parentId}}"/>
-          <input type="text" class="field-comment-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" value="{{content}}"/>
-          <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
-      </form>
-  </template>
-
   <template data-id="communityAddPage">
     <h1></h1>
     <form class="form form-addCommunity component" data-register="frmAddCommunity">
@@ -150,7 +105,7 @@
       </div>
       {{?isMember}}
       <div class="page-header">
-          {{.:'frmAddTopic'}}
+          {{.:'frmSetTopic'}}
           <div class="topic-filter">
             <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
           </div>
@@ -397,62 +352,110 @@
       </div>
   </template>
 
+  <template data-id="commentList">
+      {{.:'frmSetComment'}}
+      <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item post comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
+  </template>
+
+  <template data-id="commentListItem">
+      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+      <div class="next-to-author-image">
+          <div class="content js-content" {?isEditable}}data-register="editComment"{/isEditable}}>{{mdContent}}</div>
+          {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
+          <div class="details">
+              <div class="detail author-name">{{author.name}}</div>
+              <div class="detail time" title="{{time}}">{{relativeTime}}</div>
+              {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
+          </div>
+      </div>
+      <div class="attributes">
+        <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
+        <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
+        <div class="attribute follow-count" data-ico="bookmark-empty"><span id="comment_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
+        <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
+        <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
+      </div>
+      {{?isMember}}<div class="actions">
+      <div class="action action-comment" data-register="toggle" data-target="comment-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
+      <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
+      <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+      <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+      <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
+      {{?isEditable}}<div class="action action-edit" data-register="editComment"><span data-ico="pencil">{{#action.edit}}</span></div>
+      <div class="action action-archive" data-register="archive" data-type="comment" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isEditable}}
+      </div>{{/isMember}}
+      <div id="comment-{{id}}-comments" class="comments js-list" data-role="comments" data-comment-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
+  </template>
+
+  <template data-id="frmSetComment">
+      <form class="form set add-comment-form" data-register="frmSetComment" {{?isReadMode}}data-hidden{{/isReadMode}}>
+          <input type="hidden" name="id" value="{{id}}"/>
+          <input type="hidden" name="opinionId" value="{{opinionId}}"/>
+          <input type="hidden" name="parentId" value="{{parentId}}"/>
+          <div class="row-post-content">
+            <label for="commentContent" class="required"></label>
+            <div class="field-wrapper" data-count="{{contentLength}}">
+              <textarea type="text" class="field-post-content js-opinion-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" data-register="postContent">{{content}}</textarea>
+            </div>
+          </div>
+          <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
+      </form>
+  </template>
+
   <template data-id="opinionList">
-    <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
+    <ul class="list opinion-list" data-msg-empty="{{#label.noOpinions}}">{{opinion@opinions}}<li id="opinion-{{id}}" class="js-item post opinion" data-type="opinion" data-id="{{id}}">{{.:opinionListItem}}</li>{{/opinion@opinions}}</ul>
   </template>
 
   <template data-id="opinionListItem">
     <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
     <div class="next-to-author-image">
-      {{?isMine}}<form data-register="frmSetOpinion">
-        <input type="hidden" name="id" value="{{id}}" />
-        <input type="hidden" name="topicId" value="{{topicId}}" />
-        <input type="text" class="field-opinion-content js-opinion-content" name="content" required="required" placeholder="{{#placeholder.addOpinion}}" value="{{content}}"/>
-        <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
-      </form>{{/isMine}}
-      {{?!isMine}}<div class="content">{{content}}</div>{{/isMine}}
+      <div class="content js-content" {{?isMine}}data-msg-empty="{{#label.noSelfOpinion}}" data-register="editOpinion"{{/isMine}}>{{mdContent}}</div>
+      {{?isEditable}}{{.:'frmSetOpinion'}}{{/isEditable}}
       <div class="details">
         <div class="detail author-name">{{author.name}}</div>
         <div class="detail time" title="{{time}}">{{relativeTime}}</div>
         {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
       </div>
     </div>
-    <div class="attributes">
+    {{?hasStats}}<div class="attributes">
       <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
       <div class="attribute endorse-count" data-ico="comment-empty"><span id="opinion_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
       <div class="attribute follow-count" data-ico="bookmark-empty"><span id="opinion_{{id}}_follow_count" class="value">{{follow}}</span> {{#label.followers}}</div>
       <div class="attribute">Seen by <span id="topic_{{id}}_read_count" class="value"></div>
       <div class="attribute"><span id="topic_{{id}}_report_count" class="value"> {{#label.reports}}</div>
-    </div>
+    </div>{{/hasStats}}
     {{?isMember}}<div class="actions">
     <div class="action action-comment" data-register="toggle" data-target="opinion-{{id}}-comments"><span data-ico="comment-empty">{{#action.comment}}</span></div>
     <div class="action action-endorse" data-register="endorse" data-value="{{isEndorsed}}"><span data-ico="heart-empty">{{#action.endorse}}</span></div>
-    <div class="action action-follow"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
-    <div class="action action-read"><span data-ico="unread">{{#action.markAsRead}}</span></div>
+    <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
+    <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
     <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
-    <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
-    {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="opinion" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+    {{?isEditable}}<div class="action action-edit" data-register="editOpinion"><span data-ico="pencil">{{#action.edit}}</span></div>
+    <div class="action action-archive" data-register="archive" data-type="opinion" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isEditable}}
     </div>{{/isMember}}
     <div id="opinion-{{id}}-comments" class="comments js-list" data-role="comments" data-opinion-id="{{id}}" data-on-toggle="commentList" data-hidden="true"></div>
   </template>
 
-  <template data-id="profileImageSelector">
-    <div class="profileImageSelector">
-      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="imageUpload"/>
-      <div>{{image@images}}<img class="member-image-thumb" src="{{.}}" data-register="copyImage" data-target="profileImagePreview"/>{{/image@images}}</div>
-      <button data-register="imageRemove"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
-      {{?hasImage}}<button data-register="imageReset" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
-    </div>
+  <template data-id="frmSetOpinion">
+    <form data-register="frmSetOpinion" {{?isReadMode}}data-hidden{{/isReadMode}}>
+      <input type="hidden" name="id" value="{{id}}" />
+      <input type="hidden" name="topicId" value="{{topicId}}" />
+      <div class="field-wrapper" data-count="{{contentLength}}">
+        <textarea type="text" class="field-post-content js-opinion-content" name="content" id="opinionContent" required="required" placeholder="{{#placeholder.addOpinion}}" data-register="postContent">{{content}}</textarea>
+      </div>
+      <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
+    </form>
   </template>
 
   <template data-id="topicList">
-      <ul class="list topic-list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic-{{id}}" class="js-item topic" data-type="topic" data-id="{{id}}">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
+      <ul class="list topic-list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic-{{id}}" class="js-item post topic" data-type="topic" data-id="{{id}}">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
   </template>
 
   <template data-id="topicListItem">
       <img class="author-image" src="{{author.image}}" title="{{author.name}}" alt="{{author.name}}"/>
       <div class="next-to-author-image">
-          <div class="content">{{content}}</div>
+          <div class="content js-content">{{mdContent}}</div>
+          {{?isEditable}}{{.:'frmSetTopic'}}{{/isEditable}}
           <div class="details">
               <div class="detail author-name">{{author.name}}</div>
               <div class="detail time" title="{{time}}">{{relativeTime}}</div>
@@ -472,16 +475,20 @@
         <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
         <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
         <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
-        <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
-        {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+        {{?isEditable}}<div class="action action-edit" data-register="editTopic"><span data-ico="pencil">{{#action.edit}}</span></div>
+        <div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isEditable}}
       </div>{{/isMember}}
       <div id="topic-{{id}}-opinions" class="opinions js-list" data-role="opinions" data-topic-id="{{id}}" data-on-toggle="opinionList" data-hidden="true"></div>
   </template>
 
-  <template data-id="frmAddTopic">
-      <form class="add-topic-form" data-register="frmAddTopic" class="form add form-topic-add">
-          <div class="row-topic-content">
-              <label for="topicContent" class="required"></label><input type="text" class="field-topic-content" name="topicContent" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}"/>
+  <template data-id="frmSetTopic">
+      <form class="add-topic-form post" data-register="frmSetTopic" {{?isReadMode}}data-hidden{{/isReadMode}}>
+          <input type="hidden" name="id" value="{{id}}" />
+          <div class="row-post-content">
+              <label for="topicContent" class="required"></label>
+              <div class="field-wrapper" data-count="{{contentLength}}">
+                <textarea type="text" class="field-post-content" name="content" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}" data-register="postContent">{{content}}</textarea>
+              </div>
           </div>
           <div class="row-buttons">
               <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
@@ -493,12 +500,21 @@
       <div class="community-header">
           <h2 class="community-name">{{communityName}}</h2>
       </div>
-      {{.:frmAddTopic}}
+      {{.:frmSetTopic}}
       <button data-register="btnCancel" >{{#btn.cancel}}</button>
   </template>
 
   <template data-id="topicAddPage">
       {{.:addTopic}}
+  </template>
+
+  <template data-id="profileImageSelector">
+    <div class="profileImageSelector">
+      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="imageUpload"/>
+      <div>{{image@images}}<img class="member-image-thumb" src="{{.}}" data-register="copyImage" data-target="profileImagePreview"/>{{/image@images}}</div>
+      <button data-register="imageRemove"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
+      {{?hasImage}}<button data-register="imageReset" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
+    </div>
   </template>
 
 </body>

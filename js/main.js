@@ -36,34 +36,6 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.btnCancel = { attributes : { onclick : onCancelButtonClicked } };
 
   //===========================================================================/
-  function onAttributeUpdateClicked (attribute, callback, evt) {
-    var dElm = evt.target.closest('[data-register]');
-    var subject = dElm.closest('.js-item[data-type][data-id]');
-    if (dElm.getAttribute('data-value') === 'true') {
-      attribute = 'un' + attribute;
-    }
-    this.api.setAttribute(subject.getAttribute('data-type'),
-                          subject.getAttribute('data-id'),
-                          attribute,
-                          onAttributeUpdate.bind(this,dElm, callback));
-  }
-
-  function onAttributeUpdate (dElm, callback, output) {
-    dElm.setAttribute('data-value',output.value);
-    var dCount = O.ELM[''.concat(output.subjectType,'_',output.subjectId,'_',output.attribute,'_count')];
-    if (dCount !== undefined) {
-      dCount.innerHTML = output.count;
-    }
-    if (callback) {
-      callback(dElm, output);
-    }
-  }
-
-  this.registry.endorse = { attributes : { onclick : onAttributeUpdateClicked.bind(this, 'endorse', this.simplyReturn ) } };
-  this.registry.follow = { attributes : { onclick : onAttributeUpdateClicked.bind(this, 'follow', this.simplyReturn ) } };
-  this.registry.read = { attributes : { onclick : onAttributeUpdateClicked.bind(this, 'read', this.simplyReturn ) } };
-
-  //===========================================================================/
   function registerPageNotFound (dElm, callback) {
     document.title = O.TPL.translate('title.pageNotFound');
     callback ({ isAuthenticated : this.isAuthenticated() });
@@ -81,6 +53,16 @@ app = (typeof app !== 'undefined') ? app : {};
   this.isAuthenticated = (function isAuthenticated () {
     var token = O.COOKIE('authToken');
     return (token.length > 0);
+  }).bind(this);
+
+  this.handleUnauthorized = (function isAuthenticated () {
+    if (O.ELM.pageContainer) {
+      this.state.redirect = location.href;
+      this.updateURL('join');
+    } else {
+      this.signout();
+      this.register(O.ELM.appContainer);
+    }
   }).bind(this);
 
   this.updateURL = (function updateURL (hash) {

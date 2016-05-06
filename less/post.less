@@ -1,12 +1,83 @@
 @import "definitions.less";
-
-.topic {
-  background-color: @clr-white;
-  border-bottom: 1px solid @clr-border;
+.post {
   min-height: 32px; /* height of the image */
 
+  &.topic, #opinion- {
+    background-color: @clr-white;
+    border-bottom: 1px solid @clr-border;
+  }
+
   &:last-child {
-    border-bottom: 2px solid @clr-border;
+    /*border-bottom: 2px solid @clr-border;*/
+  }
+
+  .content {
+    margin-top: 5px;
+
+    &:not(:empty) {
+      &:before {
+        content: "“";
+      }
+      &:after {
+        content: "”";
+      }
+    }
+
+    > p { display: inline; }
+    em { font-style: italic; }
+    strong { font-weight: bolder; }
+    code { font-family: monospace; }
+    ol { list-style-type: decimal; margin-left: 1rem; }
+    ul { list-style-type: disc; margin-left: 1rem; }
+  }
+
+  .row-post-content, .row-buttons {
+    display: inline-block;
+  }
+
+  .field-wrapper {
+    min-width: 280px;
+    position: relative;
+
+    &:before {
+      bottom: 0;
+      color: @clr-red-darkest;
+      content: attr(data-error);
+      font-size: @font-size-small;
+      margin: 0 0 4px 4px;
+      position: absolute;
+      left: 0;
+    }
+
+    &[data-count]:after {
+      bottom: 0;
+      color: @clr-border;
+      content: attr(data-count);
+      font-size: @font-size-small;
+      margin: 0 12px 4px 0;
+      position: absolute;
+      right: 0;
+    }
+
+    &[data-count][data-error]:after {
+      color: @clr-red-darkest;
+    }
+  }
+
+  .field-post-content {
+    background-color: @clr-white;
+    border: 0.1rem solid @clr-border;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: @font-size-normal;
+    padding: 4px;
+    min-height: 48px;
+    outline: none;
+    width: 100%;
+
+    &[data-valid="false"] {
+      background-color: @clr-red-bright;
+    }
   }
 
   .author-image {
@@ -38,16 +109,6 @@
 
   .next-to-author-image {
     display:inline-block;
-  }
-  .content {
-    display: block;
-    margin-top: 5px;
-  }
-  .content:before {
-    content: "“";
-  }
-  .content:after {
-    content: "”";
   }
 
   .details {
@@ -153,5 +214,20 @@
     border-left: 1px solid @clr-border;
     margin-left: 1px;
     padding-left: 1px;
+  }
+}
+
+.opinion {
+  .content:empty:before {
+    color: @clr-blue-darkest;
+    cursor: pointer;
+    content: attr(data-msg-empty) ;
+    display: block;
+    font-size: @font-size-large;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+  .content:hover:empty:before {
+    color: @clr-blue;
   }
 }

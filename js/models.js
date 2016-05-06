@@ -14,14 +14,50 @@ app = (typeof app !== 'undefined') ? app : {};
     return true;
   }
 
-  function validateOptionalMaskedId (value) {
+  function validateOptionalId (value) {
     return (value === undefined || validateMaskedId(value));
   }
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  function isPostLengthOK (message, comparedTo) {
+    if (comparedTo === 0) {
+      return true;
+    } else {
+      var stringSize = comparedTo > 0 ? countWords(message) : countCharacters(message);
+      return stringSize <= Math.abs(comparedTo);
+    }
+  }
+
+  function countWords (string) {
+    var textified = textify(string);
+    return textified.length ? textified.split(' ').length : 0;
+  }
+  this.countWords = countWords;
+
+  function countCharacters (string) {
+    return textify(string).length;
+  }
+  this.countCharacters = countCharacters;
+
+  var mdLinkPattern = new RegExp ('\\((.*?)\\)\\[(.*?)\\]','g');
+
+  function find(pattern, string) {
+    pattern.lastIndex = 0;
+    return pattern.exec(string);
+  }
+
+  function textify (string) {
+    // convert to markDown + remove all html tags + split connected words
+    return string ? marked(string.trim()).replace (/<(?:.|\n)*?>/gm, '').replace (/[^(\s\w)]+/gm, ' ') : '';
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
 
   models.user = {
     status: {
       enum: { active: "active", suspended: "suspended", archived: "archived"},
-      validate: function (value) { return true; }
+      validate: function (value) { return (mode.user.status.enum.indexOf(value) > -1); }
     },
     created: {},
     modified: {},
@@ -46,42 +82,47 @@ app = (typeof app !== 'undefined') ? app : {};
   models.topic = {
     content: {
       validate : function validatTopicContent( value, community) {
-        return true;
+        if (!isPostLengthOK(value, community.topicLength)) {
+          return new Error('error.tooLong');
+        } else if (value.length === 0) {
+          return new Error('error.tooShort');
+        }
+        return  true;
       }
     }
   };
   models.opinion = {
     id: {
-      validate : validateOptionalMaskedId
+      validate : validateOptionalId
     },
     topicId: {
       validate : validateMaskedId
     },
     content: {
       validate : function validatOpinionContent( value, community) {
-        return true;
+        return isPostLengthOK(value, community.opinionLength) ? true : new Error('error.tooLong');
       }
     }
   };
   models.comment = {
     id: {
-      validate : validateOptionalMaskedId
+      validate : validateOptionalId
     },
     opinionId: {
       validate : validateMaskedId
     },
     parentId: {
-      validate : validateOptionalMaskedId
+      validate : validateOptionalId
     },
     content: {
       validate : function validatCommentContent( value, community) {
-        return true;
+        return isPostLengthOK(value, community.commentLength) ? true : new Error('error.tooLong');
       }
     }
   };
   models.feedback = {
     id: {
-      validate : validateOptionalMaskedId
+      validate : validateOptionalId
     },
     image: {
       validate : defaultTrue

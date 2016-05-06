@@ -6,13 +6,14 @@
 </head>
 <body>
   <template data-id="topicList">
-      <ul class="list topic-list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic-{{id}}" class="js-item topic" data-type="topic" data-id="{{id}}">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
+      <ul class="list topic-list" data-msg-empty="{{#label.noTopics}}">{{topic@topics}}<li id="topic-{{id}}" class="js-item post topic" data-type="topic" data-id="{{id}}">{{.:topicListItem}}</li>{{/topic@topics}}</ul>
   </template>
 
   <template data-id="topicListItem">
       <img class="author-image" src="{{author.image}}" title="{{author.name}}" alt="{{author.name}}"/>
       <div class="next-to-author-image">
-          <div class="content">{{content}}</div>
+          <div class="content js-content">{{mdContent}}</div>
+          {{?isEditable}}{{.:'frmSetTopic'}}{{/isEditable}}
           <div class="details">
               <div class="detail author-name">{{author.name}}</div>
               <div class="detail time" title="{{time}}">{{relativeTime}}</div>
@@ -32,16 +33,20 @@
         <div class="action action-follow" data-register="follow" data-value="{{isFollowed}}"><span data-ico="bookmark-empty">{{#action.follow}}</span></div>
         <div class="action action-read" data-register="read" data-value="{{isRead}}"><span data-ico="unread">{{#action.markAsRead}}</span></div>
         <div class="action action-report"><span data-ico="frown-o">{{#action.report}}</span></div>
-        <div class="action action-edit"><span data-ico="pencil">{{#action.edit}}</span></div>
-        {{?isArchivable}}<div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isArchivable}}
+        {{?isEditable}}<div class="action action-edit" data-register="editTopic"><span data-ico="pencil">{{#action.edit}}</span></div>
+        <div class="action action-archive" data-register="archive" data-type="topic" data-id="{{id}}"><span data-ico="trash-empty">{{#action.remove}}</span></div>{{/isEditable}}
       </div>{{/isMember}}
       <div id="topic-{{id}}-opinions" class="opinions js-list" data-role="opinions" data-topic-id="{{id}}" data-on-toggle="opinionList" data-hidden="true"></div>
   </template>
 
-  <template data-id="frmAddTopic">
-      <form class="add-topic-form" data-register="frmAddTopic" class="form add form-topic-add">
-          <div class="row-topic-content">
-              <label for="topicContent" class="required"></label><input type="text" class="field-topic-content" name="topicContent" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}"/>
+  <template data-id="frmSetTopic">
+      <form class="add-topic-form post" data-register="frmSetTopic" {{?isReadMode}}data-hidden{{/isReadMode}}>
+          <input type="hidden" name="id" value="{{id}}" />
+          <div class="row-post-content">
+              <label for="topicContent" class="required"></label>
+              <div class="field-wrapper" data-count="{{contentLength}}">
+                <textarea type="text" class="field-post-content" name="content" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}" data-register="postContent">{{content}}</textarea>
+              </div>
           </div>
           <div class="row-buttons">
               <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
@@ -53,7 +58,7 @@
       <div class="community-header">
           <h2 class="community-name">{{communityName}}</h2>
       </div>
-      {{.:frmAddTopic}}
+      {{.:frmSetTopic}}
       <button data-register="btnCancel" >{{#btn.cancel}}</button>
   </template>
 

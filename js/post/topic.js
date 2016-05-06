@@ -25,63 +25,76 @@ app = (typeof app !== 'undefined') ? app : {};
       return callback ({ topics: { topic: [] } });
     }
     this.state.communityTopics = data;
-
+    var item, viewpoint;
     var topics = data.topics || [];
     var authors = data.authors || {};
     var isMember = !!this.state.communityJSON.membership;
     var membershipId = isMember ? this.state.communityJSON.membership.id : false;
     var count = topics.length;
+
+    this.addImagesToAuthors (authors);
+
     while (count--) {
-      var item = topics[count];
+      item = topics[count];
       item.author = authors[item.authorId];
+      item.mdContent = marked(item.content);
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
-      item.isArchivable =(membershipId === item.author.id) &&(item.opinions === 0) &&(item.endorse === 0);
       item.isMember = isMember;
-      if (item.viewpoint) {
-        item.isEndorsed = !!item.viewpoint.endorse;
-        item.isFollowed = !!item.viewpoint.follow;
-        item.isRead = !!item.viewpoint.read;
-      } else {
-        item.isEndorsed = item.isFollowed = item.isRead = false;
+      if (isMember) {
+        item.isReadMode = true;
+        item.isEditable =(membershipId === item.author.id) &&(item.opinions === 0) &&(item.endorse === 0);
+        if (item.isEditable) {
+          item.contentLength = this
+            .getPostLengthString(item.content, this.state.communityJSON.topicLength);
+        }
+        viewpoint = data.viewpoints[item.id];
+        if (viewpoint) {
+          item.isEndorsed = !!viewpoint.endorse;
+          item.isFollowed = !!viewpoint.follow;
+          item.isRead = !!viewpoint.read;
+        } else {
+          item.isEndorsed = item.isFollowed = item.isRead = false;
+        }
       }
-
-    }
-    var authorIds = Object.keys(authors);
-    count = authorIds.length;
-    while (count--) {
-      var id = authorIds[count];
-      var author = authors[id];
-      author.image = (!!author.hasImage) ? this.api.getProfileImageURL(id) : '';
     }
 
-    callback( { topics: { topic: this.getFilteredItems.call (this, topics, filters ) } } );
+    callback( { content:'',
+      topics: { topic:
+        this.getFilteredItems.call (this, topics, filters ) } } );
   }
 
-  //==========================
+  //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.frmAddTopic = { attributes: { onsubmit : addTopic.bind(this)} };
-  function addTopic(evt) {
-    var content = O.ELM.topicContent.value;
-    if(this.models.topic.content.validate(content, this.state.communityJSON)) {
-      var data = { topic: {
+  this.registry.frmSetTopic = { attributes: { onsubmit : setTopic.bind(this)} };
+  function setTopic(evt) {
+    var data, topic = this.getFormFields (evt.target);
+    var content = topic.content;
+    var isValid = this.models.topic.content
+      .validate(content, this.state.communityJSON);
+    if (!(isValid instanceof Error)) {
+      data = { topic: {
         communityId : this.state.community,
         content: content,
         status: 'published',
       }};
-      this.api.setTopic (data, onTopicAdded.bind(this));
+      if (topic.id.length > 0) {
+        data.topic.id = topic.id;
+      }
+      this.api.setTopic (data, onTopicSet.bind(this));
     }
     return false;
   }
 
-  function onTopicAdded() {
+  function onTopicSet() {
     delete this.state.communityTopics;
     this.register(O.ELM.communityTopics);
   }
 
-  //==========================
+  //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.filterTopics = { attributes: { onkeyup : filterTopics.bind(this)} };
+  this.registry.filterTopics = { attributes: { onkeyup :
+    filterTopics.bind(this)} };
   function filterTopics (evt) {
     filters.content = evt.target.value;
     this.registry.topicList.cached = this.state.communityTopics.topics;
