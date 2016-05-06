@@ -1,7 +1,10 @@
 ;(function communityModelClosure() {
+  /*jshint validthis: true */
   'use strict';
+
   var Encryption = require ( '../helpers/Encryption.js' );
   var Errors = require ( '../helpers/Errors.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
   var validators = require ( '../helpers/validators.js' );
 
   var status = { active: 'active', suspended: 'suspended', archived: 'archived'};
@@ -9,6 +12,8 @@
   var type = { public: 'public', exclusive: 'exclusive', secret: 'secret'};
 
   var editableFields = ['name','description','topicLength', 'opinionLength','commentLength','minAge','maxAge','gender','type'];
+  var jsonMinimalFields = ['id','name','description','members','topics','type'];
+  var jsonFields = ['id','status','created','modified','name','description','founderId','members','topicLength','opinionLength','commentLength','minAge','maxAge','gender','type','topics'];
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,91 +55,61 @@
         return value;
       },
       isTopicLengthOk: function isTopicLengthOk (message) {
-        return isPostLengthOK(message, this.topicLength);
+        return validators.isPostLengthOK(message, this.topicLength);
       },
       isOpinionLengthOk: function isOpinionLengthOk (message) {
-        return isPostLengthOK(message, this.opinionLength);
+        return validators.isPostLengthOK(message, this.opinionLength);
       },
       isCommentLengthOk: function isCommentLengthOk (message) {
-        return isPostLengthOK(message, this.commentLength);
+        return validators.isPostLengthOK(message, this.commentLength);
       },
       isValid: function () {
         return isCommunityValid(this);
       },
       toJSON: function (isMinimal) {
-        return toJSON(this, isMinimal);
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
       },
-      getEditables: getEditables
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     status : status,
     gender : gender,
     type : type,
-    getNew: function getNew ( community) {
-      var now = new Date ();
-      return {
-        id : community.communityId,
-        founderId : community.founderId,
-        name: community.name,
-        description: community.description,
-        topics: 0,
-        members: 1, // at least the founder is a member
-        status: status[community.status] ? status[community.status] : status.active,
-        created: now,
-        modified: now,
-        topicLength: (community.topicLength !== undefined) ? +community.topicLength : -140,
-        opinionLength: (community.opinionLength !== undefined) ? +community.opinionLength : -140,
-        commentLength: (community.commentLength !== undefined) ? +community.commentLength : 100,
-        minAge: (community.minAge !== undefined) ? +community.minAge : -1,
-        maxAge: (community.maxAge !== undefined) ? +community.maxAge : -1,
-        gender: gender[community.gender] ? gender[community.gender] : gender.neutral,
-        type: type[community.type] ? type[community.type]: type.public
-      };
-    }
+    getNew: getNew
   };
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function toJSON (community, isMinimal) {
-    return isMinimal ? {
-      id: community.id,
+  function getNew ( community) {
+    var now = new Date ();
+    return {
+      id : community.communityId,
+      founderId : community.founderId,
       name: community.name,
       description: community.description,
-      members: community.members,
-      topics: community.topics,
-      type: community.type
-    } :{
-      id: community.id,
-      status: community.status,
-      created: community.created,
-      modified: community.modified,
-      name: community.name,
-      description: community.description,
-      founderId: community.founderId,
-      members: community.members,
-      topicLength: community.topicLength,
-      opinionLength: community.opinionLength,
-      commentLength: community.commentLength,
-      minAge: community.minAge,
-      maxAge: community.maxAge,
-      gender: community.gender,
-      type: community.type,
-      topics: community.topics
+      topics: 0,
+      members: 1, // at least the founder is a member
+      status: status[community.status] ? status[community.status] : status.active,
+      created: now,
+      modified: now,
+      topicLength: (community.topicLength !== undefined) ? +community.topicLength : -140,
+      opinionLength: (community.opinionLength !== undefined) ? +community.opinionLength : -140,
+      commentLength: (community.commentLength !== undefined) ? +community.commentLength : 100,
+      minAge: (community.minAge !== undefined) ? +community.minAge : -1,
+      maxAge: (community.maxAge !== undefined) ? +community.maxAge : -1,
+      gender: gender[community.gender] ? gender[community.gender] : gender.neutral,
+      type: type[community.type] ? type[community.type]: type.public
     };
-  }
-
-  function getEditables () {
-    return editableFields;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function isPostLengthOK (message, comparedTo) {
-    if (comparedTo === 0) {
+  function isPostLengthOK (message, compareTo) {
+    if (compareTo === 0) {
       return true;
     } else {
-      var stringSize = comparedTo > 0 ? validators.countWords(message) : validators.countCharacters(message);
-      return stringSize <= Math.abs(comparedTo);
+      var stringSize = compareTo > 0 ? validators.countWords(message) : validators.countCharacters(message);
+      return stringSize <= Math.abs(compareTo);
     }
   }
 

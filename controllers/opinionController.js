@@ -152,13 +152,13 @@
       opinions: {
         table: db.opinion,
         before: listPrepareOpinionsQuery.bind(null, status),
-        load: { topicId: topicId, status: [status.published, status.history]}, multiple: {order: 'modified'},
+        load: { topicId: topicId, status: [status.published, status.history]}, multiple: {order: '-modified'},
         after: listSeparateHistory.bind(null, status), finally: sergeant.fullJson },
       history: { table: db.opinion, finally: sergeant.jsonGroup.bind(null,'authorId') },
       draft: { finally: sergeant.fullJson },
       authors: { table: db.membership, before: listPrepareAuthorsQuery, multiple: {},
         finally: sergeant.jsonMap},
-      viewpoints: { table: db.opinionViewpoint, multiple: {}, finally: sergeant.jsonMap}
+      viewpoints: { table: db.opinionViewpoint, before: listPrepareViewpointsQuery, multiple: {}, finally: sergeant.jsonMap.bind (null,'subjectId') }
     };
 
     if (optionalUser !== undefined) {
@@ -208,6 +208,20 @@
         authorIdMap[opinions[count].authorId] = true;
       }
       tasks.authors.load = {id: Object.keys(authorIdMap)};
+    }
+  }
+
+  function listPrepareViewpointsQuery (data, tasks) {
+    if (data.member) {
+      var items = data.opinions;
+      var itemCount = items.length;
+      if (itemCount) {
+        var itemIds = []; // we need to find distinct authors!
+        while (itemCount--) {
+          itemIds[itemCount] = items[itemCount].id;
+        }
+        tasks.viewpoints.load = { memberId: data.member.id, subjectId: itemIds};
+      }
     }
   }
 
@@ -289,7 +303,7 @@
         beforeSave: setOpinion, save: true, finally: sergeant.json },
       updateTopic: { table: db.topic, beforeSave: addUpdateTopic, finally: sergeant.remove },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history },
-        multiple: { order: 'modified'}, finally: sergeant.json }
+        multiple: { order: '-modified'}, finally: sergeant.json }
     };
     sergeant(tasks, 'topic,community,author,current,opinion,updateTopic,history', callback);
   }
@@ -349,7 +363,7 @@
       opinion: { table: db.opinion, data: opinion,
         beforeSave: setOpinion, save: true, finally: sergeant.json },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history},
-        multiple: { order: 'modified'}, finally: sergeant.json }
+        multiple: { order: '-modified'}, finally: sergeant.json }
     };
     sergeant(tasks, 'current,community,author,updateCurrent,opinion,history', callback);
   }

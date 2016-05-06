@@ -1,5 +1,9 @@
 (function validatorsClosure() {
+  /*jshint validthis: true */
   'use strict';
+  var marked = require ( 'marked' );
+
+  var Errors = require ( '../helpers/Errors.js' );
 
   var emailPatternString = '((([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,})))';
   var maskedIdPattern  = '([\\w\\d\\-]+)';
@@ -30,12 +34,8 @@
   }
 
   function textify (string) {
-    if (string === undefined) {
-      return '';
-    }
-    string = string.replace (/<(?:.|\n)*?>/gm, ''); //strip html tags
-    string = string.replace (/[^(\s\w)]+/gm, ' '); // split connected words
-    return string;
+    // convert to markDown + remove all html tags + split connected words
+    return string ? marked(string).replace (/<(?:.|\n)*?>/gm, '').replace (/[^(\s\w)]+/gm, ' ') : '';
   }
 
   function countWords (string) {
@@ -46,6 +46,17 @@
     return textify(string).length;
   }
 
+  function isPostLengthOK (message, compareTo) {
+    if (compareTo === 0) {
+      return true;
+    } else {
+      var stringSize = compareTo > 0 ? countWords(message) : countCharacters(message);
+      return stringSize <= Math.abs(compareTo);
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   exports.emailPatternString = emailPatternString;
   exports.maskedIdPattern = maskedIdPattern;
   exports.urlParameterPattern = urlParameterPattern;
@@ -55,4 +66,5 @@
   exports.sanitizeString = sanitizeString;
   exports.countWords = countWords;
   exports.countCharacters = countCharacters;
+  exports.isPostLengthOK = isPostLengthOK;
 })();

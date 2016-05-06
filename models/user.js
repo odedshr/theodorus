@@ -2,10 +2,13 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
 
   var status = { active: "active", suspended: "suspended", archived: "archived"};
   var editableFields = ['birthDate','isFemale'];
-  
+  var jsonMinimalFields = ['id','status','created','modified','lastLogin','email','birthDate','isFemale'];
+  var jsonFields = jsonMinimalFields;
+
   module.exports = {
     name: 'user',
     status: status,
@@ -23,8 +26,10 @@
     },
     manualFields: ['birthDate','isFemale'],
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     getNew: function getNew ( user) {
@@ -39,21 +44,4 @@
     }
   };
 
-
-  function toJSON (user) {
-    return {
-      id: user.id,
-      status: user.status,
-      created: user.created,
-      modified: user.modified,
-      lastLogin: user.lastLogin,
-      email: user.email,
-      birthDate: user.birthDate,
-      isFemale: user.isFemale
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 })();

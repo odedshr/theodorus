@@ -1,7 +1,11 @@
 ;(function conversationModelClosure() {
   'use strict';
   var Encryption = require ( '../helpers/Encryption.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
+
   var editableFields = [];
+  var jsonMinimalFields = [];
+  var jsonFields = [];
 
   module.exports = {
     name: 'conversation',
@@ -14,18 +18,12 @@
       model.hasMany('participants',models.membership, {joined: Date}, { field: 'participantId', required: true, reverse: 'conversations', key: true});
     },
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {}
   };
-
-  function toJSON (isMinimal) {
-    return {};
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 
 })();

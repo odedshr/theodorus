@@ -3,110 +3,91 @@
 
   var Encryption = require ('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
-  var chain = require('../helpers/chain.js');
+  var sergeant = require('../helpers/sergeant.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
 
-  function getViewpointDBObjectName (subjectType) {
-    switch (subjectType) {
-      case 'topic': return 'topicViewpoint';
-      case 'opinion': return 'opinionViewpoint';
-      case 'comment': return 'commentViewpoint';
-    }
-  }
-  function updateViewpoint (authUser, subjectType, subjectId, attribute, value, db, callback) {
-    chain ([
-      {name: subjectType, table: db[subjectType], parameters: subjectId, continueIf: injectCommunityToMemberQuery.bind({},subjectType) },
-      {name: 'member', table: db.membership, parameters: {userId: authUser.id }, continueIf: injectMembershipToTopicQuery.bind({},attribute) },
-      {name: 'viewpoint', table: db[getViewpointDBObjectName(subjectType)], parameters: { topicId: subjectId } }
-    ], updateViewpointOnViewpointLoaded.bind(null, subjectType, subjectId, attribute, value, db, callback), callback);
-  }
-
-  function injectCommunityToMemberQuery (subjectType, repository, tasks) {
-    if (repository[subjectType] === undefined) {
-      return Errors.notFound('topic');
-    } else {
-      tasks[tasks.length-1].parameters.communityId = repository[subjectType].communityId;
-      return true;
-    }
-  }
-
-  function injectMembershipToTopicQuery (attribute, repository, tasks) {
-    if (repository.member === null) {
-      return Errors.notFound('member');
-    } else {
-      tasks[tasks.length-1].parameters.memberId = repository.member.id;
-      return repository.member.can (attribute) ? true : Errors.noPermissions(attribute);
-    }
-  }
-
-  function updateViewpointOnViewpointLoaded (subjectType, subjectId, attribute, value, db, callback, data) {
-    var viewpoint = data.viewpoint;
-    var attributeCountDelta = 0;
-    var onSave = onViewpointSaved.bind({},subjectType, subjectId, attribute, value, callback);
-    var updateSubject = updateSubjectAttributeCount.bind({}, data[subjectType], attribute, onSave );
-
-    if (viewpoint === null || (viewpoint instanceof Error)) {
-      attributeCountDelta = 1;
-      var viewpointDBObject = getViewpointDBObjectName(subjectType);
-
-      viewpoint = db[viewpointDBObject].model.getNew(data.member.id, subjectId);
-      viewpoint[attribute] = value;
-      db[viewpointDBObject].create(
-          viewpoint,
-          chain.onSaved.bind(null, updateSubject.bind({},attributeCountDelta)));
-    } else {
-      if ( viewpoint[attribute] !== value) {
-        attributeCountDelta = value ? 1 : -1;
-        viewpoint[attribute] = value;
-        viewpoint.save(chain.onSaved.bind(null,updateSubject.bind({},attributeCountDelta) ));
-      } else {
-        updateSubject(attributeCountDelta);
+  function set (authUser, subjectType, subjectId, attribute, value, db, callback) {
+    sergeant ({
+      originalSubject: {
+        table: db[subjectType],
+        load: subjectId,
+        after: sergeant.stopIfNotFound,
+        finally: sergeant.remove
+      },
+      member: {
+        table: db.membership,
+        before: setPrepareMemberQuery,
+        load: { userId: authUser.id },
+        after: sergeant.stopIfNotFound,
+        finally: sergeant.remove
+      },
+      viewpoint: {
+        table: db[subjectType + 'Viewpoint'],
+        before: setPrepareViewpointQuery.bind({}, subjectId),
+        beforeSave : setPrepareViewpoint.bind({}, subjectType, attribute, value, db),
+        save: true,
+        finally: sergeant.json
+      },
+      subject: {
+        table: db[subjectType],
+        beforeSave : setPrepareSubject.bind({}, attribute, value),
+        save: true,
+        finally: sergeant.json
       }
+    }, 'originalSubject,member,viewpoint,subject', callback);
+  }
+
+  function setPrepareMemberQuery (data, tasks) {
+    tasks.member.load.communityId = data.originalSubject.communityId;
+  }
+
+  function setPrepareViewpointQuery (subjectId, data, tasks) {
+    tasks.viewpoint.load = { memberId: data.member.id, subjectId: subjectId };
+  }
+
+  function setPrepareViewpoint (subjectType, attribute, value, db, data, tasks) {
+    var viewpoint = data.viewpoint;
+    if (viewpoint === null) {
+      viewpoint = db[subjectType + 'Viewpoint'].model.getNew( data.member.id, data.originalSubject.id);
+    } else if ( viewpoint[attribute] === value) {
+      tasks.viewpoint.save = false;
+      tasks.subject.save = false;
     }
+    viewpoint[attribute] = value;
+    tasks.viewpoint.data = viewpoint;
   }
 
-  function updateSubjectAttributeCount (subject, attribute, onSave, delta) {
-    if (delta !== 0) {
-      subject[attribute] += delta;
-      subject.save(chain.onSaved.bind(null,onSave.bind({},subject[attribute]) ));
-    } else {
-      onSave(subject[attribute]);
-    }
-  }
-  function onViewpointSaved (subjectType, subjectId, attribute, value, callback, count) {
-    var data = {
-      subjectType: subjectType,
-      subjectId: subjectId,
-      attribute : attribute,
-      value : value,
-      count : count
-    };
-    callback(data);
+  function setPrepareSubject (attribute, value, data, tasks) {
+    var subject = data.originalSubject;
+    subject[attribute] += (value ? 1 : -1);
+    tasks.subject.data = subject;
   }
 
-  function read (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser, subjectType, subjectId, 'read', true,  db, callback);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function read(authUser, subjectType, subjectId, db, callback) {
+    set(authUser, subjectType, subjectId, 'read', true,  db, callback);
   }
 
-  function unread (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser, subjectType, subjectId, 'unread', false, db, callback);
+  function unread(authUser, subjectType, subjectId, db, callback) {
+    set(authUser, subjectType, subjectId, 'unread', false, db, callback);
   }
 
-  function follow (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser, subjectType, subjectId, 'follow', true, db, callback);
+  function follow(authUser, subjectType, subjectId, db, callback) {
+    set(authUser, subjectType, subjectId, 'follow', true, db, callback);
   }
 
-  function unfollow (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser, subjectType, subjectId, 'follow', false, db, callback);
+  function unfollow(authUser, subjectType, subjectId, db, callback) {
+    set(authUser, subjectType, subjectId, 'follow', false, db, callback);
   }
 
-  function endorse (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser, subjectType, subjectId, 'endorse', true, db, callback);
+  function endorse(authUser, subjectType, subjectId, db, callback) {
+    set(authUser, subjectType, subjectId, 'endorse', true, db, callback);
   }
 
-  function unendorse (authUser, subjectType, subjectId, db, callback) {
-    updateViewpoint(authUser,  subjectType, subjectId, 'endorse', false, db, callback);
+  function unendorse(authUser, subjectType, subjectId, db, callback) {
+    set(authUser,  subjectType, subjectId, 'endorse', false, db, callback);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

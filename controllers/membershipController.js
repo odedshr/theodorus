@@ -293,7 +293,9 @@
     }
   }
   function saveMembershipImage (membershipImage,files, db, callback, data) {
-    files.set(controllers.profileImage.getImageFilename(data.membership.id),membershipImage);
+    if (!(data instanceof Error)) {
+      files.set(controllers.profileImage.getImageFilename(data.membership.id),membershipImage);
+    }
     callback(data);
   }
 

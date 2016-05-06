@@ -78,7 +78,7 @@
 
   function getPrepareViewpoint (data, tasks) {
     if (data.member) {
-      tasks.viewpoint.load = { topicId:data.topic.id, memberId: data.member.id };
+      tasks.viewpoint.load = { subjectId:data.topic.id, memberId: data.member.id };
     }
   }
 
@@ -98,13 +98,13 @@
     var tasks = {
       community: { table: db.community, load: communityId, after: sergeant.stopIfNotFound, finally: sergeant.jsonMap },
       topics: { table: db.topic, load: { communityId: communityId, status: db.topic.model.status.published},
-        multiple: {order: 'modified'}, finally: sergeant.fullJson },
+        multiple: {order: '-modified'}, finally: sergeant.fullJson },
       authors: { table: db.membership, before: prepareAuthorsQuery, multiple: {},
         finally: sergeant.jsonMap },
       member: { table: db.membership, before: prepareMemberQuery.bind(null, optionalUser),
         after: listOnlyIfHasPermissions.bind (null,db.community.model.type.exclusive), finally: sergeant.remove },
-      viewpoints: { table: db.topicViewpoint, before: prepareViewpointsQuery, multiple: {},
-        finally: sergeant.jsonMap.bind (null,'topicId')}
+      viewpoints: { table: db.topicViewpoint, before: listPrepareViewpointsQuery, multiple: {},
+        finally: sergeant.jsonMap.bind (null,'subjectId')}
     };
 
     sergeant (tasks, 'community,topics,authors,member,viewpoints', callback);
@@ -132,16 +132,16 @@
     return (data.member || data.community.type !== communityTypeExclusive) ? true : Errors.noPermissions('list-topics') ;
   }
 
-  function prepareViewpointsQuery (data, tasks) {
+  function listPrepareViewpointsQuery (data, tasks) {
     if (data.member) {
-      var topics = data.topics;
-      var topicCount = topics.length;
-      if (topicCount) {
-        var topicIds = []; // we need to find distinct authors!
-        while (topicCount--) {
-          topicIds[topicCount] = topics[topicCount].id;
+      var items = data.topics;
+      var itemCount = items.length;
+      if (itemCount) {
+        var itemIds = []; // we need to find distinct authors!
+        while (itemCount--) {
+          itemIds[itemCount] = items[itemCount].id;
         }
-        tasks.viewpoints.load = { memberId: data.member.id, topicId: topicIds};
+        tasks.viewpoints.load = { memberId: data.member.id, subjectId: itemIds};
       }
     }
   }
@@ -183,8 +183,14 @@
 
   function addCheckTopicLength (string, data) {
     data.community.topics++;
-    return data.community.isTopicLengthOk(string) ? true : Errors.tooLong('topic',string);
+    if (!data.community.isTopicLengthOk(string)) {
+      return Errors.tooLong('topic',string);
+    } else if (string.length === 0) {
+      return Errors.tooShort('topic',string);
+    }
+    return  true;
   }
+
   function addPrepareTopic (topic, db, data, tasks) {
     topic.authorId = data.author.id;
     topic.communityId = data.community.id;

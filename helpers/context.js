@@ -14,22 +14,29 @@
   var idPattern = validators.maskedIdPattern;
   var emailPattern = validators.emailPatternString;
 
+  function getKeys (urlFormat) {
+    var matches, keys = [];
+    urlParameterPattern.lastIndex = 0;
+    while ((matches = urlParameterPattern.exec(urlFormat)) !== null) {
+      keys[keys.length] = matches[1];
+    }
+    return keys;
+  }
   function read(req, urlFormat, reURL) {
-    var output = {};
+    var keys, values, count, output = {};
     try {
       _.extend(output, url.parse(req.url, true).query,  req.params, req.body);
     } catch (err) {
       log(err);
     }
 
-    var values = reURL.exec(req.url.toString());
-    // urlParameterPattern for some reason return null at the second /community/[communityId] run
-    var keys = (new RegExp('\\[([^#]+?)\\]','g')).exec(urlFormat);
-    if (keys !== null && values !== null) {
-      var count = Math.min(keys.length, values.length);
-      for (var i=1; i < count ;i++) {
-        output[keys[i]] = values[i];
-      }
+    reURL.lastIndex = 0;
+    values = reURL.exec(req.url.toString());
+    values.shift();
+    keys = getKeys(urlFormat);
+    count = Math.min(keys.length, values.length);
+    for (var i=0; i < count ;i++) {
+      output[keys[i]] = values[i];
     }
 
     return output;

@@ -5,8 +5,9 @@
   var utils = require ( '../helpers/modelUtils.js' );
 
   var status = { published: "published", draft: "draft", archived: "archived", history: "history"};
-
   var editableFields = ['content'];
+  var jsonMinimalFields = ['id','status','modified','content','authorId','comments'];
+  var jsonFields = ['id','status','created','modified','content','endorse','report','comments','authorId','communityId'];
 
   module.exports = {
     name: 'opinion',
@@ -27,8 +28,10 @@
       model.hasOne('topic',models.topic, { field: 'topicId' });
     },
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     getNew: function getNew ( opinion ) {
@@ -49,31 +52,6 @@
     }
   };
 
-  function toJSON (post, isMinimal) {
-    return isMinimal ? {
-      id: post.id,
-      status: post.status,
-      content: post.content,
-      authorId: post.authorId,
-      comments: post.comments
-    } : {
-      id: post.id,
-      status: post.status,
-      created: post.created,
-      modified: post.modified,
-      content: post.content,
-      endorse: post.endorse,
-      report: post.report,
-      comments: post.comments,
-      authorId: post.authorId,
-      communityId: post.communityId,
-      history: post.history ? utils.toList(post.history) : undefined
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 })();
 
 /*

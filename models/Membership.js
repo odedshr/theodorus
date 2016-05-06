@@ -3,10 +3,16 @@
   var Community = require ('./Community.js');
   var Encryption = require ( '../helpers/Encryption.js' );
   var Errors = require ( '../helpers/Errors.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
 
   var status =  { invited: "invited", requested: "requested",declined: "declined", "rejected": "rejected", active: "active", unfit: "unfit", quit: "quit", archived: "archived"};
   var defaultPermissions = { 'read':true,'endorse':true,'follow':true, 'suggest': true, 'opinionate': true, 'comment':true, 'approve-members': true, 'invite-members': true };
   var editableFields = ['name','description','isModerator', 'isPublic','isPublic','isRepresentative','endorseJoin','endorseGender','endorseMinAge','endorseMaxAge'];
+  var jsonMinimalFields = ['communityId','description','isModerator','isPublic','isRepresentative','hasImage','id',
+    'name','score','status'];
+  var jsonFields = ['id','status','created','modified','name','description','score','birthDate','permissions',
+    'penalties','isModerator','isPublic','isRepresentative','hasImage','communityType','endorseCommunityType',
+    'endorseGender','endorseMinAge','endorseMaxAge','communityId'];
 
   module.exports = {
     name: 'membership',
@@ -44,11 +50,12 @@
         return (this.permissions && this.permissions[action] !== undefined);
       },
 
-      toJSON:function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
-    toJSON: toJSON,
     isValid: isValid,
     isValidName: isValidName,
     getNew: function getNew ( membership ) {
@@ -72,46 +79,6 @@
       };
     }
   };
-
-  function toJSON (membership, isMinimal) {
-    return isMinimal ? {
-      communityId: membership.communityId,
-      description: membership.description,
-      isModerator: membership.isModerator,
-      isPublic: membership.isPublic,
-      isRepresentative: membership.isRepresentative,
-      hasImage: membership.hasImage,
-      id: membership.id,
-      name: membership.name,
-      score: membership.score,
-      status: membership.status
-    } : {
-      id: membership.id,
-      status: membership.status,
-      created: membership.created,
-      modified: membership.modified,
-      name: membership.name,
-      description: membership.description,
-      score: membership.score,
-      birthDate: membership.birthDate,
-      permissions: membership.permissions,
-      penalties: membership.penalties,
-      isModerator: membership.isModerator,
-      isPublic: membership.isPublic,
-      isRepresentative: membership.isRepresentative,
-      hasImage: membership.hasImage,
-      communityType: membership.communityType,
-      endorseCommunityType: membership.endorseCommunityType,
-      endorseGender: membership.endorseGender,
-      endorseMinAge: membership.endorseMinAge,
-      endorseMaxAge: membership.endorseMaxAge,
-      communityId: membership.communityId
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 
   function isValidName ( string ) {
     if (string === undefined || string.length === 0) {

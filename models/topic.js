@@ -3,9 +3,12 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
 
   var status = { published: "published", draft: "draft", archived: "archived" };
   var editableFields = ['content'];
+  var jsonMinimalFields = ['id','status','created','modified','content','authorId','opinions'];
+  var jsonFields = ['id','status','created','modified','content','follow','endorse','report','opinions','authorId','communityId'];
 
   module.exports = {
     name: 'topic',
@@ -26,8 +29,10 @@
       model.hasOne('community',models.community, { field: 'communityId', required: true });
     },
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     getNew: function getNew ( topic ) {
@@ -46,33 +51,6 @@
       };
     }
   };
-
-  function toJSON (topic, isMinimal) {
-    return isMinimal ? {
-      id: topic.id,
-      created: topic.created,
-      modified: topic.modified,
-      content: topic.content,
-      authorId: topic.authorId,
-      opinions: topic.opinions
-    } : {
-      id: topic.id,
-      status: topic.status,
-      created: topic.created,
-      modified: topic.modified,
-      content: topic.content,
-      follow: topic.follow,
-      endorse: topic.endorse,
-      report: topic.report,
-      opinions: topic.opinions,
-      authorId: topic.authorId,
-      communityId: topic.communityId
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 
 })();
 

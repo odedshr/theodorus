@@ -1,16 +1,13 @@
 ;(function ProposalClosure() {
   'use strict';
 
+  var utils = require ( '../helpers/modelUtils.js' );
+
   var status = { active: "active", suspended: "suspended", archived: "archived"};
 
   var editableFields = ['content'];
-
-  function toJSON (isMinimal) {
-    return {};
-  }
-  function getEditables () {
-    return editableFields;
-  }
+  var jsonMinimalFields = [];
+  var jsonFields = [];
 
   module.exports = {
     name: 'proposal',
@@ -26,8 +23,10 @@
     relations: function (model, models) {
     },
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {}
   };

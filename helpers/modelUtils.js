@@ -1,6 +1,20 @@
 (function modelUtilsEnclosure() {
   'use strict';
 
+  function toJSON (item, fields) {
+    var output = {};
+    var count = fields.length;
+    while (count--) {
+      var key = fields[count];
+      output[key] = item[key];
+    }
+    return output;
+  }
+
+  function simplyReturn (value) {
+    return value;
+  }
+
   function toList (list, jsonFunction) {
     var items = [];
     var listLength = list.length;
@@ -30,4 +44,6 @@
 
   exports.toList = toList;
   exports.toMap = toMap;
+  exports.toJSON = toJSON;
+  exports.simplyReturn = simplyReturn;
 })();

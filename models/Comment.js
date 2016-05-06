@@ -2,9 +2,12 @@
 ;(function commentModelClosure() {
   'use strict';
   var Encryption = require ( '../helpers/Encryption.js' );
-
+  var utils = require ( '../helpers/modelUtils.js' );
   var status = { published: "published", archived: "archived", blocked: "blocked" };
+
   var editableFields = ['content'];
+  var jsonMinimalFields = ['id','content','authorId','comments'];
+  var jsonFields = ['id','status','created','modified','content','endorse','report','comments','authorId','communityId'];
 
   module.exports = {
     name: 'comment',
@@ -27,8 +30,10 @@
       model.hasOne('parent',models.comment, { field: 'parentId' });
     },
     methods: {
-      toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      toJSON: function (isMinimal) {
+        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+      },
+      getEditables: utils.simplyReturn.bind({}, editableFields)
     },
     validations: {},
     getNew: function getNew ( comment ) {
@@ -49,29 +54,5 @@
       };
     }
   };
-
-  function toJSON (post, isMinimal) {
-    return isMinimal ? {
-      id: post.id,
-      content: post.content,
-      authorId: post.authorId,
-      comments: post.comments
-    } : {
-      id: post.id,
-      status: post.status,
-      created: post.created,
-      modified: post.modified,
-      content: post.content,
-      endorse: post.endorse,
-      report: post.report,
-      comments: post.comments,
-      authorId: post.authorId,
-      communityId: post.communityId
-    };
-  }
-
-  function getEditables () {
-    return editableFields;
-  }
 
 })();

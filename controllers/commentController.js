@@ -97,7 +97,7 @@
   }
   function getPrepareViewpointQuery (data, tasks) {
     if (data.member) {
-      tasks.viewpoint.load = { memberId: data.member.id, commentId: data.comment.id };
+      tasks.viewpoint.load = { memberId: data.member.id, subjectId: data.comment.id };
     }
   }
 
@@ -116,10 +116,10 @@
       member: { table: db.membership, after: checkPermission.bind(null, 'list-opinions', db),
         finally: sergeant.remove },
       comments : { table: db.comment, load: { status: db.comment.model.status.published },
-        multiple: { order: 'created' }, finally: sergeant.fullJson },
+        multiple: { order: '-modified' }, finally: sergeant.fullJson },
       authors: { table: db.membership, before: listPrepareAuthorQuery, multiple: {},
         finally: sergeant.jsonMap },
-      viewpoints: { table: db.topicViewpoint, data: [], multiple: {}, finally: sergeant.jsonMap.bind(null, 'commentId') }
+      viewpoints: { table: db.topicViewpoint, before: listPrepareViewpointsQuery, multiple: {}, finally: sergeant.jsonMap.bind (null,'subjectId') }
     };
 
     if (rootCommentId) {
@@ -157,6 +157,20 @@
         authorIdMap[comments[count].authorId] = true;
       }
       tasks.authors.load = { id: Object.keys(authorIdMap)};
+    }
+  }
+
+  function listPrepareViewpointsQuery (data, tasks) {
+    if (data.member) {
+      var items = data.comments;
+      var itemCount = items.length;
+      if (itemCount) {
+        var itemIds = []; // we need to find distinct authors!
+        while (itemCount--) {
+          itemIds[itemCount] = items[itemCount].id;
+        }
+        tasks.viewpoints.load = { memberId: data.member.id, subjectId: itemIds};
+      }
     }
   }
 

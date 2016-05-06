@@ -3,6 +3,7 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
+  var utils = require ( '../helpers/modelUtils.js' );
 
   var status = { sent: "sent", handled: "handled", archived: "archived" };
   var editableFields = ['content', 'image','url'];
@@ -24,7 +25,7 @@
     },
     methods: {
       toJSON: function thisToJSON(isMinimal) { return toJSON(this, isMinimal); },
-      getEditables: getEditables
+      getEditables: utils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     getNew: function getNew (content, image, url, userId) {
@@ -40,10 +41,6 @@
       };
     }
   };
-
-  function getEditables () {
-    return editableFields;
-  }
 
   function toJSON (feedback, isMinimal) {
     return isMinimal ? {
