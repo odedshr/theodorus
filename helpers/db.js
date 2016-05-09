@@ -2,22 +2,15 @@
   'use strict';
 
   var orm = require('orm');
+
+  var guid = require('../helpers/Guid.js');
   var tryCatch = require('../helpers/tryCatch.js');
   var log = require('../helpers/logger.js');
 
   var guidLength = 2;
   var findGuidAttemps = 10;
 
-  function guid () {
-    var count = guidLength;
-    var parts = [];
-    while (count--) {
-      parts[count] = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-    return parts.join('-');
-  }
-
-  function setModels (db, models, callback) {
+  function setModels(db, models, callback) {
     tryCatch(function tryCatchSetModels() {
       var model, modelRelations = {};
       var srcModels = require('../helpers/models.js');
@@ -60,7 +53,7 @@
     });
   }
 
-  function useExpress (connectionString, guidSectionCount) {
+  function useExpress(connectionString, guidSectionCount) {
     if (guidSectionCount) {
       guidLength = guidSectionCount;
     }
@@ -70,7 +63,7 @@
     });
   }
 
-  function connect (connectionString, guidSectionCount, callback) {
+  function connect(connectionString, guidSectionCount, callback) {
     if (guidSectionCount) {
       guidLength = guidSectionCount;
     }
@@ -83,14 +76,14 @@
     });
   }
 
-  function setDBItem (table, item, callback, attempts) {
+  function setDBItem(table, item, callback, attempts) {
     if (item.id && item.save) {
       item.save (callback);
     } else {
       if (attempts > findGuidAttemps) {
         guidLength++;
       }
-      var id = guid();
+      var id = guid(guidLength);
       table.get(id, checkIdAvailability.bind(null, id, table, item, callback, attempts));
     }
   }

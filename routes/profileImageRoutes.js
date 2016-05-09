@@ -29,6 +29,14 @@
           response: {'200': {}},
           handler: controllers.profileImage.archive
         }
+      },
+      '/attachment/[attachmentId]': {
+        get: {
+          description: 'Get an attachment file',
+          parameters: {attachmentId: 'id'},
+          response: {'200': {image: 'binary'}},
+          handler: controllers.attachment.get
+        }
       }
     };
 

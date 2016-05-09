@@ -7,8 +7,8 @@
 
   var status = { published: "published", draft: "draft", archived: "archived" };
   var editableFields = ['content'];
-  var jsonMinimalFields = ['id','status','created','modified','content','authorId','opinions'];
-  var jsonFields = ['id','status','created','modified','content','follow','endorse','report','opinions','authorId','communityId'];
+  var jsonMinimalFields = ['id','status','created','modified','content','images','authorId','opinions'];
+  var jsonFields = ['id','status','created','modified','content','images','follow','endorse','report','opinions','authorId','communityId'];
 
   module.exports = {
     name: 'topic',
@@ -19,6 +19,7 @@
       created: Date,
       modified: Date,
       content: String,
+      images: Object,
       follow: {type: 'integer'},
       endorse: {type: 'integer'},
       report: {type: 'integer'},
@@ -41,6 +42,7 @@
         authorId : topic.authorId,
         communityId: topic.communityId,
         content: topic.content,
+        images: [],
         status: status[topic.status] ? status[topic.status] : status.published,
         created: now,
         modified: now,

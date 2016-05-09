@@ -6,21 +6,22 @@
 
   var status = { published: "published", draft: "draft", archived: "archived", history: "history"};
   var editableFields = ['content'];
-  var jsonMinimalFields = ['id','status','modified','content','authorId','comments'];
-  var jsonFields = ['id','status','created','modified','content','endorse','report','comments','authorId','communityId'];
+  var jsonMinimalFields = ['id', 'status',' modified', 'content', 'images', 'authorId', 'comments'];
+  var jsonFields = ['id', 'status', 'created', 'modified', 'content', 'images', 'endorse','report','comments','authorId','communityId'];
 
   module.exports = {
     name: 'opinion',
     status: status,
     schema: {
-      id: {type: 'text', key: true},
+      id: { type: 'text', key: true },
       status: Object.keys(status),
       created: Date,
       modified: Date,
       content: String,
-      endorse: {type: 'integer'},
-      report: {type: 'integer'},
-      comments: {type: 'integer'}
+      images: Object,
+      endorse: { type: 'integer' },
+      report: { type: 'integer' },
+      comments: { type: 'integer' }
     },
     relations: function (model, models) {
       model.hasOne('author',models.membership, { field: 'authorId', required: true });
@@ -42,6 +43,7 @@
         communityId: opinion.communityId,
         topicId: opinion.topicId,
         content: opinion.content,
+        images: [],
         status: status[opinion.status] ? status[opinion.status] : status.published,
         created: now,
         modified: now,

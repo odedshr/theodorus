@@ -148,7 +148,7 @@
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function set (authUser, communityId, topicId, topic, db, callback) {
+  function set (authUser, communityId, topicId, topic, images, db, files, callback) {
     if (communityId !== undefined) {
       topic.communityId = communityId;
     }
@@ -159,9 +159,9 @@
     topic.content = validators.sanitizeString(topic.content);
 
     if (topic.id !== undefined) {
-      update (authUser, topic, db, callback);
+      update (authUser, topic, images, db, files, callback);
     } else if (topic.communityId !== undefined) {
-      add (authUser, topic, db, callback);
+      add (authUser, topic, images, db, files, callback);
     } else {
       callback (Errors.missingInput('membership.communityId'));
     }
@@ -169,11 +169,15 @@
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function add (authUser, topic, db, callback) {
+  function add (authUser, topic, images, db, files, callback) {
     sergeant ({
-      author: { table: db.membership, load: { userId: authUser.id, communityId: topic.communityId }, after: sergeant.and(sergeant.stopIfNotFound,setCheckPermissions), finally: sergeant.minimalJson },
-      community: { table: db.community, load: topic.communityId, beforeSave:sergeant.and(sergeant.stopIfNotFound, addCheckTopicLength.bind(null, topic.content)), save: true, finally: sergeant.minimalJson  },
-      topic: { table: db.topic, before: addPrepareTopic.bind(null, topic,db), save: true, finally: sergeant.json}
+      author: { table: db.membership, load: { userId: authUser.id, communityId: topic.communityId },
+        after: sergeant.and(sergeant.stopIfNotFound,setCheckPermissions), finally: sergeant.minimalJson },
+      community: { table: db.community, load: topic.communityId,
+        beforeSave:sergeant.and(sergeant.stopIfNotFound, addCheckTopicLength.bind(null, topic.content)),
+        save: true, finally: sergeant.minimalJson  },
+      topic: { table: db.topic, before: addPrepareTopic.bind(null, topic, images, files, db),
+      save: true, finally: sergeant.json }
     }, 'community,author,topic', callback);
   }
 
@@ -191,21 +195,26 @@
     return  true;
   }
 
-  function addPrepareTopic (topic, db, data, tasks) {
+  function addPrepareTopic (topic, images, files, db, data, tasks) {
     topic.authorId = data.author.id;
     topic.communityId = data.community.id;
     topic = db.topic.model.getNew( topic );
+    controllers.attachment.set(images, files, topic);
     tasks.topic.data = topic;
   }
 
+
   //-----------------------------------------------------------------------------------------------------------//
 
-  function update (authUser, topic, db, callback) {
+  function update (authUser, topic, images, db, files, callback) {
     sergeant ({
       existing: { table:db.topic, load: topic.id, after: sergeant.stopIfNotFound, finally: sergeant.remove },
-      community: { table:db.community, before:updatePrepareCommunity, after: sergeant.stopIfNotFound, finally: sergeant.minimalJson },
-      author: { table:db.membership, before:updatePrepareAuthor, load: { userId: authUser.id}, after: sergeant.and(sergeant.stopIfNotFound, isPostBelongsToAuthor), finally: sergeant.minimalJson },
-      topic: {table:db.topic, beforeSave: updatePrepareTopic.bind(null, topic), save: true, finally: sergeant.json }
+      community: { table:db.community, before:updatePrepareCommunity,
+        after: sergeant.stopIfNotFound, finally: sergeant.minimalJson },
+      author: { table:db.membership, before:updatePrepareAuthor, load: { userId: authUser.id},
+        after: sergeant.and(sergeant.stopIfNotFound, isPostBelongsToAuthor), finally: sergeant.minimalJson },
+      topic: {table:db.topic, beforeSave: updatePrepareTopic.bind(null, topic, images, files), save: true,
+        finally: sergeant.json }
     }, 'existing,community,author,topic', callback);
   }
 
@@ -220,7 +229,7 @@
     return data.author.can ('suggest') ? true : Errors.noPermissions('suggest');
   }
 
-  function updatePrepareTopic (jTopic, data, tasks) {
+  function updatePrepareTopic(jTopic, images, files, data, tasks) {
     var topic = data.existing;
     sergeant.update(jTopic, topic);
 
@@ -230,9 +239,11 @@
       return Errors.tooLong('topic-content');
     }
 
+    controllers.attachment.set(images, files, topic);
     topic.modified = new Date();
     tasks.topic.data = topic;
   }
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

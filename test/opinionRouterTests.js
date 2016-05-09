@@ -123,7 +123,9 @@ describe('opinionRouterRouter', function () {
         function onOpinionUpdated (data) {
           assert.equal ( data.opinion.content, opinionContent3, 'content is as expected');
           assert.equal ( data.history.length, 2, 'opinion has 2 history elements');
-          assert.equal ( data.history[0].content, opinionContent1, 'history content is as expected');
+          // sorted by modified DESC
+          assert.equal ( data.history[0].content, opinionContent2, 'history content #1 is as expected');
+          assert.equal ( data.history[1].content, opinionContent1, 'history content #2 is as expected');
           opinionId = data.opinion.id;
           done();
         }
@@ -141,7 +143,8 @@ describe('opinionRouterRouter', function () {
         function onGotOpinion (data) {
           assert.equal ( data.opinion.content, opinionContent3, 'content is as expected');
           assert.equal ( data.history.length, 2, 'opinion has 2 history elements');
-          assert.equal ( data.history[0].content, opinionContent1, 'history content is as expected');
+          assert.equal ( data.history[0].content, opinionContent2, 'history content #1 is as expected');
+          assert.equal ( data.history[1].content, opinionContent1, 'history content #2 is as expected');
           opinionId = data.opinion.id;
           done();
         }
@@ -157,8 +160,10 @@ describe('opinionRouterRouter', function () {
       it ('successfully update a opinoin #3', function updateOpinion3 (done) {
         function onOpinionUpdated (data) {
           assert.equal ( data.opinion.content, opinionContent4, 'content is as expected');
-          assert.equal ( data.history.length, 3, 'opinion has 2 history elements');
-          assert.equal ( data.history[0].content, opinionContent1, 'history content is as expected');
+          assert.equal ( data.history.length, 3, 'opinion has 3 history elements');
+          assert.equal ( data.history[0].content, opinionContent3, 'history content #1 is as expected');
+          assert.equal ( data.history[1].content, opinionContent2, 'history content #2 is as expected');
+          assert.equal ( data.history[2].content, opinionContent1, 'history content #3 is as expected');
           opinionId = data.opinion.id;
           done();
         }

@@ -176,7 +176,7 @@
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function set (authUser, opinionId, rootCommentId, commentId, comment, db, callback) {
+  function set (authUser, opinionId, rootCommentId, commentId, comment, images, files, db, callback) {
     if (opinionId !== undefined) {
       comment.opinionId = opinionId;
     }
@@ -191,9 +191,9 @@
     comment = db.comment.model.getNew(comment);
 
     if (comment.id !== undefined) {
-      update (authUser, comment, db, callback);
+      update (authUser, comment, images, files, db, callback);
     } else if (comment.opinionId !== undefined || comment.parentId !== undefined) {
-      add (authUser, comment, db, callback);
+      add (authUser, comment, images, files, db, callback);
     } else {
       callback (Errors.missingInput('membership.opinionId'));
     }
@@ -201,7 +201,7 @@
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function add (authUser, comment, db, callback) {
+  function add (authUser, comment,images, files, db, callback) {
     var tasks = {
       parent: { table: db.opinion, load: comment.opinionId, after: sergeant.stopIfNotFound,
         finally: sergeant.minimalJSON },
@@ -210,7 +210,7 @@
       community : { table: db.community, before: addPrepareCommunityQuery,
         after: sergeant.and(sergeant.stopIfNotFound, stopIfLengthNoOK.bind(null, comment.content) ),
         finally: sergeant.remove },
-      comment : { table: db.comment, data: comment, beforeSave: addPrepareComment, save: true, finally: sergeant.json },
+      comment : { table: db.comment, data: comment, beforeSave: addPrepareComment.bind(null,images, files), save: true, finally: sergeant.json },
       updateParent: { table: db.opinion, beforeSave: addPrepareParent, save: true, finally: sergeant.remove }
     };
     if (comment.parentId) {
@@ -236,13 +236,14 @@
     return data.community.isCommentLengthOk(string) ? true : Errors.tooLong('comment', string);
   }
 
-  function addPrepareComment (data, tasks) {
+  function addPrepareComment (images, files,data, tasks) {
     var comment = tasks.comment.data;
     comment.authorId = data.author.id;
     comment.communityId = data.community.id;
     if (data.parent.opinionId) {
       comment.opinionId = data.parent.opinionId;
     }
+    controllers.attachment.set(images, files, comment);
   }
 
   function addPrepareParent (data, tasks) {
@@ -254,7 +255,7 @@
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function update (authUser, comment, db, callback) {
+  function update (authUser, comment,images, files, db, callback) {
     var tasks = {
       current:  { table:db.comment, load: comment.id,
         after: sergeant.and(sergeant.stopIfNotFound, stopIfImmutable), finally: sergeant.remove },
@@ -263,7 +264,7 @@
       community: { table: db.community, before: updatePrepareCommunityQuery,
         after: sergeant.and(sergeant.stopIfNotFound, stopIfLengthNoOK.bind(null, comment.content)),
         finally: sergeant.remove },
-      comment: { table: db.comment, data:comment, before: updatePrepareComment, load: comment.id,
+      comment: { table: db.comment, data:comment, before: updatePrepareComment.bind(null,images, files), load: comment.id,
         save: true, finally: sergeant.json }
     };
     sergeant( tasks,'current,author,community,comment', callback );
@@ -277,9 +278,11 @@
     tasks.community.load = data.current.communityId;
   }
 
-  function updatePrepareComment (data, tasks) {
-    sergeant.update (tasks.comment.data, data.current);
-    tasks.comment.data = data.current;
+  function updatePrepareComment (images, files, data, tasks) {
+    var comment = data.current;
+    sergeant.update (tasks.comment.data, comment);
+    controllers.attachment.set(images, files, comment);
+    tasks.comment.data = comment;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

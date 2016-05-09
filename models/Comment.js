@@ -6,8 +6,8 @@
   var status = { published: "published", archived: "archived", blocked: "blocked" };
 
   var editableFields = ['content'];
-  var jsonMinimalFields = ['id','content','authorId','comments'];
-  var jsonFields = ['id','status','created','modified','content','endorse','report','comments','authorId','communityId'];
+  var jsonMinimalFields = ['id','content','authorId','comments', 'images'];
+  var jsonFields = ['id','status','created','modified','content','images','endorse','report','comments','authorId','communityId'];
 
   module.exports = {
     name: 'comment',
@@ -18,6 +18,7 @@
       created: Date,
       modified: Date,
       content: String,
+      images: Object,
       paragraph: {type: 'integer'},
       endorse: {type: 'integer'},
       report: {type: 'integer'},
@@ -45,6 +46,7 @@
         opinionId: comment.opinionId,
         parentId: comment.parentId,
         content: comment.content,
+        images: [],
         status: status[comment.status] ? status[comment.status] : status.published,
         created: comment.id ? comment.created : now,
         modified: now,

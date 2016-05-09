@@ -89,7 +89,7 @@
         table: db.opinion,
         before: getUpdateHistoryQuery,
         load: { status: db.opinion.model.status.history },
-        multiple: {order: 'modified'},
+        multiple: {order: '-modified'},
         finally: sergeant.json
       },
       viewpoint: {table: db.opinionViewpoint, finally: sergeant.minimalJson}
@@ -252,7 +252,7 @@
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function set(authUser, topicId, opinionId, opinion, db, callback) {
+  function set(authUser, topicId, opinionId, opinion, images, files, db, callback) {
     if (topicId !== undefined) {
       opinion.topicId = topicId;
     }
@@ -264,19 +264,23 @@
     opinion = db.opinion.model.getNew(opinion);
 
     if (opinion.id !== undefined) {
-      update(authUser, opinion, db, callback);
+      update(authUser, opinion, images, files, db, callback);
     } else if (opinion.topicId !== undefined) {
-      add(authUser, opinion, db, callback);
+      add(authUser, opinion, images, files, db, callback);
     } else {
       callback(Errors.missingInput('membership.topicId'));
     }
   }
 
-  function setOpinion (data, tasks) {
+  function setOpinion (images, files, data, tasks) {
     var opinion = tasks.opinion.data;
     opinion.communityId = data.community.id;
     opinion.authorId = data.author.id;
     opinion.topicId = data.topic ? data.topic.id : data.current.topicId;
+    if (data.current) {
+      opinion.images = data.current.images;
+    }
+    controllers.attachment.set(images, files, opinion);
   }
 
   function setHistoryQuery (data, tasks) {
@@ -286,7 +290,7 @@
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function add(authUser, opinion, db, callback) {
+  function add(authUser, opinion, images, files, db, callback) {
     var status = db.opinion.model.status;
 
     var tasks = {
@@ -300,7 +304,7 @@
         beforeSave: addUpdateCurrentOpinion.bind(null, status),
         finally: sergeant.remove },
       opinion: { table: db.opinion, data: opinion,
-        beforeSave: setOpinion, save: true, finally: sergeant.json },
+        beforeSave: setOpinion.bind(null, images, files), save: true, finally: sergeant.json },
       updateTopic: { table: db.topic, beforeSave: addUpdateTopic, finally: sergeant.remove },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history },
         multiple: { order: '-modified'}, finally: sergeant.json }
@@ -349,7 +353,7 @@
 
   //-----------------------------------------------------------------------------------------------------------//
 
-  function update(authUser, opinion, db, callback) {
+  function update(authUser, opinion, images, files, db, callback) {
     var status = db.opinion.model.status;
     var tasks = {
       current: { table: db.opinion, load: opinion.id,
@@ -361,7 +365,7 @@
       updateCurrent: { table: db.opinion, before: updateSetCurrentQuery.bind(null, status),
         beforeSave: updateSetCurrent.bind(null, status) ,save:true, finally: sergeant.remove},
       opinion: { table: db.opinion, data: opinion,
-        beforeSave: setOpinion, save: true, finally: sergeant.json },
+        beforeSave: setOpinion.bind(null, images, files), save: true, finally: sergeant.json },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history},
         multiple: { order: '-modified'}, finally: sergeant.json }
     };
