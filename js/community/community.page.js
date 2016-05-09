@@ -31,9 +31,12 @@ app = (typeof app !== 'undefined') ? app : {};
       communityName: community.name,
       isMember: isMember,
       topics: { topic: [] },
-      id: '',
-      content: '',
-      contentLength : this.getPostLengthString('', community.topicLength)
+      emptyTopic: {
+        id: '',
+        content: '',
+        images: { image: [] },
+        contentLength : this.getPostLengthString('', community.topicLength)        
+      }
     };
     if (dataForDisplay.isMember) {
       dataForDisplay.memberName = community.membership.name ?

@@ -40,6 +40,7 @@ app = (typeof app !== 'undefined') ? app : {};
       item.mdContent = marked(item.content);
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
+      item.images = { image: this.getAttachmentsURL(item.images) };
       item.isMember = isMember;
       if (isMember) {
         item.isReadMode = true;
@@ -68,16 +69,23 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.registry.frmSetTopic = { attributes: { onsubmit : setTopic.bind(this)} };
   function setTopic(evt) {
-    var data, topic = this.getFormFields (evt.target);
+    var form = evt.target;
+    var data, topic = this.getFormFields (form);
     var content = topic.content;
     var isValid = this.models.topic.content
       .validate(content, this.state.communityJSON);
     if (!(isValid instanceof Error)) {
-      data = { topic: {
-        communityId : this.state.community,
-        content: content,
-        status: 'published',
-      }};
+      data = {
+        topic: {
+          communityId : this.state.community,
+          content: content,
+          status: 'published',
+        },
+        images: {
+          added: this.getAttachedImages(form),
+          removed: this.getDetachedImages(form)
+        }
+      };
       if (topic.id.length > 0) {
         data.topic.id = topic.id;
       }

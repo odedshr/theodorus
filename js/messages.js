@@ -5,9 +5,10 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.registry.messagesPage = { preprocess: loadMessages };
 
-  function loadMessages (dElm, callback) {
+  function loadMessages(dElm, callback) {
     document.title = O.TPL.translate('title.messages');
     callback();
   }
 
-return this;}).call(app);
+  return this;
+}).call(app);

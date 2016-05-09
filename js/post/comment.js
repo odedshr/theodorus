@@ -28,6 +28,7 @@ app = (typeof app !== 'undefined') ? app : {};
       item.isMember = !!membershipId;
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
+      item.images = { image: this.getAttachmentsURL(item.images) };
       if (item.isEditable) {
         item.opinionId = (opinionId ? opinionId : '');
         item.parentId = (parentId ? parentId : '');
@@ -43,12 +44,16 @@ app = (typeof app !== 'undefined') ? app : {};
         item.isEndorsed = item.isFollowed = item.isRead = false;
       }
     }
-    callback( { id: '',
-      opinionId : (opinionId ? opinionId : ''),
-      parentId : (parentId ? parentId : ''),
-      content : '',
-      isReadMode: false,
-      contentLength: this.getPostLengthString('', community.opinionLength),
+    callback( {
+      emptyComment: {
+        id: '',
+        opinionId : (opinionId ? opinionId : ''),
+        parentId : (parentId ? parentId : ''),
+        content : '',
+        isReadMode: false,
+        images: { image: [] },
+        contentLength: this.getPostLengthString('', community.opinionLength)
+      },
       comments: { comment: list } } );
   }
 
@@ -72,7 +77,14 @@ app = (typeof app !== 'undefined') ? app : {};
       delete comment.id;
     }
     if (this.models.comment.content.validate(comment.content, this.state.communityJSON)) {
-      this.api.setComment ( {comment: comment}, onCommentAdded.bind(this, form, parentType, parentId, comment.id === undefined) );
+      var data = {
+        comment: comment,
+        images: {
+          added: this.getAttachedImages(form),
+          removed: this.getDetachedImages(form)
+        }
+      };
+      this.api.setComment ( data, onCommentAdded.bind(this, form, parentType, parentId, comment.id === undefined) );
     } else {
        this.log('bad comment',this.logType.error);
     }

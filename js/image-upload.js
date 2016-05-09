@@ -5,49 +5,80 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.registry = this.registry || {};
 
-  this.registry.imageUpload = { attributes: { onclick: onUploadImage.bind(this) }};
+  this.registry.addImage = { attributes: { onclick: addImage.bind(this, false) }};
+  this.registry.addImages = { attributes: { onclick: addImage.bind(this, true) }};
+  this.registry.replaceImage = { attributes: { onclick: replaceImage.bind(this) }};
 
-  function onUploadImage (evt) {
-    var field = document.createElement("input");
-    field.setAttribute('type','file');
-    field.setAttribute('accept','image/*');
-    field.onchange = onUploadImageSelected.bind(this, evt.target);
+  function addImage (isMultiple, evt) {
+    uploadImage.call(this, onImagedAdded.bind(this,evt.target.closest('[data-role="imageUploader"]')), isMultiple);
+  }
+
+  function onImagedAdded (container, imageData) {
+    var previews = container.querySelector('[data-role="previews"]');
+    var preview = O.TPL.render({ imagePreview: { src: imageData, status: 'added' }});
+    O.DOM.append(previews, preview);
+    var allRemoveButtons = previews.querySelectorAll('[data-register]');
+    this.registerChildrenOf(previews);
+  }
+
+  function replaceImage (evt) {
+    uploadImage(evt.target);
+  }
+
+  function uploadImage (target, isMultiple) {
+    var field = O.DOM.create('input',{
+      type: 'file',
+      accept: 'image/*'
+    });
+    if (isMultiple) {
+      field.setAttribute('multiple','true');
+    }
+    field.onchange = onUploadImageSelected.bind(this, target);
     field.click();
 
     return false;
   }
 
-  function onUploadImageSelected (dImg, evt) {
-    var file = evt.target.files[0];
-    var fileReader = new FileReader();
-    fileReader.onload = onUploadImageLoaded.bind(this, dImg);
-    fileReader.readAsDataURL(file);
+  function onUploadImageSelected (target, evt) {
+    var fileReader, file, files = evt.target.files, i, count = files.length;
+    for (i = 0; i < count; i++) {
+      file = files[i];
+      fileReader = new FileReader();
+      fileReader.onload = onUploadImageLoaded.bind(this, target);
+      fileReader.readAsDataURL(file);
+    }
 
     return false;
   }
 
-  function onUploadImageLoaded (dImg, evt) {
+  function onUploadImageLoaded (target, evt) {
     try {
-      var rect = dImg.getBoundingClientRect();
-      resizeImage.call (this, evt.target.result, rect.width, rect.height, onUploadImageResized.bind(this,dImg));
+      var imageData = evt.target.result;
+      var rect = (typeof target === 'function') ? { width: false, height: false } : target.getBoundingClientRect();
+      resizeImage.call (this, imageData, rect.width, rect.height, onUploadImageResized.bind(this,target));
     }
     catch (err) {
-      this.log(err);
+      this.log(err.message, this.logType.error);
     }
+
 
     return false;
   }
 
-  function onUploadImageResized (dImg, data) {
-    dImg.src = data;
-    dImg.setAttribute('data-dirty',true);
-    document.querySelector('[data-register="imageRemove"][data-target="'+dImg.id+'"]').removeAttribute('disabled');
+  function onUploadImageResized (target, data) {
+    if (typeof target === 'function') {
+      target(data);
+    } else {
+      target.src = data;
+      target.setAttribute('data-dirty',true);
+      document.querySelector('[data-register="imageRemove"][data-target="'+target.id+'"]').removeAttribute('disabled');
+    }
   }
 
   //==================================/
   //TODO: hasImage to show 'original'
   //TODO: remove button only is image.src has content;
-  this.registry.imageRemove = { attributes: { onclick: onRemoveImage.bind(this) }};
+  this.registry.removeImage = { attributes: { onclick: onRemoveImage.bind(this) }};
   function onRemoveImage (evt) {
     var dBtn = evt.target;
     var dImg = O.ELM[dBtn.getAttribute('data-target')];
@@ -57,7 +88,7 @@ app = (typeof app !== 'undefined') ? app : {};
     return false;
   }
 
-  this.registry.imageReset = { attributes: { onclick: onResetImage.bind(this) }};
+  this.registry.resetImage = { attributes: { onclick: onResetImage.bind(this) }};
   function onResetImage (evt) {
     var dImg = O.ELM[evt.target.getAttribute('data-target')];
     dImg.src = this.api.getProfileImageURL(this.state.membershipJSON.id);
@@ -91,6 +122,12 @@ app = (typeof app !== 'undefined') ? app : {};
       this.log(O.TPL.translate('error.imageTooBig').replace('[width]',1000).replace('[height]',1000),this.logType.error);
       return;
     }
+    if (maxWidth === false) {
+      maxWidth = imageObj.width;
+    }
+    if (maxHeight === false) {
+      maxHeight = imageObj.height;
+    }
     var ratio = 1;
     var canvas = document.createElement('canvas');
     canvas.style.display='none';
@@ -105,7 +142,7 @@ app = (typeof app !== 'undefined') ? app : {};
     var copyContext = canvasCopy.getContext('2d');
     if (imageObj.width > maxWidth) {
       ratio = maxWidth / imageObj.width;
-    } else if(imageObj.height > maxHeight) {
+    } else if (imageObj.height > maxHeight) {
       ratio = maxHeight / imageObj.height;
     }
     canvasCopy.width = imageObj.width;
@@ -124,6 +161,17 @@ app = (typeof app !== 'undefined') ? app : {};
   }
   this.resizeImage = resizeImage.bind(this);
 
+  //==================================/
+  this.registry.removeAttachment = { attributes: { onclick: removeAttachment.bind(this) }};
+
+  function removeAttachment (evt) {
+    var dImg = evt.target.closest('[data-role="attachment"]');
+    if (dImg.getAttribute('data-status') === 'existing') {
+      dImg.setAttribute('data-status','removed');
+    } else {
+      O.DOM.remove(dImg);
+    }
+  }
   //==================================/
 
   // membershipIds = getAllUserImages.images

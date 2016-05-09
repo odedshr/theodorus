@@ -30,6 +30,7 @@ app = (typeof app !== 'undefined') ? app : {};
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
       item.hasStats = true;
+      item.images = { image: this.getAttachmentsURL(item.images) };
 
       if (item.isMine) {
         myOpinion = item;
@@ -53,10 +54,11 @@ app = (typeof app !== 'undefined') ? app : {};
             image : getProfileImageURL(membershipId) },
           content: '',
           mdContent: '',
+          images: { image: [] },
           id: '',
           isMine: true,
           isEditable: true,
-          relativeTime: ''
+          relativeTime: '',
         };
       }
       myOpinion.topicId = topicId;
@@ -73,14 +75,18 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.frmSetOpinion = { attributes : { onsubmit : setOpinion.bind(this) }};
 
   function setOpinion (evt) {
-    var dElm = evt.target;
-    var data = this.getFormFields (dElm);
-    if (data.id.length === 0) {
-      delete data.id;
+    var dForm = evt.target;
+    var data = {
+        opinion: this.getFormFields (dForm),
+        images: {
+          added: this.getAttachedImages(dForm),
+          removed: this.getDetachedImages(dForm)
+        }
+    };
+    if (data.opinion.id.length === 0) {
+      delete data.opinion.id;
     }
-    this.api.setOpinion ({
-      opinion: data
-    } , onOpinionSaved.bind(this,dElm, (data.id === undefined) ));
+    this.api.setOpinion (data , onOpinionSaved.bind(this, dForm, (data.opinion.id === undefined) ));
     return false;
   }
 

@@ -2,59 +2,61 @@ app = (typeof app !== 'undefined') ? app : {};
 (function postEnclosure() {
   this.registry = this.registry || {};
 
-  this.getPostLengthString = (function getPostLengthString (content, maxLength) {
+  this.getPostLengthString = (function getPostLengthString(content, maxLength) {
     return maxLength > 0 ?
-      (this.countWords(content) + '/' + Math.abs(maxLength) + ' ' + O.TPL.translate('label.words')) :
-      (this.countCharacters(content)+ '/' + Math.abs(maxLength) + ' ' + O.TPL.translate('label.characters'));
+      (this.countWords(content) + '/' + Math.abs(maxLength) + ' ' +
+        O.TPL.translate('label.words')) :
+      (this.countCharacters(content) + '/' + Math.abs(maxLength) + ' ' +
+        O.TPL.translate('label.characters'));
   }).bind(this);
 
-  this.registry.postContent = { attributes : { onkeyup : updateCount.bind(this) }};
-  function updateCount (evt) {
+  this.registry.postContent = { attributes: {
+    onkeyup: updateCount.bind(this) }
+  };
+  function updateCount(evt) {
     var field = evt.target;
     var value = field.value;
     var counter = field.closest('[data-count]');
-    var counterContent = counter.getAttribute('data-count');
-    counterContent = counterContent.substr(counterContent.indexOf('/'));
-    var maxValue = +counterContent.replace(/\D/g,'');
-    var newValue = (counterContent.indexOf(O.TPL.translate('label.words')) > -1) ? this.countWords(value) : this.countCharacters(value);
-    counter.setAttribute ('data-count', newValue + counterContent);
+    var countValue = counter.getAttribute('data-count');
+    counterContent = countValue.substr(countValue.indexOf('/'));
+    var maxValue = +countValue.replace(/\D/g, '');
+    var newValue = (countValue.indexOf(O.TPL.translate('label.words')) > -1) ?
+      this.countWords(value) : this.countCharacters(value);
+    counter.setAttribute('data-count', newValue + counterContent);
     if (newValue > maxValue) {
-      counter.setAttribute('data-error',O.TPL.translate('Errors.tooLong'));
-      field.setAttribute('data-valid',false);
+      counter.setAttribute('data-error', O.TPL.translate('Errors.tooLong'));
+      field.setAttribute('data-valid', false);
     } else {
       counter.removeAttribute('data-error');
-      field.setAttribute('data-valid',true);
+      field.setAttribute('data-valid', true);
     }
   }
 
   function titlize(postType) {
-    return postType.substr(0,1).toUpperCase() + postType.substr(1);
+    return postType.substr(0, 1).toUpperCase() + postType.substr(1);
   }
 
   //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.editTopic = { attributes : { onclick :
-    toggleEditMode.bind(this, 'topic')
-  }};
+  this.registry.editTopic = { attributes: { onclick:
+    toggleEditMode.bind(this, 'topic') } };
 
-  this.registry.editOpinion = { attributes : { onclick :
-    toggleEditMode.bind(this, 'opinion')
-  }};
+  this.registry.editOpinion = { attributes: { onclick:
+    toggleEditMode.bind(this, 'opinion') } };
 
-  this.registry.editComment = { attributes : { onclick :
-    toggleEditMode.bind(this, 'comment')
-  }};
+  this.registry.editComment = { attributes: {
+    onclick: toggleEditMode.bind(this, 'comment') } };
 
-  function toggleEditMode (postType,evt) {
-    var dPost = evt.target.closest('[data-type="'+postType+'"]');
+  function toggleEditMode(postType, evt) {
+    var dPost = evt.target.closest('[data-type="' + postType + '"]');
     var dContent = dPost.querySelector('.js-content');
     var dForm = dPost
       .querySelector('[data-register="frmSet' + titlize(postType) + '"]');
     if (dContent.getAttribute('data-hidden') === 'true') {
-      dForm.setAttribute('data-hidden','true');
+      dForm.setAttribute('data-hidden', 'true');
       dContent.removeAttribute('data-hidden');
     } else {
-      dContent.setAttribute('data-hidden','true');
+      dContent.setAttribute('data-hidden', 'true');
       dForm.removeAttribute('data-hidden');
     }
   }
@@ -71,29 +73,32 @@ app = (typeof app !== 'undefined') ? app : {};
     this.api.setAttribute(subject.getAttribute('data-type'),
                           subject.getAttribute('data-id'),
                           attribute,
-                          onAttributeUpdate.bind(this,dElm, attribute));
+                          onAttributeUpdate.bind(this, dElm, attribute));
   }
 
-  function onAttributeUpdate (dElm, attribute, output) {
-    dElm.setAttribute('data-value',output.viewpoint[attribute]);
-    var dCount = O.ELM[''.concat(output.subjectType,'_',output.subjectId,'_',
-      output.attribute,'_count')];
+  function onAttributeUpdate(dElm, attribute, output) {
+    dElm.setAttribute('data-value', output.viewpoint[attribute]);
+    var dCount = O.ELM[''.concat(output.subjectType, '_', output.subjectId, '_',
+      output.attribute, '_count')];
     if (dCount !== undefined) {
       dCount.innerHTML = output.count;
     }
   }
 
-  this.registry.endorse = { attributes : { onclick :
-    onAttributeUpdateClicked.bind(this, 'endorse' ) } };
-  this.registry.follow = { attributes : { onclick :
-    onAttributeUpdateClicked.bind(this, 'follow' ) } };
-  this.registry.read = { attributes : { onclick :
-    onAttributeUpdateClicked.bind(this, 'read' ) } };
+  this.registry.endorse = { attributes: { onclick:
+    onAttributeUpdateClicked.bind(this, 'endorse') } };
+  this.registry.follow = { attributes: { onclick:
+    onAttributeUpdateClicked.bind(this, 'follow') } };
+  this.registry.read = { attributes: { onclick:
+    onAttributeUpdateClicked.bind(this, 'read') } };
 
   //////////////////////////////////////////////////////////////////////////////
 
-  this.addImagesToAuthors = (function addImagesToAuthors (authors) {
-    var id, author, authorIds = Object.keys(authors);
+  this.addImagesToAuthors = (function addImagesToAuthors(authors) {
+    var id;
+    var author;
+    var authorIds = Object.keys(authors);
+
     count = authorIds.length;
     while (count--) {
       id = authorIds[count];
@@ -102,4 +107,42 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }).bind(this);
 
+  //////////////////////////////////////////////////////////////////////////////
+
+  this.getAttachmentsURL = (function getAttachmentsURL(items) {
+    if (!!items) {
+      var count = items.length;
+      while (count--) {
+        items[count] = {
+          id: items[count],
+          src: this.api.getAttachmentURL(items[count]),
+          status: 'existing'
+        };
+      }
+      return items;
+    }
+
+    return [];
+  }).bind(this);
+  //--------------------------------------------------------------------------//
+  this.getAttachedImages = (function getAttachedImages(form) {
+    var dImgs = form.querySelectorAll('[data-role="attachment"][data-status="added"]');
+    var i, imageCount = dImgs.length, images = [];
+    for (i = 0; i < imageCount; i++) {
+      images[i] = dImgs[i].querySelector('img').src;
+    }
+    return images;
+  }).bind(this);
+
+  //--------------------------------------------------------------------------//
+  this.getDetachedImages = (function getAttachedImages(form) {
+    var dImgs = form.querySelectorAll('[data-role="attachment"][data-status="removed"]');
+    var i, imageCount = dImgs.length, images = [];
+    for (i = 0; i < imageCount; i++) {
+      images[i] = dImgs[i].getAttribute('data-id');
+    }
+    return images;
+  }).bind(this);
+
+  //////////////////////////////////////////////////////////////////////////////
 return this;}).call(app);

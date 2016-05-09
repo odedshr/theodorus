@@ -20,6 +20,7 @@
               {{?hasHistory}}<div class="detail" data-ico="history"></div>{{/hasHistory}}
           </div>
       </div>
+      <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
       <div class="attributes">
           <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> {{#label.opinions}}</div>
           <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -48,6 +49,7 @@
                 <textarea type="text" class="field-post-content" name="content" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}" data-register="postContent">{{content}}</textarea>
               </div>
           </div>
+          {{.:'attachComponent'}}
           <div class="row-buttons">
               <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
           </div>
@@ -62,8 +64,5 @@
       <button data-register="btnCancel" >{{#btn.cancel}}</button>
   </template>
 
-  <template data-id="topicAddPage">
-      {{.:addTopic}}
-  </template>
 </body>
 </html>

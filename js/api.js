@@ -204,6 +204,10 @@ app = (typeof app !== 'undefined') ? app : {};
     this.api.delete (''.concat(type,'/',id), callback);
   }).bind(this);
 
+  this.api.getAttachmentURL = (function getProfileImageURL (filename) {
+    return ''.concat(this.api.backend,'attachment/',filename);
+  }).bind(this);
+
   //================= Topics
   this.api.getCommunityTopics = (function getCommunityTopics (communityId, callback) {
     this.api.get ('community/' + communityId + '/topics', callback, true);

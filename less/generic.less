@@ -163,3 +163,61 @@ button:not([data-ico]), a.button:not([data-ico]) {
 .selected-text {
   background-color: @clr-yellow-darkest;
 }
+/*=============================================== */
+.previews {
+  display: inline-block;
+}
+
+.attachment-image {
+  border: 1px solid @clr-border;
+  display: inline-block;
+  height: 32px;
+  margin-left: 5px;
+  position: relative;
+  text-align: center;
+  width: 32px;
+
+  &[data-status="removed"] {
+    display: none;
+  }
+}
+
+.attachment-image-preview {
+  max-height: 32px;
+  vertical-align: middle;
+  width: 32px;
+}
+
+.attachment-image-remove {
+  border: 1px solid @clr-red-darkest;
+  border-radius: 2px;
+  background-color: @clr-red-dark;
+  color: @clr-white;
+  cursor: pointer;
+  font-size: @font-size-small;
+  height: 10px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+
+  &:hover {
+    background-color: @clr-white;
+    color: @clr-red-darkest;
+  }
+}
+
+.btn-attach-image {
+  .attachment-image;
+  background-color: @clr-background-dark;
+  box-sizing: border-box;
+  cursor: pointer;
+  margin-left: 0;
+
+  &:hover {
+    background-color: @clr-background;
+  }
+  &:active {
+    padding: 8px 0 0 1px;
+  }
+}

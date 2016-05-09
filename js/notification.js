@@ -4,23 +4,24 @@ app = (typeof app !== 'undefined') ? app : {};
   'use strict';
   this.registry = this.registry || {};
 
-  this.notify = (function notify (data) {
+  this.notify = (function notify(data) {
     var dNotifications = O.ELM.notifications;
     if (dNotifications === undefined) {
       dNotifications = O.ELM.appContainer;
     }
 
-    O.DOM.append(dNotifications,O.TPL.render(data));
+    O.DOM.append(dNotifications, O.TPL.render(data));
     O.ELM.refresh();
-    this.registerChildren(dNotifications.querySelectorAll('[data-register]:not(.js-registered)'));
+    this.registerChildrenOf(dNotifications);
   }).bind(this);
 
   //==========================
 
-  this.registry.closeNotification = { attributes: { onclick: closeNotifcation.bind(this)}} ;
-  function closeNotifcation (evt) {
+  this.registry.closeNotification = { attributes: { onclick: closeNotifcation.bind(this) } };
+  function closeNotifcation(evt) {
     O.DOM.remove(evt.target.closest('.notification'));
     return false;
   }
 
-return this;}).call(app);
+  return this;
+}).call(app);

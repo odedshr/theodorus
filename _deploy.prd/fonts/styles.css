@@ -173,3 +173,6 @@
 .icon-female:before {
   content: "\2640";
 }
+.icon-picture:before {
+  content: "\6b";
+}

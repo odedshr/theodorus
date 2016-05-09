@@ -105,7 +105,7 @@
       </div>
       {{?isMember}}
       <div class="page-header">
-          {{.:'frmSetTopic'}}
+          {{emptyTopic:'frmSetTopic'}}
           <div class="topic-filter">
             <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
           </div>
@@ -353,7 +353,7 @@
   </template>
 
   <template data-id="commentList">
-      {{.:'frmSetComment'}}
+      {{emptyComment:'frmSetComment'}}
       <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item post comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
   </template>
 
@@ -368,6 +368,7 @@
               {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
           </div>
       </div>
+      <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
       <div class="attributes">
         <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
         <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -398,6 +399,7 @@
               <textarea type="text" class="field-post-content js-opinion-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" data-register="postContent">{{content}}</textarea>
             </div>
           </div>
+          {{.:'attachComponent'}}
           <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
       </form>
   </template>
@@ -417,6 +419,7 @@
         {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
       </div>
     </div>
+    <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
     {{?hasStats}}<div class="attributes">
       <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
       <div class="attribute endorse-count" data-ico="comment-empty"><span id="opinion_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -443,8 +446,26 @@
       <div class="field-wrapper" data-count="{{contentLength}}">
         <textarea type="text" class="field-post-content js-opinion-content" name="content" id="opinionContent" required="required" placeholder="{{#placeholder.addOpinion}}" data-register="postContent">{{content}}</textarea>
       </div>
+      {{.:'attachComponent'}}
       <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
     </form>
+  </template>
+
+  <template data-id="attachComponent">
+    <div class="images" data-role="imageUploader">
+      <div class="btn-attach-image"
+        data-register="addImages" data-ico="picture">
+      </div><div class="previews" data-role="previews">
+        {{image@images}}{{.:'imagePreview'}}{{/image@images}}
+      </div>
+    </div>
+  </template>
+
+  <template data-id="imagePreview">
+    <div class="attachment-image" data-role="attachment" data-status="{{status}}" data-id="{{id}}">
+      <img src="{{src}}" class="attachment-image-preview"/>
+      <div data-ico="cancel" class="attachment-image-remove" data-register="removeAttachment"></div>
+    </div>
   </template>
 
   <template data-id="topicList">
@@ -462,6 +483,7 @@
               {{?hasHistory}}<div class="detail" data-ico="history"></div>{{/hasHistory}}
           </div>
       </div>
+      <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
       <div class="attributes">
           <div class="attribute opinion-count" data-ico="heart-empty" data-register="toggle" data-target="topic-{{id}}-opinions"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{opinions}}</span> {{#label.opinions}}</div>
           <div class="attribute endorse-count" data-ico="comment-empty"><span id="topic_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -490,6 +512,7 @@
                 <textarea type="text" class="field-post-content" name="content" id="topicContent" required="required" placeholder="{{#placeholder.addTopic}}" data-register="postContent">{{content}}</textarea>
               </div>
           </div>
+          {{.:'attachComponent'}}
           <div class="row-buttons">
               <button type="submit" data-ico="add" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
           </div>
@@ -504,16 +527,13 @@
       <button data-register="btnCancel" >{{#btn.cancel}}</button>
   </template>
 
-  <template data-id="topicAddPage">
-      {{.:addTopic}}
-  </template>
 
   <template data-id="profileImageSelector">
     <div class="profileImageSelector">
-      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="imageUpload"/>
+      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="replaceImage"/>
       <div>{{image@images}}<img class="member-image-thumb" src="{{.}}" data-register="copyImage" data-target="profileImagePreview"/>{{/image@images}}</div>
-      <button data-register="imageRemove"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
-      {{?hasImage}}<button data-register="imageReset" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
+      <button data-register="removeImage"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
+      {{?hasImage}}<button data-register="resetImage" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
     </div>
   </template>
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="attachComponent">
+    <div class="images" data-role="imageUploader">
+      <div class="btn-attach-image"
+        data-register="addImages" data-ico="picture">
+      </div><div class="previews" data-role="previews">
+        {{image@images}}{{.:'imagePreview'}}{{/image@images}}
+      </div>
+    </div>
+  </template>
+
+  <template data-id="imagePreview">
+    <div class="attachment-image" data-role="attachment" data-status="{{status}}" data-id="{{id}}">
+      <img src="{{src}}" class="attachment-image-preview"/>
+      <div data-ico="cancel" class="attachment-image-remove" data-register="removeAttachment"></div>
+    </div>
+  </template>
+</body>
+</html>

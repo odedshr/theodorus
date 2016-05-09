@@ -7,7 +7,7 @@ app = (typeof app !== 'undefined') ? app : {};
   this.templates = this.templates || {};
 
   //==================================/
-  this.registerChildren = (function registerChildren (subElements) {
+  this.registerS = (function registerChildren (subElements) {
     var elmCount = subElements.length;
     while (elmCount--) {
       var dElm = subElements[elmCount];
@@ -15,6 +15,10 @@ app = (typeof app !== 'undefined') ? app : {};
         this.register(dElm);
       }
     }
+  }).bind(this);
+
+  this.registerChildrenOf = (function registerChildrenOf (dElm) {
+    this.registerS(dElm.querySelectorAll('[data-register]:not(.js-registered)'));
   }).bind(this);
 
   function render (dElm, templateName, content) {
@@ -36,7 +40,7 @@ app = (typeof app !== 'undefined') ? app : {};
       } else {
         this.log('no template for ' + templateName,this.logType.debug);
       }
-      this.registerChildren(dElm.querySelectorAll('[data-register]:not(.js-registered)'));
+      this.registerChildrenOf(dElm);
     }
     catch (err) {
       this.log(err,this.logType.debug);
@@ -76,7 +80,7 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this);
 
   this.onWindowResize = (function onWindowResize() {
-    this.registerChildren(O.ELM.per('.js-register'));
+    this.registerS(O.ELM.per('.js-register'));
   }).bind(this);
 
   window.onresize = O.EVT.subscribe('window.resize',this.onWindowResize).getDispatcher('window.resize');

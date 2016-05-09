@@ -6,7 +6,7 @@
 </head>
 <body>
   <template data-id="commentList">
-      {{.:'frmSetComment'}}
+      {{emptyComment:'frmSetComment'}}
       <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item post comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
   </template>
 
@@ -21,6 +21,7 @@
               {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
           </div>
       </div>
+      <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
       <div class="attributes">
         <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="comment-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
         <div class="attribute endorse-count" data-ico="comment-empty"><span id="comment_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -51,6 +52,7 @@
               <textarea type="text" class="field-post-content js-opinion-content" name="content" id="commentContent" required="required" placeholder="{{#placeholder.addComment}}" data-register="postContent">{{content}}</textarea>
             </div>
           </div>
+          {{.:'attachComponent'}}
           <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button add"><span>{{#btn.ok}}</span></button>
       </form>
   </template>

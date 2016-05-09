@@ -7,10 +7,10 @@
 <body>
   <template data-id="profileImageSelector">
     <div class="profileImageSelector">
-      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="imageUpload"/>
+      <img src="{{profileImage}}" class="member-image" data-ico="user" id="profileImagePreview" data-register="replaceImage"/>
       <div>{{image@images}}<img class="member-image-thumb" src="{{.}}" data-register="copyImage" data-target="profileImagePreview"/>{{/image@images}}</div>
-      <button data-register="imageRemove"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
-      {{?hasImage}}<button data-register="imageReset" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
+      <button data-register="removeImage"{{?!hasImage}} disabled="disabled"{{/hasImage}} data-target="profileImagePreview">{{#btn.remove}}</button>
+      {{?hasImage}}<button data-register="resetImage" data-target="profileImagePreview">{{#btn.original}}</button>{{/hasImage}}
     </div>
   </template>
 </body>

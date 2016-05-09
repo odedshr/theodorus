@@ -20,6 +20,7 @@
         {{?hasHistory}}<div class="attribute" data-ico="history"></div>{{/hasHistory}}
       </div>
     </div>
+    <div class="images">{{image@images}}<img src="{{src}}" class="attachment-image-preview"/>{{/image@images}}</div>
     {{?hasStats}}<div class="attributes">
       <div class="attribute comment-count" data-ico="heart-empty" data-register="toggle" data-target="opinion-{{id}}-comments"><span id="topic_{{id}}_opinion_count" class="value" data-role="opinion-count">{{comments}}</span> {{#label.comments}}</div>
       <div class="attribute endorse-count" data-ico="comment-empty"><span id="opinion_{{id}}_endorse_count" class="value">{{endorse}}</span> {{#label.endorsers}}</div>
@@ -46,6 +47,7 @@
       <div class="field-wrapper" data-count="{{contentLength}}">
         <textarea type="text" class="field-post-content js-opinion-content" name="content" id="opinionContent" required="required" placeholder="{{#placeholder.addOpinion}}" data-register="postContent">{{content}}</textarea>
       </div>
+      {{.:'attachComponent'}}
       <button type="submit" data-ico="ok" title="{{#btn.ok}}" class="button ok"><span>{{#btn.ok}}</span></button>
     </form>
   </template>
