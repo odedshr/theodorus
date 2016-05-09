@@ -160,14 +160,18 @@
     }
   }
 
-  function topicAdded (community, data) {
-    data.topic.Opinions = [];
-    community.Topics.push(data.topic);
-    console.log('added topic');
+  function topicAdded(community, data) {
+    if (data.message === "too-long") {
+      console.log('topic was too long ' + data.details.value);
+    } else {
+      data.topic.Opinions = [];
+      community.Topics.push(data.topic);
+      console.log('added topic');
+    }
     nextAction();
   }
 
-  function gotOpinions (user, parent, data) {
+  function gotOpinions(user, parent, data) {
     if (data !== undefined) {
       parent.Opinions = data.opinions;
     } else if (parent.Opinions === undefined) {
@@ -189,9 +193,13 @@
   }
 
   function opinionAdded (topic, data) {
-    data.opinion.Comments = [];
-    topic.Opinions.push(data.opinion);
-    console.log('added opinion');
+    if (data.message === "too-long") {
+      console.log('opinion was too long ' + data.details.value);
+    } else {
+      data.opinion.Comments = [];
+      topic.Opinions.push(data.opinion);
+      console.log('added opinion');
+    }
     nextAction();
   }
 
@@ -223,9 +231,13 @@
   }
 
   function commentAdded (opinion, data) {
-    data.comment.Comments = [];
-    opinion.Comments.push(data.comment);
-    console.log('added comment');
+    if (data.message === "too-long") {
+      console.log('comment was too long ' + data.details.value);
+    } else {
+      data.comment.Comments = [];
+      opinion.Comments.push(data.comment);
+      console.log('added comment');
+    }
     nextAction();
   }
 

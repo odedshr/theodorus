@@ -113,6 +113,7 @@
       } else {
         db.connect(config('dbConnectionString', true),config('guidLength'), function gotModels (dbModels) {
           models = dbModels;
+          req.models = models; //fix the current request as well
           endWithModels (callback);
         });
       }
