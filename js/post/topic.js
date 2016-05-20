@@ -6,9 +6,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   var filters = {};
 
-  this.registry.topicList = { preprocess: (loadTopicList).bind(this) };
+  this.registry.topicList = { preprocess: loadCommunityTopics.bind(this) };
 
-  function loadTopicList(dElm, callback) {
+  function loadCommunityTopics(dElm, callback) {
     var communityId = this.state.community;
     var cached = this.registry.topicList.cached;
     if (!!cached) { //used cache
@@ -25,19 +25,27 @@ app = (typeof app !== 'undefined') ? app : {};
       return callback ({ topics: { topic: [] } });
     }
     this.state.communityTopics = data;
-    var item, viewpoint;
+    var item, viewpoint, isMember, membershipId, community;
     var topics = data.topics || [];
     var authors = data.authors || {};
-    var isMember = !!this.state.communityJSON.membership;
-    var membershipId = isMember ? this.state.communityJSON.membership.id : false;
-    var count = topics.length;
+    var communities = data.communities;
+    if (communities === undefined) { //the entire list is from a single community;
+      isMember = this.state.communityJSON && !!this.state.communityJSON.membership;
+      membershipId = isMember ? this.state.communityJSON.membership.id : false;
+    }
+
 
     this.addImagesToAuthors (authors);
 
-    while (count--) {
-      item = topics[count];
+    for (var i =0, length = topics.length; i < length; i++) {
+      item = topics[i];
       item.author = authors[item.authorId];
-      item.mdContent = marked(item.content);
+      item.hasCommunity = (communities !== undefined);
+      if (item.hasCommunity) {
+        community = communities[item.communityId];
+        item.community = community;
+      }
+      item.mdContent = this.htmlize(item.content);
       item.time = moment(item.modified).format("MMM Do YY, h:mma");
       item.relativeTime = moment(item.modified).fromNow();
       item.images = { image: this.getAttachmentsURL(item.images) };
@@ -64,6 +72,7 @@ app = (typeof app !== 'undefined') ? app : {};
       topics: { topic:
         this.getFilteredItems.call (this, topics, filters ) } } );
   }
+  this.processTopicList = topicListOnLoaded.bind(this);
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -108,5 +117,19 @@ app = (typeof app !== 'undefined') ? app : {};
     this.registry.topicList.cached = this.state.communityTopics.topics;
     this.register(document.querySelector('[data-register="topicList"]'));
     delete this.registry.topicList.cached;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+
+
+  this.registry.topTopics = { preprocess: (getTopTopics).bind(this), template: 'topicList' };
+
+  function getTopTopics(dElm, callback) {
+    var cached = this.registry.topTopics.cached;
+    if (!!cached) { //used cache
+      callback( { topics: { topic: this.getFilteredItems.call (this, cached, filters ) } } );
+    } else {
+      this.api.getTopTopics(1, 100, topicListOnLoaded.bind(this, callback));
+    }
   }
 return this;}).call(app);

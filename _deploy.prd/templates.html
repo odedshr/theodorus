@@ -71,17 +71,20 @@
   </template>
 
   <template data-id="communityList">
-      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
+      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}{{.:'communityListItem'}}{{/community@communities}}</ul>
   </template>
 
   <template data-id="communityListItem">
+    <li class="community">
       <a href="#community:{{id}}" class="link-community">
-          <div class="name">{{name}}</div>
-          <div class="statistics">
-              <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-              <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
-          </div>
+        <div class="name">{{name}}</div>
       </a>
+      <div class="description">{{mdDescription}}</div>
+      <div class="statistics">
+        <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+        <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+      </div>
+    </li>
   </template>
 
   <template data-id="communityPage">
@@ -192,6 +195,60 @@
       </div>
   </template>
 
+  <template data-id="homePage">
+    <aside class="side-bar-element">
+      <div class="component communities">
+        <h2 class="dialog-title">{{#title.topCommunities}}</h2>
+        <div data-register="topCommunities"></div>
+      </div>
+    </aside>
+
+    <article class="newsfeed">
+      <h2 class="dialog-title">{{#title.topTopics}}</h2>
+      <div id="topicList" data-register="topTopics"></div>
+    </article>
+
+    <aside class="side-bar-element">
+      <div class="component tags">
+        <h2 class="dialog-title">{{#title.topTags}}</h2>
+        <div data-register="topTags" aria-controls="topicList"></div>
+      </div>
+      {{?!isAuthenticated}}
+      <div class="component connect">
+        <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
+        <div class="intro-text">{{#text.intro}}</div>
+        {{.:'join'}}
+      </div>
+      {{/isAuthenticated}}
+    </aside>
+  </template>
+
+  <template data-id="oldHomePage">
+    <article>
+      <h2>my topics</h2>
+      <ul>
+      <li>What's new in topics I'm active in</li>
+      <li>What's new in topics I follow</li>
+      <li>My last activities</li>
+      <li>friends last activities</li>
+      <li>interesting things with tags I'm interested in</li>
+      <li>what's new in my groups</li>
+      <li>was I mentioned?</li>
+      <li>anyone commented me?</li>
+      </ul>
+    </article>
+    <article>
+      <h2>topics from my communities</h2>
+    </article>
+    <article>
+      <h2>other topics</h2>
+    </article>
+    <aside>
+      <h2>My communities</h2>
+    </aside>
+  </template>
+
+
   <template data-id="joinMail">
       <div style="text-align:center;"><img src="https://raw.githubusercontent.com/odedshr/theodorus/gh-pages.src/img/logo.png" height="64" width="64" /></div>
       <div>
@@ -230,26 +287,6 @@
       <div id="notifications" class="notifications"></div>
   </template>
 
-  <template data-id="welcomePage">
-      <aside class="side-bar-element component visitors-info-what-is">
-          <h2 class="dialog-title">What is {{#app.title}} ?</h2>
-          <div>lorem ipsum...</div>
-      </aside>
-
-      <article class="newsfeed">
-          <ul>
-              <li>A list of 'best' topics from all public communities</li>
-          </ul>
-      </article>
-
-      <aside class="side-bar-element component visitor-join">
-          <div class="connect">
-              <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
-              {{.:'join'}}
-          </div>
-      </aside>
-  </template>
-
   <template data-id="joinPage">
       <div class="dialog">
           <div class="dialog-title">{{#title.joinTheConversation}}</div>
@@ -281,9 +318,9 @@
 
   <template data-id="appContainer">
       {{.:'header'}}
-      <div id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}">
+      <main id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}" role="main">
           {{.:'loading'}}
-      </div>
+      </main>
   </template>
 
   <template data-id="loading">
@@ -291,21 +328,6 @@
           <i data-ico="spinner"></i>
           <span class="title">{{#label.loading}}</span>
       </div>
-  </template>
-
-  <template data-id="homePage">
-      <article>
-          <h2>my topics</h2>
-      </article>
-      <article>
-          <h2>topics from my communities</h2>
-      </article>
-      <article>
-          <h2>other topics</h2>
-      </article>
-      <aside>
-          <h2>My communities</h2>
-      </aside>
   </template>
 
   <template data-id="frmSearch">
@@ -322,6 +344,10 @@
   <template data-id="mePage">
       me
       <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+  </template>
+
+  <template data-id="tagCloud">
+      <ul class="list tag-cloud" data-msg-empty="{{#label.noTags}}" role="list">{{tag@tags}}<li class="js-item tag tag-size-{{score}}" data-type="tag" data-register="filterByTag" role="button" aria-pressed="false">{{string}}</li>{{/tag@tags}}</ul>
   </template>
 
   <template data-id="notifySystem">
@@ -478,6 +504,7 @@
           <div class="content js-content">{{mdContent}}</div>
           {{?isEditable}}{{.:'frmSetTopic'}}{{/isEditable}}
           <div class="details">
+              {{?hasCommunity}}<div class="detail community"><a href="#community:{{community.id}}">{{community.name}}</a></div>{{/hasCommunity}}
               <div class="detail author-name">{{author.name}}</div>
               <div class="detail time" title="{{time}}">{{relativeTime}}</div>
               {{?hasHistory}}<div class="detail" data-ico="history"></div>{{/hasHistory}}

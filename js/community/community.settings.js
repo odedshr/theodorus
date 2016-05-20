@@ -69,9 +69,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
     catch (err) {
       if (err.errors.length) {
-        var count = err.errors.length;
-        while (count--) {
-          this.log(err.errors[count], this.logType.error);
+        for (var i = 0, length = err.errors.length; i < length; i++) {
+          this.log(err.errors[i], this.logType.error);
         }
       }
     }

@@ -86,13 +86,14 @@ app = (typeof app !== 'undefined') ? app : {};
     var data = {};
     var hashData = this.extractArgumentsFromLocationHash();
     var title = this.getPageTitleFromHash(hashData);
-    var pageTemplate = (title.length ? title.replace(/\s/g,'') : (this.isAuthenticated() ? 'home' : 'welcome'))+'Page';
+    var pageTemplate = (title.length ? title.replace(/\s/g,'') : 'home' ) + 'Page';
     O.ELM.appContainer.setAttribute('data-section',hashData.length > 0 ? hashData[0].key : 'home');
     if (O.TPL.list().indexOf(pageTemplate) === -1) {
       var registryAction = this.registry[pageTemplate];
       if (registryAction !== undefined && registryAction.preprocess !== undefined) {
         registryAction.preprocess(null, function () {});
       } else {
+        console.log(this.registry);
         this.log('trying to access ' + pageTemplate,this.logType.debug);
         pageTemplate = "notFoundPage";
       }

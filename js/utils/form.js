@@ -33,7 +33,7 @@ app = (typeof app !== 'undefined') ? app : {};
         var dElm = formFields[field];
         if (dElm.name && dElm.name.length > 0 && !onlyDirty || isFormFieldDirty(dElm)) {
           if (typeof dElm.checkValidation === 'function' && dElm.checkValidation() === false) {
-            errors[errors.length] = element;
+            errors.push(element);
           } else if (dElm.name && dElm.name.length > 0) {
             data[dElm.name] = getFormFieldValue(dElm);
           }

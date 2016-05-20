@@ -16,15 +16,14 @@ app = (typeof app !== 'undefined') ? app : {};
     var membershipId = community.membership ? community.membership.id : false;
     var opinions = data.opinions || [];
     var authors = data.authors || {};
-    var count = opinions.length;
     var myOpinion;
 
     this.addImagesToAuthors (authors);
 
-    while (count--) {
-      item = opinions[count];
+    for (var i = 0, length = opinions.length; i < length; i++) {
+      item = opinions[i];
       item.author = authors[item.authorId];
-      item.mdContent = marked(item.content);
+      item.mdContent = this.htmlize(item.content);
       item.isMember = !!membershipId;
       item.isMine = (membershipId === item.author.id);
       item.time = moment(item.modified).format("MMM Do YY, h:mma");

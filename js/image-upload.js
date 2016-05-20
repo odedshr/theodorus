@@ -66,12 +66,17 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   function onUploadImageResized (target, data) {
+    var dRemoveImage;
+
     if (typeof target === 'function') {
       target(data);
     } else {
       target.src = data;
       target.setAttribute('data-dirty',true);
-      document.querySelector('[data-register="imageRemove"][data-target="'+target.id+'"]').removeAttribute('disabled');
+      dRemoveImage = document.querySelector('[data-register="imageRemove"][data-target="'+target.id+'"]');
+      if (dRemoveImage) {
+        dRemoveImage.removeAttribute('disabled');
+      }
     }
   }
 
@@ -176,10 +181,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   // membershipIds = getAllUserImages.images
   this.getImageList = function getImageList (membershipIds, currentMembershipId) {
-    var imageCount = membershipIds.length;
     var images = [];
-    while (imageCount--) {
-      var id = membershipIds[imageCount];
+    for (var i = 0, length = membershipIds.length; i < length; i++) {
+      var id = membershipIds[i];
       if (id !== currentMembershipId) {
         images.push ( this.api.getProfileImageURL(id) );
       }

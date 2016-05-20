@@ -15,6 +15,7 @@
           <div class="content js-content">{{mdContent}}</div>
           {{?isEditable}}{{.:'frmSetTopic'}}{{/isEditable}}
           <div class="details">
+              {{?hasCommunity}}<div class="detail community"><a href="#community:{{community.id}}">{{community.name}}</a></div>{{/hasCommunity}}
               <div class="detail author-name">{{author.name}}</div>
               <div class="detail time" title="{{time}}">{{relativeTime}}</div>
               {{?hasHistory}}<div class="detail" data-ico="history"></div>{{/hasHistory}}

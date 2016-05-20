@@ -16,14 +16,13 @@ app = (typeof app !== 'undefined') ? app : {};
     var community = this.state.communityJSON;
     var authors = data.authors || {};
     var membershipId = community.membership ? community.membership.id : false;
-    var count = list.length;
 
     this.addImagesToAuthors (authors);
 
-    while (count--) {
-      item = list[count];
+    for (var i = 0, length = list.length; i < length; i++) {
+      item = list[i];
       item.author = authors[item.authorId];
-      item.mdContent = marked(item.content);
+      item.mdContent = this.htmlize(item.content);
       item.isEditable = (membershipId === item.author.id) && (item.comments === 0) && (item.endorse === 0);
       item.isMember = !!membershipId;
       item.time = moment(item.modified).format("MMM Do YY, h:mma");

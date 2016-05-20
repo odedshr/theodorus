@@ -18,17 +18,20 @@
   </template>
 
   <template data-id="communityList">
-      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}<li class="community">{{.:'communityListItem'}}</li>{{/community@communities}}</ul>
+      <ul class="list community-list" data-msg-empty="{{#label.noCommunities}}">{{community@communities}}{{.:'communityListItem'}}{{/community@communities}}</ul>
   </template>
 
   <template data-id="communityListItem">
+    <li class="community">
       <a href="#community:{{id}}" class="link-community">
-          <div class="name">{{name}}</div>
-          <div class="statistics">
-              <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
-              <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
-          </div>
+        <div class="name">{{name}}</div>
       </a>
+      <div class="description">{{mdDescription}}</div>
+      <div class="statistics">
+        <div class="stat"><span class="value">{{topics}}</span><span class="label">{{#label.topics}}</span></div>
+        <div class="stat"><span class="value">{{members}} </span><span class="label">{{#label.members}}</span></div>
+      </div>
+    </li>
   </template>
 </body>
 </html>

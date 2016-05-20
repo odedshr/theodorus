@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Templates</title>
+</head>
+<body>
+  <template data-id="homePage">
+    <aside class="side-bar-element">
+      <div class="component communities">
+        <h2 class="dialog-title">{{#title.topCommunities}}</h2>
+        <div data-register="topCommunities"></div>
+      </div>
+    </aside>
+
+    <article class="newsfeed">
+      <h2 class="dialog-title">{{#title.topTopics}}</h2>
+      <div id="topicList" data-register="topTopics"></div>
+    </article>
+
+    <aside class="side-bar-element">
+      <div class="component tags">
+        <h2 class="dialog-title">{{#title.topTags}}</h2>
+        <div data-register="topTags" aria-controls="topicList"></div>
+      </div>
+      {{?!isAuthenticated}}
+      <div class="component connect">
+        <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
+        <div class="intro-text">{{#text.intro}}</div>
+        {{.:'join'}}
+      </div>
+      {{/isAuthenticated}}
+    </aside>
+  </template>
+
+  <template data-id="oldHomePage">
+    <article>
+      <h2>my topics</h2>
+      <ul>
+      <li>What's new in topics I'm active in</li>
+      <li>What's new in topics I follow</li>
+      <li>My last activities</li>
+      <li>friends last activities</li>
+      <li>interesting things with tags I'm interested in</li>
+      <li>what's new in my groups</li>
+      <li>was I mentioned?</li>
+      <li>anyone commented me?</li>
+      </ul>
+    </article>
+    <article>
+      <h2>topics from my communities</h2>
+    </article>
+    <article>
+      <h2>other topics</h2>
+    </article>
+    <aside>
+      <h2>My communities</h2>
+    </aside>
+  </template>
+
+</body>
+</html>

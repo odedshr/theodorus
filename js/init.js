@@ -14,10 +14,9 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this);
 
   function getTemplateMap (templates) {
-    var count = templates.length;
     var map = {};
-    while (count--) {
-      map[templates[count]] = true;
+    for (var i = 0, length = templates.length; i < length; i++) {
+      map[templates[i]] = true;
     }
     return map;
   }

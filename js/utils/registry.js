@@ -8,9 +8,8 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //==================================/
   this.registerS = (function registerChildren (subElements) {
-    var elmCount = subElements.length;
-    while (elmCount--) {
-      var dElm = subElements[elmCount];
+    for (var i = 0, length = subElements.length; i < length; i++) {
+      var dElm = subElements[i];
       if (dElm.style.display !== 'none') {
         this.register(dElm);
       }
@@ -50,7 +49,7 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-  this.register = (function register (dElm) {
+  function register (dElm) {
     var templateName = dElm.getAttribute('data-register');
 
     if ( templateName === undefined ) {
@@ -59,10 +58,15 @@ app = (typeof app !== 'undefined') ? app : {};
     O.CSS.remove(dElm,'register').add (dElm,'registering');
 
     var component = this.registry[templateName];
-    if (component !== undefined && component.attributes !== undefined) {
-      var attr = component.attributes;
-      for (var key in attr) {
-        dElm[key] = attr[key];
+    if (component !== undefined) {
+      if (component.attributes !== undefined) {
+        var attr = component.attributes;
+        for (var key in attr) {
+          dElm[key] = attr[key];
+        }
+      }
+      if (component.template !== undefined) {
+        templateName = component.template;
       }
     }
 
@@ -77,7 +81,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
 
     O.CSS.remove(dElm,'registering').add(dElm,'registered');
-  }).bind(this);
+  }
+  this.register = register.bind(this);
 
   this.onWindowResize = (function onWindowResize() {
     this.registerS(O.ELM.per('.js-register'));

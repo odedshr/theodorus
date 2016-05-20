@@ -25,8 +25,7 @@ app = (typeof app !== 'undefined') ? app : {};
     var memberships = data.getMyMemberships.memberships;
     var maxName = '', maxCount = 0;
     var count = {};
-    var i = memberships.length;
-    while (i--) {
+    for (var i = 0, length = memberships.length; i < length; i--) {
       var name = memberships[i].name;
       var nameCount = count[name];
       nameCount = (count[name] === undefined) ? 1 : nameCount + 1;

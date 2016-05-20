@@ -30,26 +30,6 @@
       <div id="notifications" class="notifications"></div>
   </template>
 
-  <template data-id="welcomePage">
-      <aside class="side-bar-element component visitors-info-what-is">
-          <h2 class="dialog-title">What is {{#app.title}} ?</h2>
-          <div>lorem ipsum...</div>
-      </aside>
-
-      <article class="newsfeed">
-          <ul>
-              <li>A list of 'best' topics from all public communities</li>
-          </ul>
-      </article>
-
-      <aside class="side-bar-element component visitor-join">
-          <div class="connect">
-              <h2 class="dialog-title">{{#title.joinTheConversation}}</h2>
-              {{.:'join'}}
-          </div>
-      </aside>
-  </template>
-
   <template data-id="joinPage">
       <div class="dialog">
           <div class="dialog-title">{{#title.joinTheConversation}}</div>
@@ -81,9 +61,9 @@
 
   <template data-id="appContainer">
       {{.:'header'}}
-      <div id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}">
+      <main id="pageContainer" class="pageContainer" data-register="{{pageTemplate}}" role="main">
           {{.:'loading'}}
-      </div>
+      </main>
   </template>
 
   <template data-id="loading">
@@ -91,21 +71,6 @@
           <i data-ico="spinner"></i>
           <span class="title">{{#label.loading}}</span>
       </div>
-  </template>
-
-  <template data-id="homePage">
-      <article>
-          <h2>my topics</h2>
-      </article>
-      <article>
-          <h2>topics from my communities</h2>
-      </article>
-      <article>
-          <h2>other topics</h2>
-      </article>
-      <aside>
-          <h2>My communities</h2>
-      </aside>
   </template>
 
   <template data-id="frmSearch">
@@ -122,6 +87,10 @@
   <template data-id="mePage">
       me
       <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+  </template>
+
+  <template data-id="tagCloud">
+      <ul class="list tag-cloud" data-msg-empty="{{#label.noTags}}" role="list">{{tag@tags}}<li class="js-item tag tag-size-{{score}}" data-type="tag" data-register="filterByTag" role="button" aria-pressed="false">{{string}}</li>{{/tag@tags}}</ul>
   </template>
 
   <template data-id="notifySystem">

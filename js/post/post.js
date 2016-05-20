@@ -32,10 +32,6 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-  function titlize(postType) {
-    return postType.substr(0, 1).toUpperCase() + postType.substr(1);
-  }
-
   //////////////////////////////////////////////////////////////////////////////
 
   this.registry.editTopic = { attributes: { onclick:
@@ -99,9 +95,8 @@ app = (typeof app !== 'undefined') ? app : {};
     var author;
     var authorIds = Object.keys(authors);
 
-    count = authorIds.length;
-    while (count--) {
-      id = authorIds[count];
+    for (var i = 0, length = authorIds.length; i < length; i++) {
+      id = authorIds[i];
       author = authors[id];
       author.image = (!!author.hasImage) ? this.api.getProfileImageURL(id) : '';
     }
@@ -111,9 +106,8 @@ app = (typeof app !== 'undefined') ? app : {};
 
   this.getAttachmentsURL = (function getAttachmentsURL(items) {
     if (!!items) {
-      var count = items.length;
-      while (count--) {
-        items[count] = {
+      for (var i = 0, length = items.length; i < length; i++) {
+        items[i] = {
           id: items[count],
           src: this.api.getAttachmentURL(items[count]),
           status: 'existing'
@@ -142,6 +136,16 @@ app = (typeof app !== 'undefined') ? app : {};
       images[i] = dImgs[i].getAttribute('data-id');
     }
     return images;
+  }).bind(this);
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  function titlize(postType) {
+    return postType.substr(0, 1).toUpperCase() + postType.substr(1);
+  }
+
+  this.htmlize = (function htmlize(string) {
+    return marked(string).replace(/(^|\W)(#[a-z\d][\w-]*)/ig,'$1<span class="tag">$2</span>');
   }).bind(this);
 
   //////////////////////////////////////////////////////////////////////////////

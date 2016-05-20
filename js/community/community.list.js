@@ -1,6 +1,6 @@
 app = (typeof app !== 'undefined') ? app : {};
 (function communityEnclosure() {
-    /*jshint validthis: true */
+  /*jshint validthis: true */
   'use strict';
 
   this.registry = this.registry || {};
@@ -8,6 +8,7 @@ app = (typeof app !== 'undefined') ? app : {};
   var filters = {};
 
   this.registry.communitiesPage = { preprocess: (function registerCommunityPage (dElm, callback) {
+    document.title = O.TPL.translate('title.communities');
     callback ({isAuthenticated : this.isAuthenticated()});
   }).bind(this)} ;
 
@@ -15,7 +16,6 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.communityList = { preprocess: registerMyCommunityList.bind(this) };
   function registerMyCommunityList (dElm, callback) {
     var cached = this.registry.communityList.cached;
-    document.title = O.TPL.translate('title.communities');
 
     if (cached) {
       callback ({ communities:{community: this.getFilteredItems.call (this, cached, filters) } });
@@ -25,7 +25,11 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   function communityListOnDataLoaded (callback, response) {
-    var communities = response.communities;
+    var community, communities = response.communities;
+    for (var i = 0, length = communities.length; i < length; i++) {
+      community = communities[i];
+      community.mdDescription = community.description ? this.htmlize(community.description) : '';
+    }
     this.state.communities = communities;
     callback ({ communities:{community: this.getFilteredItems.call (this,communities, filters) } });
   }
@@ -38,6 +42,17 @@ app = (typeof app !== 'undefined') ? app : {};
     this.registry.communityList.cached = this.state.communities;
     this.register(document.querySelector('[data-register="communityList"]'));
     delete this.registry.communityList.cached;
+  }
+
+  this.registry.topCommunities = { preprocess: getTopCommunities.bind(this),
+                                   template: 'communityList' };
+  function getTopCommunities (dElm, callback) {
+    var cached = this.registry.topCommunities.cached;
+    if (cached) {
+      callback ({ communities:{community: this.getFilteredItems.call (this, cached, filters) } });
+    } else {
+      this.api.getTopCommunities(1, 10, communityListOnDataLoaded.bind (this, callback));
+    }
   }
 
 return this;}).call(app);
