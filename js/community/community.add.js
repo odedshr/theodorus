@@ -1,13 +1,11 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommunityAddEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
-  this.registry.communityAddPage = { preprocess : registerCreateCommunityForm.bind(this) };
-  this.registry.frmAddCommunity = { attributes: { onsubmit:  onAddSubmitted.bind(this) } };
+  this.registry.communityAddPage = { preprocess : RegisterCreateCommunityForm.bind(this) };
+  this.registry.frmAddCommunity = { attributes: { onsubmit:  AddSubmitted.bind(this) } };
 
-  function registerCreateCommunityForm (dElm, callback) {
+  function RegisterCreateCommunityForm (dElm, callback) {
     if (!this.isAuthenticated()) {
       history.back ();
       callback ( {} );
@@ -18,10 +16,10 @@ app = (typeof app !== 'undefined') ? app : {};
         'getMyMemberships': this.api.getMyMemberships.bind(this),
         'getAllUserImages': this.api.getAllUserImages.bind(this)
       },
-      onCommunityAddDataLoaded.bind(this,callback));
+      CommunityAddDataLoaded.bind(this,callback));
   }
 
-  function onCommunityAddDataLoaded (callback, data) {
+  function CommunityAddDataLoaded (callback, data) {
     var memberships = data.getMyMemberships.memberships;
     var maxName = '', maxCount = 0;
     var count = {};
@@ -43,7 +41,7 @@ app = (typeof app !== 'undefined') ? app : {};
      });
   }
 
-  function onAddSubmitted (evt) {
+  function AddSubmitted (evt) {
     var form = evt.target;
     var data = this.getFormFields (form);
     //TODO: validate input
@@ -53,13 +51,13 @@ app = (typeof app !== 'undefined') ? app : {};
         community: { name : data.name, description: data.description },
         founder: { name: data.founderName },
         founderImage: O.ELM.profileImagePreview.src
-      }, onCommunityAdded.bind(this, form));
+      }, CommunityAdded.bind(this, form));
     }
 
     return false;
   }
 
-  function onCommunityAdded (form, response) {
+  function CommunityAdded (form, response) {
     form.setAttribute('data-status','');
     if (response instanceof Error || !response) {
       this.notify ({
@@ -72,21 +70,25 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   //=================================// community name field
-  this.registry.uniqueCommunityName = { attributes: { onchange: onCommunityNameChange.bind(this) }};
+  this.registry.uniqueCommunityName = { attributes: { onchange: CommunityNameChange.bind(this) }};
 
-  function onCommunityNameChange (evt) {
+  function CommunityNameChange (evt) {
     var dField = evt.target;
     this.setValidationMessage (dField, O.TPL.translate('message.checkingIfNameBeingUsed'));
     if (dField.value.length > 0) {
-      this.api.communityExists({ community: { name: dField.value } } , onCommunityExistsChecked.bind(this,dField));
+      this.api.communityExists({ community: { name: dField.value } } , CommunityExistsChecked.bind(this,dField));
     } else {
       this.setValidationMessage (dField, O.TPL.translate('message.thisFieldIsRequired'));
     }
 
   }
 
-  function onCommunityExistsChecked (dField,response) {
+  function CommunityExistsChecked (dField,response) {
     this.setValidationMessage (dField, response.exists ? O.TPL.translate('message.namedAlreadyBeingUsed'): '');
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

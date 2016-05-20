@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function initEnclosure() {
-  /*jshint validthis: true */
+;(function InitEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
@@ -20,7 +18,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
     return map;
   }
-  function onComponentLoaded (process) {
+
+  function LoadedComponentHandler (process) {
     if (!(--process.progress)) {
       this.templates = getTemplateMap(O.TPL.list());
       O.ELM.refresh();
@@ -31,9 +30,9 @@ app = (typeof app !== 'undefined') ? app : {};
   this.init = (function init () {
     var process = { progress : 3 };
 
-    O.EVT.subscribe ('window.onload', onComponentLoaded.bind (this, process))
-      .subscribe ('TPL.templatesLoaded', onComponentLoaded.bind (this, process))
-      .subscribe ('TPL.languageLoaded', onComponentLoaded.bind (this, process))
+    O.EVT.subscribe ('window.onload', LoadedComponentHandler.bind (this, process))
+      .subscribe ('TPL.templatesLoaded', LoadedComponentHandler.bind (this, process))
+      .subscribe ('TPL.languageLoaded', LoadedComponentHandler.bind (this, process))
       .subscribe ('connection-error',this.onConnectionError);
 
     O.TPL.load ('templates.html');
@@ -43,4 +42,10 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this);
 
   this.init();
-  return this;}).call(app);
+
+    return this;
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

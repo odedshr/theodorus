@@ -1,14 +1,12 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommunitySettingsEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
 
   //=================================// Community Settings
-  this.registry.communitySettingsPage = { preprocess: registerCommunitySettingsPage.bind(this) };
+  this.registry.communitySettingsPage = { preprocess: RegisterCommunitySettingsPage.bind(this) };
 
-  function registerCommunitySettingsPage (dElm, callback) {
+  function RegisterCommunitySettingsPage (dElm, callback) {
     if (!this.isAuthenticated()) {
       history.back ();
       callback ( {} );
@@ -22,13 +20,13 @@ app = (typeof app !== 'undefined') ? app : {};
           'getCommunity': this.api.getCommunity.bind(this,communityId),
           'getAllUserImages': this.api.getAllUserImages.bind(this)
         },
-        onCommunitySettingsDataLoaded.bind(this,callback));
+        CommunitySettingsDataLoaded.bind(this,callback));
     } else {
       this.updateURL('communities','');
     }
   }
 
-  function onCommunitySettingsDataLoaded (callback, data) {
+  function CommunitySettingsDataLoaded (callback, data) {
     var community = data.getCommunity.community;
     var membership = data.getCommunity.membership;
     this.state.communityJSON = community;
@@ -51,9 +49,9 @@ app = (typeof app !== 'undefined') ? app : {};
     callback(dataForDisplay);
   }
 
-  this.registry.frmMembershipSettings = { attributes: { onsubmit: onSave.bind(this) }};
+  this.registry.frmMembershipSettings = { attributes: { onsubmit: Save.bind(this) }};
 
-  function onSave (evt) {
+  function Save (evt) {
     var profileImage = O.ELM.profileImagePreview;
     try {
       var data = {
@@ -78,9 +76,9 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   //=================================// member name field
-  this.registry.uniqueMemberName = { attributes: { onchange: onMemberNameChange.bind(this) }};
+  this.registry.uniqueMemberName = { attributes: { onchange: MemberNameChange.bind(this) }};
 
-  function onMemberNameChange (evt) {
+  function MemberNameChange (evt) {
     var dField = evt.target;
     this.setValidationMessage (dField, O.TPL.translate('message.checkingIfNameBeingUsed'));
     if (dField.value.length > 0) {
@@ -88,15 +86,19 @@ app = (typeof app !== 'undefined') ? app : {};
         communityId: this.state.community,
         name: dField.value
       } };
-      this.api.membershipExists(data, onMemberExistsChecked.bind(this,dField));
+      this.api.membershipExists(data, MemberExistsChecked.bind(this,dField));
     } else {
       this.setValidationMessage (dField, O.TPL.translate('message.thisFieldIsRequired'));
     }
 
   }
 
-  function onMemberExistsChecked (dField,response) {
+  function MemberExistsChecked (dField,response) {
     this.setValidationMessage (dField, response.exists==='false' ? O.TPL.translate('message.namedAlreadyBeingUsed'): '');
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

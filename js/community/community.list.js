@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommunityListEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
@@ -13,18 +11,18 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this)} ;
 
   //=================================//
-  this.registry.communityList = { preprocess: registerMyCommunityList.bind(this) };
-  function registerMyCommunityList (dElm, callback) {
+  this.registry.communityList = { preprocess: RegisterMyCommunityList.bind(this) };
+  function RegisterMyCommunityList (dElm, callback) {
     var cached = this.registry.communityList.cached;
 
     if (cached) {
       callback ({ communities:{community: this.getFilteredItems.call (this, cached, filters) } });
     } else {
-      this.api.getCommunityList(communityListOnDataLoaded.bind (this, callback));
+      this.api.getCommunityList(CommunityListOnDataLoaded.bind (this, callback));
     }
   }
 
-  function communityListOnDataLoaded (callback, response) {
+  function CommunityListOnDataLoaded (callback, response) {
     var community, communities = response.communities;
     for (var i = 0, length = communities.length; i < length; i++) {
       community = communities[i];
@@ -36,17 +34,17 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //==========================
 
-  this.registry.filterCommunities = { attributes: { onkeyup : filterCommunities.bind(this)} };
-  function filterCommunities (evt) {
+  this.registry.filterCommunities = { attributes: { onkeyup : FilterCommunities.bind(this)} };
+  function FilterCommunities (evt) {
     filters.name = evt.target.value;
     this.registry.communityList.cached = this.state.communities;
     this.register(document.querySelector('[data-register="communityList"]'));
     delete this.registry.communityList.cached;
   }
 
-  this.registry.topCommunities = { preprocess: getTopCommunities.bind(this),
+  this.registry.topCommunities = { preprocess: GetTopCommunities.bind(this),
                                    template: 'communityList' };
-  function getTopCommunities (dElm, callback) {
+  function GetTopCommunities (dElm, callback) {
     var cached = this.registry.topCommunities.cached;
     if (cached) {
       callback ({ communities:{community: this.getFilteredItems.call (this, cached, filters) } });
@@ -55,4 +53,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

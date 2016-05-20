@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommunityPageEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
@@ -11,13 +9,13 @@ app = (typeof app !== 'undefined') ? app : {};
       this.api.async({
           getCommunity : this.api.getCommunity.bind(this, communityId)
         },
-        onDataLoaded.bind(this, callback));
+        DataLoaded.bind(this, callback));
     } else {
       this.updateURL('communities', '');
     }
   }).bind(this) } ;
 
-  function onDataLoaded(callback, data) {
+  function DataLoaded(callback, data) {
     var community = data.getCommunity.community;
     var membership = data.getCommunity.membership;
     document.title = community.name;
@@ -35,7 +33,7 @@ app = (typeof app !== 'undefined') ? app : {};
         id: '',
         content: '',
         images: { image: [] },
-        contentLength : this.getPostLengthString('', community.topicLength)        
+        contentLength : this.getPostLengthString('', community.topicLength)
       }
     };
     if (dataForDisplay.isMember) {
@@ -52,24 +50,28 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //=================================// Leaving a Community
   this.registry.btnLeave = { attributes: {
-    onclick: onRequestQuitCommunity.bind(this)
+    onclick: RequestQuitCommunity.bind(this)
   } };
 
-  function onRequestQuitCommunity (evt) {
-    this.confirm (O.TPL.translate('confirm.leaveCommunity'),onLeaveCommunityConfirmed.bind(this));
+  function RequestQuitCommunity (evt) {
+    this.confirm (O.TPL.translate('confirm.leaveCommunity'),LeaveCommunityConfirmed.bind(this));
     return false;
   }
 
-  function onLeaveCommunityConfirmed (isConfirmed) {
+  function LeaveCommunityConfirmed (isConfirmed) {
     if (isConfirmed) {
-      this.api.quitCommunity(this.state.community, onLeftCommunity.bind(this));
+      this.api.quitCommunity(this.state.community, LeftCommunity.bind(this));
     }
   }
 
-  function onLeftCommunity () {
+  function LeftCommunity () {
     delete this.state.community;
     delete this.state.communityJSON;
     this.updateURL('community/', O.TPL.translate('pageTitle.community'));
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

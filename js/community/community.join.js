@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommunityJoinEnclosure() {
   'use strict';
 
   this.registry = this.registry || {};
@@ -14,13 +12,13 @@ app = (typeof app !== 'undefined') ? app : {};
           'getCommunity': this.api.getCommunity.bind(this,communityId),
           'getAllUserImages': this.api.getAllUserImages.bind(this)
         },
-        onJoinCommunityDetailsLoaded.bind(this,callback));
+        JoinCommunityDetailsLoaded.bind(this,callback));
     } else {
       this.updateURL('communities','');
     }
   }).bind(this) };
 
-  function onJoinCommunityDetailsLoaded (callback, data) {
+  function JoinCommunityDetailsLoaded (callback, data) {
     var community = data.getCommunity.community;
     var membership = data.getCommunity.membership;
 
@@ -42,9 +40,8 @@ app = (typeof app !== 'undefined') ? app : {};
     callback(dataForDisplay);
   }
 
-  this.registry.frmJoinCommunity = { attributes: { onsubmit: onJoinSubmitted.bind(this)}} ;
-
-  function onJoinSubmitted (evt) {
+  this.registry.frmJoinCommunity = { attributes: { onsubmit: JoinSubmitted.bind(this)}} ;
+  function JoinSubmitted (evt) {
     var profileImage = O.ELM.profileImagePreview;
     var data = {
         membership: this.getFormFields (evt.target),
@@ -52,11 +49,11 @@ app = (typeof app !== 'undefined') ? app : {};
     };
     //TODO: validate input
     var communityId = this.state.community;
-    this.api.joinCommunity(communityId, data, onJoined.bind(this, communityId));
+    this.api.joinCommunity(communityId, data, Joined.bind(this, communityId));
     return false;
   }
 
-  function onJoined (communityId, response) {
+  function Joined (communityId, response) {
     if (response instanceof Error) {
       if (response.status === 409) {
         this.updateURL('community:'+communityId+'/');
@@ -69,4 +66,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

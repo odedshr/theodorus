@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function initEnclosure() {
-  /*jshint validthis: true */
+(function MainEnclosure() {
   'use strict';
   var loadingInProgress = 0;
 
@@ -16,14 +14,14 @@ app = (typeof app !== 'undefined') ? app : {};
       pageTemplate : this.getPageTemplateName()
     });
     if ( isAuthenticated ) {
-      this.api.getUser (gotUser.bind(this, bindedCallback));
+      this.api.getUser (GotUser.bind(this, bindedCallback));
     } else {
       bindedCallback ();
     }
 
   }).bind(this) };
 
-  function gotUser (callback, response) {
+  function GotUser (callback, response) {
     this.state.user = response.user;
     callback ();
   }
@@ -36,15 +34,15 @@ app = (typeof app !== 'undefined') ? app : {};
   this.registry.btnCancel = { attributes : { onclick : onCancelButtonClicked } };
 
   //===========================================================================/
-  function registerPageNotFound (dElm, callback) {
+  function RegisterPageNotFound (dElm, callback) {
     document.title = O.TPL.translate('title.pageNotFound');
     callback ({ isAuthenticated : this.isAuthenticated() });
   }
-  this.registry.notFoundPage = { preprocess : registerPageNotFound.bind(this)} ;
+  this.registry.notFoundPage = { preprocess : RegisterPageNotFound.bind(this)} ;
 
-  this.registry.frmPageNotFound = { attributes : { onsubmit : onPageNotFoundSubmitted } };
+  this.registry.frmPageNotFound = { attributes : { onsubmit : OnPageNotFoundSubmitted } };
   this.registry.pageNotFoundURL = { attributes : { value : window.location.hash } };
-  function onPageNotFoundSubmitted () {
+  function OnPageNotFoundSubmitted () {
     this.log ('not yet implemented', this.logType.error);
     return false;
   }
@@ -113,14 +111,14 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //==========================
 
-  this.registry.archive = { attributes : { onclick : archive.bind(this)}};
+  this.registry.archive = { attributes : { onclick : Archive.bind(this)}};
 
-  function archive (evt) {
+  function Archive (evt) {
     var dArchiveButton = evt.target.closest('[data-register="archive"]');
     if (dArchiveButton) {
       var type = dArchiveButton.getAttribute('data-type');
       var id = dArchiveButton.getAttribute('data-id');
-      this.api.archive(type, id, onArchived.bind(this,type, id));
+      this.api.archive(type, id, Archived.bind(this,type, id));
     } else {
       this.log('failed to find archive button',this.logType.debug);
       this.log(dArchiveButton,this.logType.debug);
@@ -128,7 +126,7 @@ app = (typeof app !== 'undefined') ? app : {};
 
   }
 
-  function onArchived (type, id) {
+  function Archived (type, id) {
     var parentNode;
     if (type==='topic') {
       parentNode = O.ELM[type+'-'+id];
@@ -156,9 +154,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //==========================
 
-  this.registry.toggle = { attributes : { onclick : toggle.bind(this)}};
+  this.registry.toggle = { attributes : { onclick : Toggle.bind(this)}};
 
-  function toggle (evt) {
+  function Toggle (evt) {
     var toggler = evt.target.closest('[data-register]');
     var dElm = O.ELM[toggler.getAttribute('data-target')];
     if (dElm.getAttribute('data-hidden') === 'true') {
@@ -192,7 +190,7 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //==========================
 
-  function pong (callback, response) {
+  function Pong (callback, response) {
     if (O.ELM.connectionError !== undefined) {
       O.DOM.remove(O.ELM.connectionError);
     }
@@ -203,12 +201,15 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   this.ping = (function ping (callback){
-    this.api.ping(pong.bind(this,callback));
+    this.api.ping(Pong.bind(this,callback));
   }).bind(this);
 
   this.registry.ping = { preprocess: (function registerPingButton (dElm, callback) {
     dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,pong)).getDispatcher('ping');
     callback();
   }).bind(this) };
-
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

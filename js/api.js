@@ -1,6 +1,4 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function initEnclosure() {
-  /*jshint validthis: true */
+(function ApiEnclosure() {
   'use strict';
 
   this.api = this.api || {
@@ -235,12 +233,12 @@ app = (typeof app !== 'undefined') ? app : {};
   }).bind(this);
 
   //================= Opinions
-  function getTopicOpinions(topicId, callback) {
+  function GetTopicOpinions(topicId, callback) {
     this.api.get('topic/' + topicId + '/opinions', callback, true);
   }
-  this.api.getTopicOpinions = getTopicOpinions.bind(this);
+  this.api.getTopicOpinions = GetTopicOpinions.bind(this);
 
-  function setOpinion(data, callback) {
+  function SetOpinion(data, callback) {
     if (data.opinion.id) {
       this.api.post('opinion/' + data.opinion.id, data, callback);
     } else if (data.opinion.topicId) {
@@ -249,7 +247,7 @@ app = (typeof app !== 'undefined') ? app : {};
       callback(new Error('missing-details'));
     }
   }
-  this.api.setOpinion = setOpinion.bind(this);
+  this.api.setOpinion = SetOpinion.bind(this);
 
   //================= Comments
   this.api.getPostComments = (function getPostComments(opinionId, parentId, callback) {
@@ -285,4 +283,8 @@ app = (typeof app !== 'undefined') ? app : {};
     this.api.get(''.concat(type,'/',id,'/',attribtue), callback );
   }).bind(this);
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));
