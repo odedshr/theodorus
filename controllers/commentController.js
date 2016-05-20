@@ -1,11 +1,12 @@
 ;(function postControllerEnclosure() {
   'use strict';
 
-  var Encryption = require ('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
   var sergeant = require('../helpers/sergeant.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
+  var modelUtils = require('../helpers/modelUtils.js');
+  var Records = require('../helpers/RecordManager.js');
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,8 +26,9 @@
       parent:   { table:db.opinion, before: archivePrepareParentQuery,
         beforeSave: sergeant.and(sergeant.stopIfNotFound, archiveUpdateParent),
         save: true, after: sergeant.stopIfNotFound, finally: sergeant.minimalJson },
-      comment:   { table:db.comment, before: archiveUpdateComment.bind(null,db), save: true, finally: sergeant.json }
-    }, 'current,author,community,parent,comment', callback );
+      comment:   { table:db.comment, before: archiveUpdateComment.bind(null,db), save: true, finally: sergeant.json },
+      record: Records.getNewTask(db, db.record.model.type.archive)
+    }, 'current,author,community,parent,comment,record', callback );
   }
 
   function stopIfImmutable (data, tasks) {
@@ -150,27 +152,14 @@
   }
 
   function listPrepareAuthorQuery (data, tasks) {
-    var comments = data.comments;
-    var count = comments.length, authorIdMap = {};
-    if (count > 0) {
-      while (count--) {
-        authorIdMap[comments[count].authorId] = true;
-      }
-      tasks.authors.load = { id: Object.keys(authorIdMap)};
+    if (data.comments.length > 0) {
+      tasks.authors.load = { id: modelUtils.toVector(data.comments,'authorId')};
     }
   }
 
   function listPrepareViewpointsQuery (data, tasks) {
-    if (data.member) {
-      var items = data.comments;
-      var itemCount = items.length;
-      if (itemCount) {
-        var itemIds = []; // we need to find distinct authors!
-        while (itemCount--) {
-          itemIds[itemCount] = items[itemCount].id;
-        }
-        tasks.viewpoints.load = { memberId: data.member.id, subjectId: itemIds};
-      }
+    if (data.member && data.comments.length > 0) {
+      tasks.viewpoints.load = { memberId: data.member.id, subjectId: modelUtils.toVector(data.comments,'id')};
     }
   }
 
@@ -211,13 +200,14 @@
         after: sergeant.and(sergeant.stopIfNotFound, stopIfLengthNoOK.bind(null, comment.content) ),
         finally: sergeant.remove },
       comment : { table: db.comment, data: comment, beforeSave: addPrepareComment.bind(null,images, files), save: true, finally: sergeant.json },
-      updateParent: { table: db.opinion, beforeSave: addPrepareParent, save: true, finally: sergeant.remove }
+      updateParent: { table: db.opinion, beforeSave: addPrepareParent, save: true, finally: sergeant.remove },
+      record: Records.getNewTask(db, db.record.model.type.add)
     };
     if (comment.parentId) {
       tasks.parent.table = db.comment;
       tasks.parent.load = comment.parentId;
     }
-    sergeant (tasks, 'parent,author,community,comment,updateParent', callback);
+    sergeant (tasks, 'parent,author,community,comment,updateParent,record', callback);
   }
 
   function addPrepareCommunityQuery (data, tasks) {
@@ -265,9 +255,10 @@
         after: sergeant.and(sergeant.stopIfNotFound, stopIfLengthNoOK.bind(null, comment.content)),
         finally: sergeant.remove },
       comment: { table: db.comment, data:comment, before: updatePrepareComment.bind(null,images, files), load: comment.id,
-        save: true, finally: sergeant.json }
+        save: true, finally: sergeant.json },
+      record: Records.getNewTask(db, db.record.model.type.edit)
     };
-    sergeant( tasks,'current,author,community,comment', callback );
+    sergeant( tasks,'current,author,community,comment,record', callback );
   }
 
   function updatePrepareAuthorQuery (data, tasks) {

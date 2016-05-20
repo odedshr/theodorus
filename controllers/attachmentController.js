@@ -48,7 +48,7 @@
         filename = getImageFilename(fileId);
       } while (files.exists(filename));
       files.set(filename, image);
-      postImages[postImages.length] = fileId;
+      postImages.push(fileId);
     }
     post.images = postImages; // in case it was originally null;
     return true;

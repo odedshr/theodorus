@@ -18,7 +18,7 @@
     var matches, keys = [];
     urlParameterPattern.lastIndex = 0;
     while ((matches = urlParameterPattern.exec(urlFormat)) !== null) {
-      keys[keys.length] = matches[1];
+      keys.push(matches[1]);
     }
     return keys;
   }
@@ -44,9 +44,8 @@
 
   function addObjectSizes (data) {
     var keys = Object.keys(data);
-    var keyCount = keys.length;
-    while (keyCount--) {
-      var key = keys[keyCount];
+    for (var i = 0, length = keys.length; i < length; i++) {
+      var key = keys[i];
       var value = data[key];
       if (value !== null && value !== undefined) {
         if (Array.isArray(data[key])) {
@@ -112,6 +111,9 @@
             break;
           case 'string':
             actually = '(.+)';
+            break;
+          case 'integer':
+            actually = '(\\d+)';
             break;
           default:
             throw Errors.badInput(url,key);

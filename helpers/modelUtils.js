@@ -3,9 +3,8 @@
 
   function toJSON (item, fields) {
     var output = {};
-    var count = fields.length;
-    while (count--) {
-      var key = fields[count];
+    for (var i = 0, length = fields.length; i < length; i++) {
+      var key = fields[i];
       output[key] = item[key];
     }
     return output;
@@ -16,15 +15,15 @@
   }
 
   function toList (list, jsonFunction) {
-    var items = [];
-    var listLength = list.length;
+    var length = list.length;
+    var items = new Array(length);
 
     if (jsonFunction === undefined) {
       jsonFunction = 'toJSON';
     }
 
-    while (listLength--) {
-      items[listLength] = list[listLength][jsonFunction]();
+    for (var i = 0; i < length; i++) {
+      items[i] = list[i][jsonFunction]();
     }
     return items;
   }
@@ -33,17 +32,38 @@
     if (indexedBy === undefined) {
       indexedBy = 'id';
     }
-    var count = list.length;
     var map = {};
-    while (count--) {
-      var item = list[count];
+    for (var i = 0, length = list ? list.length : 0; i < length; i++) {
+      var item = list[i];
       map[item[indexedBy]] = item;
     }
     return  map;
   }
 
+  function toVector (list, indexedBy) {
+    if (indexedBy === undefined) {
+      indexedBy = 'id';
+    }
+    var map = {};
+    for (var i = 0, length = list ? list.length : 0; i < length; i++) {
+      map[list[i][indexedBy]] = true;
+    }
+    return Object.keys(map);
+  }
+
+  function toEnum (array) {
+    var map = {};
+    for (var i = 0, length = array.length; i < length; i++) {
+      var value = array[i];
+      map[value] = value;
+    }
+    return map;
+  }
+
   exports.toList = toList;
   exports.toMap = toMap;
+  exports.toVector = toVector;
   exports.toJSON = toJSON;
   exports.simplyReturn = simplyReturn;
+  exports.toEnum = toEnum;
 })();

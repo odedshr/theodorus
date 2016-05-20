@@ -1,4 +1,5 @@
 (function RouterManagerEnclosure () {
+  'use strict';
 
   var Context = require('../helpers/context.js');
   var iterateFiles = require('../helpers/iterateFiles.js');
@@ -17,13 +18,13 @@
     var routes = controllers.system.getRoutes(controllers);
     var urls = Object.keys(routes);
 
-    while (urls.length) {
-      var url = urls.pop();
+    for (var u = 0, urlsCount = urls.length; u < urlsCount; u++) {
+      var url = urls[u];
       var urlDef = routes[url];
       var methods = Object.keys(urlDef);
 
-      while (methods.length) {
-        var method = methods.pop();
+      for (var m = 0, methoCount = methods.length; m < methoCount; m++) {
+        var method = methods[m];
         var def = urlDef[method];
         if (def.handler) {
           var context = new Context(url, def, FileManager, Mailer);

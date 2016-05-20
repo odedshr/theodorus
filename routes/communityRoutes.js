@@ -11,6 +11,14 @@
           handler: controllers.community.exists
         }
       },
+      '/community/tag/[tags]': {
+        get: {
+          description: 'Get community list',
+          parameters: { tags: 'string'},
+          response: {'200': { communities: 'array[community]', tags: 'map(communityId=>array[tagValue])' }},
+          handler: controllers.community.listByTag
+        }
+      },
       '/community/[communityId]': {
         get: {
           description: 'Get a community',
@@ -42,6 +50,14 @@
           parameters: {community: 'community', founder: 'membership', founderImage: 'image'},
           response: {'200': {community: 'community', founder: 'membership'}},
           handler: controllers.community.set
+        }
+      },
+      '/community/top/[count]/page/[page]': {
+        get: {
+          description: 'get top X communities',
+          parameters: { count: 'integer', page: 'integer'},
+          response: { '200': { communities: 'array[community]'}},
+          handler: controllers.community.listTop
         }
       }
     };

@@ -6,9 +6,8 @@
     if (length === undefined) {
       length =  defaultLength;
     }
-    var parts = [];
-    while (length--) {
-      parts[length] = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    for (var i = 0, parts = []; i < length; i++) {
+      parts.push(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
     }
     return parts.join('-');
   }

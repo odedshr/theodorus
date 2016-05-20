@@ -6,8 +6,8 @@
 
   module.exports = function perFileInFolder (folder, perFile) {
     var files = fs.readdirSync (folder);
-    while (files.length) {
-      var file = files.pop();
+    for (var i = 0, length = files.length; i < length; i++) {
+      var file = files[i];
       try {
         perFile(require('.'+folder + '/' + file), file);
       }

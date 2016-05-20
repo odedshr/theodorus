@@ -1,11 +1,12 @@
 ;(function opinionControllerEnclosure() {
   'use strict';
 
-  var Encryption = require('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
   var sergeant = require('../helpers/sergeant.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
+  var modelUtils = require('../helpers/modelUtils.js');
+  var Records = require('../helpers/RecordManager.js');
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,9 +40,10 @@
           save: true,
           after: sergeant.stopIfNotFound,
           finally: sergeant.json
-        }
+        },
+        record: Records.getNewTask(db, db.record.model.type.archive)
       },
-      'current,author,community,topic,opinion', callback);
+      'current,author,community,topic,opinion,record', callback);
   }
 
   function archivePrepareAuthorQuery(data, tasks) {
@@ -158,7 +160,7 @@
       draft: { finally: sergeant.fullJson },
       authors: { table: db.membership, before: listPrepareAuthorsQuery, multiple: {},
         finally: sergeant.jsonMap},
-      viewpoints: { table: db.opinionViewpoint, before: listPrepareViewpointsQuery, multiple: {}, finally: sergeant.jsonMap.bind (null,'subjectId') }
+      viewpoints: { table: db.opinionViewpoint, multiple: {}, finally: sergeant.jsonMap.bind (null,'subjectId') }
     };
 
     if (optionalUser !== undefined) {
@@ -177,71 +179,43 @@
     tasks.member.load.communityId = data.community.id;
   }
 
-  function listPrepareViewpointQuery(data, tasks) {
-    var member = data.member;
-    if (member) {
-      var opinions = data.opinions;
-      var count = opinions.length;
-      if (count) {
-        var opinionIds = [];
-        while (count--) {
-          opinionIds[count] = opinions[count].id;
-        }
-        tasks.viewpoints.load = {id: opinionIds, memberId: member.id};
-      }
-    }
-  }
-
   function listPrepareOpinionsQuery(status, repository, tasks) {
     var member = repository.member;
     if (member) {
-      tasks.opinions.load.or = [{status: tasks.opinions.load.status}, {status: status.draft, authorId: member.id}];
+      tasks.opinions.load.or = [{ status: tasks.opinions.load.status}, { status: status.draft, authorId: member.id}];
       delete tasks.opinions.load.status;
     }
   }
 
   function listPrepareAuthorsQuery(data, tasks) {
-    var opinions = data.opinions;
-    var count = opinions.length, authorIdMap = {};
-    if (count > 0) {
-      while (count--) {
-        authorIdMap[opinions[count].authorId] = true;
-      }
-      tasks.authors.load = {id: Object.keys(authorIdMap)};
+    if (data.opinions.length > 0) {
+      tasks.authors.load = {id: modelUtils.toVector(data.opinions,'authorId')};
     }
   }
 
-  function listPrepareViewpointsQuery (data, tasks) {
-    if (data.member) {
-      var items = data.opinions;
-      var itemCount = items.length;
-      if (itemCount) {
-        var itemIds = []; // we need to find distinct authors!
-        while (itemCount--) {
-          itemIds[itemCount] = items[itemCount].id;
-        }
-        tasks.viewpoints.load = { memberId: data.member.id, subjectId: itemIds};
-      }
+  function listPrepareViewpointQuery(data, tasks) {
+    var member = data.member;
+    if (member && data.opinions.length > 0) {
+      tasks.viewpoints.load = { subjectId: modelUtils.toVector(data.opinions,'id'), memberId: member.id};
     }
   }
 
-  function listSeparateHistory(status, data) {
+  function listSeparateHistory(status, data, tasks) {
     var drafts = [];
     var history = [];
     var published = [];
     var opinions = data.opinions;
-    var count = opinions.length;
-    while (count--) {
-      var opinion = opinions[count];
+    for (var i = 0, length = opinions.length; i < length ; i++ ) {
+      var opinion = opinions[i];
       switch (opinion.status) {
         case status.published:
-          published[published.length] = opinion;
+          published.push(opinion);
           break;
         case status.history:
-          history[history.length] = opinion;
+          history.push(opinion);
           break;
         case status.draft:
-          drafts[drafts.length] = opinion;
+          drafts.push(opinion);
           break;
       }
     }
@@ -307,9 +281,10 @@
         beforeSave: setOpinion.bind(null, images, files), save: true, finally: sergeant.json },
       updateTopic: { table: db.topic, beforeSave: addUpdateTopic, finally: sergeant.remove },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history },
-        multiple: { order: '-modified'}, finally: sergeant.json }
+        multiple: { order: '-modified'}, finally: sergeant.json },
+      record: Records.getNewTask(db, db.record.model.type.add)
     };
-    sergeant(tasks, 'topic,community,author,current,opinion,updateTopic,history', callback);
+    sergeant(tasks, 'topic,community,author,current,opinion,updateTopic,history,record', callback);
   }
 
   function addPrepareCommunityQuery(data, tasks) {
@@ -367,9 +342,10 @@
       opinion: { table: db.opinion, data: opinion,
         beforeSave: setOpinion.bind(null, images, files), save: true, finally: sergeant.json },
       history: { table: db.opinion, before: setHistoryQuery, load: { status: status.history},
-        multiple: { order: '-modified'}, finally: sergeant.json }
+        multiple: { order: '-modified'}, finally: sergeant.json },
+      record: Records.getNewTask(db, db.record.model.type.add)
     };
-    sergeant(tasks, 'current,community,author,updateCurrent,opinion,history', callback);
+    sergeant(tasks, 'current,community,author,updateCurrent,opinion,history,record', callback);
   }
 
   function updateSetCommunityQuery (data, tasks) {

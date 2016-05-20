@@ -7,12 +7,12 @@
   var utils = require ( '../helpers/modelUtils.js' );
   var validators = require ( '../helpers/validators.js' );
 
-  var status = { active: 'active', suspended: 'suspended', archived: 'archived'};
-  var gender = { male: 'male', female: 'female', neutral: 'neutral'};
-  var type = { public: 'public', exclusive: 'exclusive', secret: 'secret'};
+  var status = { active: 'active', suspended: 'suspended', archived: 'archived' };
+  var gender = { male: 'male', female: 'female', neutral: 'neutral' };
+  var type = { public: 'public', exclusive: 'exclusive', secret: 'secret' };
 
   var editableFields = ['name','description','topicLength', 'opinionLength','commentLength','minAge','maxAge','gender','type'];
-  var jsonMinimalFields = ['id','name','description','members','topics','type'];
+  var jsonMinimalFields = ['id','name','description','members','topics','type','modified','score'];
   var jsonFields = ['id','status','created','modified','name','description','founderId','members','topicLength','opinionLength','commentLength','minAge','maxAge','gender','type','topics'];
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,21 +20,23 @@
   module.exports = {
     name: 'community',
     schema: {
-      id: {type: 'text', key: true},
+      id: { type: 'text', key: true },
       status: Object.keys(status),
       created: Date,
-      modified: Date,
+      modified: Date, // modified reflects any related activity
       name: String,
       description: String,
-      members: { type: 'integer' },
-      topicLength: Number,  //xx>0 words, xx<0 characters, 0=no limit
-      opinionLength: Number,  //xx>0 words, xx<0 characters, 0=no limit
-      commentLength: Number, //xx>0 words, xx<0 characters, 0=no limit
+      topicLength:  { type: 'integer' },  //xx>0 words, xx<0 characters, 0=no limit
+      opinionLength:  { type: 'integer' },  //xx>0 words, xx<0 characters, 0=no limit
+      commentLength:  { type: 'integer' }, //xx>0 words, xx<0 characters, 0=no limit
       minAge: { type: 'integer' },
       maxAge: { type: 'integer' },
       gender: Object.keys(gender),
       type: Object.keys(type),
-      topics: Number
+      members: { type: 'integer' },
+      topics: { type: 'integer' },
+      score: Number,
+      scoreDate: Date
     },
     relations: function (model, models) {
       model.hasOne('founder',models.membership, { field: 'founderId' });

@@ -14,9 +14,11 @@
     var founderName = 'topic-public-founder-'+testId;
 
     var topicId;
-    var topicContent1 = 'content1';
-    var topicContent2 = 'content2';
-    var topicContent3 = 'content3';
+    var tag1 = testUtils.getRandomTag();
+    var tag2 = testUtils.getRandomTag();
+    var topicContent1 = 'content1 #'+tag1;
+    var topicContent2 = 'content2 #'+tag1 + ' #'+tag2;
+    var topicContent3 = 'content3 #'+tag2;
 
     before( function beforeTests (done) {
       createUserFounder(createCommunity.bind(null, done ));
@@ -31,7 +33,7 @@
 
     function createCommunity (callback) {
       testUtils.addCommunity ( founderToken, {
-        community: { name: communityName, topicLength: -10 },
+        community: { name: communityName, topicLength: 3 },
         founder: { name: founderName }
       }, function (data) {
         communityId = data.community.id;
@@ -144,6 +146,24 @@
 
       });
     });
+
+    describe ('GET /topic/tag/', function getCommunityTags () {
+      it ('should successfully get tagged communityList', function getTaggedCommunityListSuccess (done) {
+        function gotTaggedList (data) {
+          assert.ok((data.topics.length > 0), 'topics list is not empty');
+          assert.ok((data.tags[data.topics[0].id][0] === tag1), 'tag is as expected');
+          assert.ok((data.tags[data.topics[0].id].length === 1), 'community has 1 tag as expected');
+          done();
+        }
+
+        testUtils.REST()
+          .get('/topic/tag/'+ tag1)
+          .set('authorization', founderToken)
+          .expect(200)
+          .end(testUtils.parseResponse.bind (null, gotTaggedList));
+      });
+    });
+
     describe('DELETE /topic/[topicId]', function deleteTopic () {
       it ('successfully update existing topic', function updateTopic2 (done) {
 

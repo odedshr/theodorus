@@ -1,9 +1,8 @@
 
 ;(function commentModelClosure() {
   'use strict';
-  var Encryption = require ( '../helpers/Encryption.js' );
   var utils = require ( '../helpers/modelUtils.js' );
-  var status = { published: "published", archived: "archived", blocked: "blocked" };
+  var status = { published: 'published', archived: 'archived', blocked: 'blocked' };
 
   var editableFields = ['content'];
   var jsonMinimalFields = ['id','content','authorId','comments', 'images'];

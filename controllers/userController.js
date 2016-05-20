@@ -66,7 +66,7 @@
 
       sergeant({
         user : { table: db.user,
-                  load: {email:decryptedToken.email},
+                  load: { email:decryptedToken.email },
                   beforeSave: prepareAuthenticatedUser.bind(null, decryptedToken, db),
                   save: true }}, 'user', onAuthenticateUserAdded.bind(null, decryptedToken, callback));
 
@@ -77,6 +77,7 @@
     var user = data.user;
     if (user !== null && user !== undefined) {
       token.user = { lastLogin: user.lastLogin };
+      user.status = db.user.model.status.active;
       user.lastLogin = new Date();
     } else {
       data.user = db.user.model.getNew({ email : token.email });

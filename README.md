@@ -113,3 +113,4 @@ cd /runtime/theodorus-profile-images
 - 2013/08/31 - v0.1 - stub (nothing there really)
 [...]
 - 2016/04/30 - v0.2.2 - add RouteManager and MockRequest to simulate REST-server for testing
+- 2016/04/30 - v0.2.3 - cronJob Scoring, Tags,

@@ -1,4 +1,4 @@
-(function userControllerClosure() {
+(function systemControllerClosure() {
   'use strict';
 
   //{ method: 'get', url: new RegExp('user\/password\/' + validators.emailPatternString + '\/?'), handler: userController.generateResetPasswordToken, parameters: { username: {alias: '0' }} },

@@ -9,7 +9,6 @@
   var winston = require('winston');
 
   var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
 
   var request = require('../test/mockRequest.js');
 
@@ -158,6 +157,12 @@
   module.exports.getSubComments = getSubComments;
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function getRandomTag () {
+    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  }
+  module.exports.getRandomTag = getRandomTag;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
   module.exports.REST = REST;
   module.exports.getTokenFile = getTokenFile;
   module.exports.withTokenOf = sendTokenRequest;

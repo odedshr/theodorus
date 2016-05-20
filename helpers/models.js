@@ -11,9 +11,8 @@
     if (model.name && model.schema) {
       models[model.name] = model;
     } else if (Array.isArray(model)) {
-      count = model.length;
-      while (count--) {
-        var subModel = model[count];
+      for (var i = 0, length = model.length; i < length; i++) {
+        var subModel = model[i];
         if (subModel.name && subModel.schema) {
           models[subModel.name] = subModel;
         }

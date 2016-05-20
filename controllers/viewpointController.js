@@ -1,11 +1,11 @@
 ;(function topicControllerEnclosure() {
   'use strict';
 
-  var Encryption = require ('../helpers/Encryption.js');
   var tryCatch = require('../helpers/tryCatch.js');
   var sergeant = require('../helpers/sergeant.js');
   var validators = require('../helpers/validators.js');
   var Errors = require('../helpers/Errors.js');
+  var Records = require('../helpers/RecordManager.js');
 
   function set (authUser, subjectType, subjectId, attribute, value, db, callback) {
     sergeant ({
@@ -34,8 +34,9 @@
         beforeSave : setPrepareSubject.bind({}, attribute, value),
         save: true,
         finally: sergeant.json
-      }
-    }, 'originalSubject,member,viewpoint,subject', callback);
+      },
+      record: Records.getNewTask(db, value)
+    }, 'originalSubject,member,viewpoint,subject,record', callback);
   }
 
   function setPrepareMemberQuery (data, tasks) {

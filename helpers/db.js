@@ -15,8 +15,8 @@
       var model, modelRelations = {};
       var srcModels = require('../helpers/models.js');
       var keys = Object.keys(srcModels);
-      while (keys.length) {
-        model = srcModels[keys.pop()];
+      for (var i = 0, length = keys.length; i < length; i++) {
+        model = srcModels[keys[i]];
         try {
           models[model.name] = db.define(model.name, model.schema, {
             methods: model.methods,
@@ -35,8 +35,8 @@
 
       //all models are defined, connect relations between them:
       var modelWithRelations = Object.keys(modelRelations);
-      while (modelWithRelations.length > 0) {
-        var modelName = modelWithRelations.pop();
+      for (var i = 0, length = modelWithRelations.length; i < length; i++) {
+        var modelName = modelWithRelations[i];
         modelRelations[modelName](models[modelName], models);
       }
 
@@ -97,7 +97,13 @@
     }
   }
 
+  function quickAndDirty (callback) {
+    var config = require('../helpers/config.js');
+    connect(config('dbConnectionString', true),config('guidLength'), callback);
+  }
+
   module.exports.useExpress = useExpress;
   module.exports.setModels = setModels;
   module.exports.connect = connect;
+  module.exports.quickAndDirty = quickAndDirty;
 })();

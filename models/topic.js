@@ -3,12 +3,13 @@
   'use strict';
 
   var Encryption = require ( '../helpers/Encryption.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
+  var modelUtils = require ( '../helpers/modelUtils.js' );
 
-  var status = { published: "published", draft: "draft", archived: "archived" };
+  var status = modelUtils.toEnum(['published', 'draft', 'archived']);
   var editableFields = ['content'];
-  var jsonMinimalFields = ['id','status','created','modified','content','images','authorId','opinions'];
-  var jsonFields = ['id','status','created','modified','content','images','follow','endorse','report','opinions','authorId','communityId'];
+  var jsonMinimalFields = ['id','status','created','modified','content','images','authorId','opinions', 'score'];
+  var jsonFields = ['id','status','created','modified','content','images','authorId','opinions', 'score',
+                    'follow','endorse','report','communityId'];
 
   module.exports = {
     name: 'topic',
@@ -23,7 +24,9 @@
       follow: {type: 'integer'},
       endorse: {type: 'integer'},
       report: {type: 'integer'},
-      opinions: {type: 'integer'}
+      opinions: {type: 'integer'},
+      score: Number,
+      scoreDate: Date
     },
     relations: function (model, models) {
       model.hasOne('author',models.membership, { field: 'authorId', required: true });
@@ -31,9 +34,9 @@
     },
     methods: {
       toJSON: function (isMinimal) {
-        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+        return modelUtils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
       },
-      getEditables: utils.simplyReturn.bind({},editableFields)
+      getEditables: modelUtils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     getNew: function getNew ( topic ) {

@@ -3,9 +3,9 @@
   var Community = require ('./Community.js');
   var Encryption = require ( '../helpers/Encryption.js' );
   var Errors = require ( '../helpers/Errors.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
+  var modelUtils = require ( '../helpers/modelUtils.js' );
 
-  var status =  { invited: "invited", requested: "requested",declined: "declined", "rejected": "rejected", active: "active", unfit: "unfit", quit: "quit", archived: "archived"};
+  var status = modelUtils.toEnum(['invited', 'requested', 'declined','rejected','active','unfit', 'quit','archived']);
   var defaultPermissions = { 'read':true,'endorse':true,'follow':true, 'suggest': true, 'opinionate': true, 'comment':true, 'approve-members': true, 'invite-members': true };
   var editableFields = ['name','description','isModerator', 'isPublic','isPublic','isRepresentative','endorseJoin','endorseGender','endorseMinAge','endorseMaxAge'];
   var jsonMinimalFields = ['communityId','description','isModerator','isPublic','isRepresentative','hasImage','id',
@@ -18,14 +18,13 @@
     name: 'membership',
     status: status,
     schema: {
-      id: {type: 'text', key: true},
+      id: { type: 'text', key: true },
       status: Object.keys(status),
       created: Date,
       modified: Date,
       name: String,
       description: String,
       hasImage: Boolean,
-      score: Number,
       birthDate: Date,
       permissions: Object,
       penalties: Object,
@@ -35,8 +34,10 @@
       communityType: Object.keys(Community.type),
       endorseCommunityType: Object.keys(Community.type),
       endorseGender: Object.keys(Community.gender),
-      endorseMinAge: Number,
-      endorseMaxAge: Number
+      endorseMinAge: { type: 'integer' },
+      endorseMaxAge: { type: 'integer' },
+      score: Number,
+      scoreDate: Date
 
     },
     relations: function (model, models) {
@@ -51,9 +52,9 @@
       },
 
       toJSON: function (isMinimal) {
-        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+        return modelUtils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
       },
-      getEditables: utils.simplyReturn.bind({},editableFields)
+      getEditables: modelUtils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     isValid: isValid,

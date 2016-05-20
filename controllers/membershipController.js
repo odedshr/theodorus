@@ -1,10 +1,11 @@
 ;(function membershipControllerEnclosure() {
   'use strict';
 
-  var Encryption = require ('../helpers/Encryption.js');
   var Errors = require('../helpers/Errors.js');
   var tryCatch = require('../helpers/tryCatch.js');
+  var modelUtils = require('../helpers/modelUtils.js');
   var sergeant = require('../helpers/sergeant.js');
+  var Records = require('../helpers/RecordManager.js');
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,7 +23,8 @@
   function archive (authUser, membershipId, communityId, db, callback) {
     var tasks = {
       membership: { table: db.membership, load: {}, beforeSave: sergeant.and(sergeant.stopIfNotFound,archiveUpdateMembership.bind(null,db, authUser.id )), save: true, finally: sergeant.json },
-      community: {  table:db.community, beforeSave: sergeant.and(sergeant.stopIfNotFound,updateCommunityMemberCount.bind(null,db, -1)), save: true, finally: sergeant.json }
+      community: {  table:db.community, beforeSave: sergeant.and(sergeant.stopIfNotFound,updateCommunityMemberCount.bind(null,db, -1)), save: true, finally: sergeant.json },
+      record: Records.getNewTask(db, db.record.model.type.leave)
     };
     if (membershipId) {
       tasks.membership.load.id = membershipId;
@@ -35,7 +37,7 @@
       callback(Errors.missingInput('membershipId'));
       return;
     }
-    sergeant (tasks, 'membership,community', callback);
+    sergeant (tasks, 'membership,community,record', callback);
   }
   function archiveUpdateMembership (db, userId, data) {
     if (data.membership.userId !== userId) {
@@ -129,19 +131,13 @@
     sergeant(tasks, 'memberships,communities', callback);
   }
 
-  function prepareCommunityList (repository, tasks) {
-    var list = [];
-    var memberships = repository.memberships;
-    var membershipCount = memberships.length;
+  function prepareCommunityList (data, tasks) {
+    var memberships = data.memberships;
 
-    if (membershipCount === 0 ) {
+    if (memberships.length === 0 ) {
       delete tasks.communities.load;
     } else {
-      while (membershipCount--) {
-        list[membershipCount] = memberships[membershipCount].communityId;
-      }
-
-      tasks.communities.load.id = list;
+      tasks.communities.load.id = modelUtils.toVector(memberships, 'communityId');
     }
     return true;
   }
@@ -191,7 +187,8 @@
                     beforeSave: setPrepareSave.bind(null, membership, db),
                     save: true,
                     after: setAfterAdd.bind(null, db), finally: sergeant.json },
-      updateCommunity: { table:db.community, finally: sergeant.remove }
+      updateCommunity: { table:db.community, finally: sergeant.remove },
+      record: Records.getNewTask(db, membership.id ? db.record.model.type.edit : db.record.model.type.add)
     };
 
     membership.userId = authUser.id; // this is relevant for new memberships
@@ -217,7 +214,7 @@
       return;
     }
 
-    sergeant (tasks, 'current,sameName,community,user,membership', onceMembershipIsSaved);
+    sergeant (tasks, 'current,sameName,community,user,membership,record', onceMembershipIsSaved);
   }
 
   function checkIfSameNameIsCurrent (data) {

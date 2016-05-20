@@ -39,7 +39,7 @@
   }
 
   function countWords (string) {
-    return textify(string).split(' ').length;
+    return textify(string).replace(/\s+/g,' ').replace(/\s$/,'').split(' ').length;
   }
 
   function countCharacters (string) {

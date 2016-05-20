@@ -36,7 +36,7 @@
       '/membership/exists': {
         post: {
           description: 'Return true if membership exists',
-          parameters: { membership: 'membership' },
+          parameters: {membership: 'membership'},
           response: {'200': {type: 'string', exists: 'boolean', parameters: 'object'}},
           handler: controllers.membership.exists
         }

@@ -11,6 +11,11 @@
 
     var email = 'router@test.suite.community';
     var communityName = 'communityName'+(new Date()).getTime();
+    var tag1 = testUtils.getRandomTag();
+    var tag2 = testUtils.getRandomTag();
+    var communityDescription = 'a community #' + tag1 + ' #' + tag2;
+    var communityDescription2 = 'a community #' + tag1;
+    //var communityDescription3 = 'a community #debug #tags';
     var communityId;
 
     before( function beforeAllTests (done) {
@@ -55,9 +60,7 @@
       });
 
       it ('should successfully add a community', function addCommunitySuccess (done) {
-        function communityAdded (error, response) {
-          assert.equal (error, null, 'no errors requesting token');
-          var data = JSON.parse(response.text);
+        function communityAdded (data) {
           communityId = data.community.id;
           assert.equal (data.community.name, communityName, 'community has the right name');
           assert.equal (data.community.founderId, data.founder.id, 'community has the right founder id');
@@ -67,10 +70,10 @@
         }
         testUtils.REST()
           .put('/community')
-          .send({community: { name: communityName}, founder: { name: 'founderName'} })
+          .send({community: { name: communityName, description: communityDescription }, founder: { name: 'founderName'} })
           .set('authorization', token)
           .expect(200)
-          .end(communityAdded);
+          .end(testUtils.parseResponse.bind (null, communityAdded));
       });
 
       it ('should fail to add community with existing name', function addCommunityNameExistsFail (done) {
@@ -231,7 +234,7 @@
           assert.ok(error === null, 'no errors requesting token');
           if (response) {
             var data = JSON.parse(response.text);
-            assert.ok(data.community.description === 'my description', 'description is updated');
+            assert.ok(data.community.description === communityDescription2, 'description is updated');
           }
           done();
         }
@@ -239,9 +242,26 @@
         testUtils.REST()
           .post('/community/' + communityId+'/')
           .set('authorization', token)
-          .send({ community: { description: 'my description'}})
+          .send({ community: { description: communityDescription2 }})
           .expect(200)
           .end(communityUpdated);
+      });
+    });
+
+    describe ('GET /community/tag/', function getCommunityTags () {
+      it ('should successfully get tagged communityList', function getTaggedCommunityListSuccess (done) {
+        function gotTaggedList (data) {
+          assert.ok((data.communities.length > 0), 'community list is not empty');
+          assert.ok((data.tags[data.communities[0].id][0] === tag1), 'tag is as expected');
+          assert.ok((data.tags[data.communities[0].id].length === 1), 'community has 1 tag as expected');
+          done();
+        }
+
+        testUtils.REST()
+          .get('/community/tag/'+ tag1)
+          .set('authorization', token)
+          .expect(200)
+          .end(testUtils.parseResponse.bind (null, gotTaggedList));
       });
     });
 
@@ -265,5 +285,6 @@
           .end(communityExists);
       });
     });
+
   });
 })();

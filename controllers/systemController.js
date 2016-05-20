@@ -1,8 +1,6 @@
 (function userControllerClosure() {
   'use strict';
 
-  var md5 = require ('md5');
-  var Encryption = require ('../helpers/Encryption.js');
   var Errors = require('../helpers/Errors.js');
   var iterateFiles = require('../helpers/iterateFiles.js');
   var validators = require('../helpers/validators.js');
@@ -50,8 +48,8 @@
     iterateFiles(routesFolder, function perRouteCollection(routeCollection) {
       var collection = routeCollection(controllers);
       var urls = Object.keys(collection);
-      while (urls.length) {
-        var url = urls.pop();
+      for (var i = 0, length = urls.length; i < length; i++) {
+        var url = urls[i];
         routes[url] = collection[url];
       }
     });

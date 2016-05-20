@@ -2,9 +2,7 @@
   'use strict';
 
   var sergeant = require('../helpers/sergeant.js');
-  var Encryption = require ('../helpers/Encryption.js');
   var Errors = require('../helpers/Errors.js');
-
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,18 +15,8 @@
   function list (authUser, db, callback) {
     sergeant ({
       images : { table:db.membership, load: { userId: authUser.id, hasImage: true}, multiple: {},
-        after: listGetImages, finally: sergeant.json}
+       finally: sergeant.jsonMap.bind(null,'id')}
     }, 'images', callback);
-  }
-
-  function listGetImages (data) {
-    var images = [];
-    var memberships = data.images;
-    var count = memberships.length;
-    while(count--) {
-      images[images.length] = memberships[count].id;
-    }
-    data.images = images;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
