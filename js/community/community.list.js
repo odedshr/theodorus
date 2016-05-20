@@ -49,7 +49,7 @@
     if (cached) {
       callback ({ communities:{community: this.getFilteredItems.call (this, cached, filters) } });
     } else {
-      this.api.getTopCommunities(1, 10, communityListOnDataLoaded.bind (this, callback));
+      this.api.getTopCommunities(1, 10, CommunityListOnDataLoaded.bind (this, callback));
     }
   }
 
