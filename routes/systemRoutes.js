@@ -7,16 +7,16 @@
        '/system/ping': {
          get: {
            description: 'Return an authenticationToken',
-           parameters: {connectionToken: 'string'},
-           response: {'200': {authenticationToken: 'string'}},
+           parameters: { connectionToken: 'string' },
+           response: { '200': {authenticationToken: 'string' }},
            handler: controllers.system.ping
          }
        },
        '/system/version': {
          get: {
            description: 'Return an authenticationToken',
-           parameters: {connectionToken: 'string'},
-           response: {'200': {version: 'string'}},
+           parameters: { connectionToken: 'string' },
+           response: { '200': {version: 'string' }},
            handler: controllers.system.getVersion
          }
        },
@@ -24,7 +24,7 @@
          get: {
            description: 'Return a JSON of the rest API',
            parameters: {},
-           response: {'200': {api: 'string'}},
+           response: { '200': { api: 'string' }},
            handler: controllers.system.api
          }
        }

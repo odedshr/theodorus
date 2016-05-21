@@ -151,50 +151,50 @@
 
             if (value === undefined) {
               switch (parameter) {
-              case 'callback':
-                value = writeToRes;
-                isHandlerAsync = true;
-                break;
-              case 'db':
-                value = req.models;
-                break;
-              case 'authToken':
-                value = getAuthToken(req);
-                break;
-              case 'authUser':
-                try {
-                  value = JSON.parse(Encryption.decode(req.headers.authorization));
-                } catch (err) {
-                  writeToRes (Errors.unauthorized());
-                  return;
-                }
-                if (value.expires instanceof Date && value.expires < (new Date())) {
-                  writeToRes (Errors.unauthorized());
-                  return;
-                }
-                var token = getAuthToken(req);
-                if (token.localIP !== value.localIP || token.serverIP !== value.serverIP) {
-                  writeToRes (Errors.unauthorized());
-                  return;
-                }
-                value = value.user;
-                break;
-              case 'optionalUser':
-                try {
-                  value = JSON.parse(Encryption.decode(req.headers.authorization)).user;
-                } catch (err) {
-                  value = undefined;
-                }
-                break;
-              case 'isReturnJson':
-                value = (req.get("accept").indexOf("json") !== -1);
-                break;
-              case 'files':
-                value = FileManager;
-                break;
-              case 'mailer':
-                value = Mailer;
-                break;
+                case 'callback':
+                  value = writeToRes;
+                  isHandlerAsync = true;
+                  break;
+                case 'db':
+                  value = req.models;
+                  break;
+                case 'authToken':
+                  value = getAuthToken(req);
+                  break;
+                case 'authUser':
+                  try {
+                    value = JSON.parse(Encryption.decode(req.headers.authorization));
+                  } catch (err) {
+                    writeToRes(Errors.unauthorized());
+                    return;
+                  }
+                  if (value.expires instanceof Date && value.expires < (new Date())) {
+                    writeToRes(Errors.unauthorized());
+                    return;
+                  }
+                  var token = getAuthToken(req);
+                  if (token.localIP !== value.localIP || token.serverIP !== value.serverIP) {
+                    writeToRes(Errors.unauthorized());
+                    return;
+                  }
+                  value = value.user;
+                  break;
+                case 'optionalUser':
+                  try {
+                    value = JSON.parse(Encryption.decode(req.headers.authorization)).user;
+                  } catch (err) {
+                    value = undefined;
+                  }
+                  break;
+                case 'isReturnJson':
+                  value = (req.get("accept").indexOf("json") !== -1);
+                  break;
+                case 'files':
+                  value = FileManager;
+                  break;
+                case 'mailer':
+                  value = Mailer;
+                  break;
               }
             }
             if (settings !== undefined) {

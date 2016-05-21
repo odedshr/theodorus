@@ -36,6 +36,9 @@
             variable = variables.storedFilesFolder;
           }
         break;
+          case 'defaultOrigin':
+            variable = process.env.THEODORUS_ORIGIN_DEFAULT;
+            break;
         }
       }
       if (variable === undefined) {

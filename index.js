@@ -12,9 +12,13 @@
   var populate = require('./helpers/RouteManager.js');
 
   function setHeaders(req, res, next) {
-    if (req.headers.origin !== undefined) {
+    var allowed;
+
+    if ((allowed = req.headers.origin) !== undefined) {
       // Website you wish to allow to connect
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+      res.setHeader('Access-Control-Allow-Origin', allowed);
+    } else if ((allowed = config('defaultOrigin')) !== undefined){
+      res.setHeader('Access-Control-Allow-Origin', allowed);
     }
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
