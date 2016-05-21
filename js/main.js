@@ -205,7 +205,7 @@
   }).bind(this);
 
   this.registry.ping = { preprocess: (function registerPingButton (dElm, callback) {
-    dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,pong)).getDispatcher('ping');
+    dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,Pong)).getDispatcher('ping');
     callback();
   }).bind(this) };
 }).call((function (appName) {
