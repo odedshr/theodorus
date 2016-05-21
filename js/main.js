@@ -204,10 +204,12 @@
     this.api.ping(Pong.bind(this,callback));
   }).bind(this);
 
-  this.registry.ping = { preprocess: (function registerPingButton (dElm, callback) {
+  this.registry.ping = { preprocess: RegisterPingButton.bind(this) };
+  function RegisterPingButton (dElm, callback) {
     dElm.onclick = O.EVT.subscribe('ping',this.api.ping.bind(this,Pong)).getDispatcher('ping');
     callback();
-  }).bind(this) };
+  }
+
 }).call((function (appName) {
   var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
   if (global[appName] === undefined) { global[appName] = {}; }
