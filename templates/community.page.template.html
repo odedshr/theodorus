@@ -24,14 +24,13 @@
           <a class="link-community-join" href="{{joinLink}}"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
           {{/isMember}}
       </div>
-      {{?isMember}}
+
       <div class="page-header">
-          {{emptyTopic:'frmSetTopic'}}
+          {{?isMember}}{{emptyTopic:'frmSetTopic'}}{{/isMember}}
           <div class="topic-filter">
             <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
           </div>
       </div>
-      {{/isMember}}
       <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
   </template>
 

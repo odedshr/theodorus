@@ -1,4 +1,3 @@
-app = (typeof app !== 'undefined') ? app : {};
 (function postEnclosure() {
   this.registry = this.registry || {};
 
@@ -148,5 +147,8 @@ app = (typeof app !== 'undefined') ? app : {};
     return marked(string).replace(/(^|\W)(#[a-z\d][\w-]*)/ig,'$1<span class="tag">$2</span>');
   }).bind(this);
 
-  //////////////////////////////////////////////////////////////////////////////
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

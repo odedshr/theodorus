@@ -1,24 +1,23 @@
-app = (typeof app !== 'undefined') ? app : {};
 (function communityEnclosure() {
-  /*jshint validthis: true */
   'use strict';
+
   this.registry = this.registry || {};
 
   var filters = {};
 
-  this.registry.topicList = { preprocess: loadCommunityTopics.bind(this) };
+  this.registry.topicList = { preprocess: LoadCommunityTopics.bind(this) };
 
-  function loadCommunityTopics(dElm, callback) {
+  function LoadCommunityTopics(dElm, callback) {
     var communityId = this.state.community;
     var cached = this.registry.topicList.cached;
     if (!!cached) { //used cache
       callback( { topics: { topic: this.getFilteredItems.call (this, cached, filters ) } } );
     } else {
-      this.api.getCommunityTopics(communityId, topicListOnLoaded.bind(this, callback));
+      this.api.getCommunityTopics(communityId, TopicListOnLoaded.bind(this, callback));
     }
   }
 
-  function topicListOnLoaded(callback, data) {
+  function TopicListOnLoaded(callback, data) {
     if (data instanceof Error) {
       this.log('failed to load topic list',this.logType.error);
       this.log(data,this.logType.debug);
@@ -72,12 +71,12 @@ app = (typeof app !== 'undefined') ? app : {};
       topics: { topic:
         this.getFilteredItems.call (this, topics, filters ) } } );
   }
-  this.processTopicList = topicListOnLoaded.bind(this);
+  this.processTopicList = TopicListOnLoaded.bind(this);
 
   //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.frmSetTopic = { attributes: { onsubmit : setTopic.bind(this)} };
-  function setTopic(evt) {
+  this.registry.frmSetTopic = { attributes: { onsubmit : SetTopic.bind(this)} };
+  function SetTopic(evt) {
     var form = evt.target;
     var data, topic = this.getFormFields (form);
     var content = topic.content;
@@ -98,12 +97,12 @@ app = (typeof app !== 'undefined') ? app : {};
       if (topic.id.length > 0) {
         data.topic.id = topic.id;
       }
-      this.api.setTopic (data, onTopicSet.bind(this));
+      this.api.setTopic (data, OnTopicSet.bind(this));
     }
     return false;
   }
 
-  function onTopicSet() {
+  function OnTopicSet() {
     delete this.state.communityTopics;
     this.register(O.ELM.communityTopics);
   }
@@ -111,8 +110,8 @@ app = (typeof app !== 'undefined') ? app : {};
   //////////////////////////////////////////////////////////////////////////////
 
   this.registry.filterTopics = { attributes: { onkeyup :
-    filterTopics.bind(this)} };
-  function filterTopics (evt) {
+    FilterTopics.bind(this)} };
+  function FilterTopics (evt) {
     filters.content = evt.target.value;
     this.registry.topicList.cached = this.state.communityTopics.topics;
     this.register(document.querySelector('[data-register="topicList"]'));
@@ -122,14 +121,18 @@ app = (typeof app !== 'undefined') ? app : {};
   //////////////////////////////////////////////////////////////////////////////
 
 
-  this.registry.topTopics = { preprocess: (getTopTopics).bind(this), template: 'topicList' };
+  this.registry.topTopics = { preprocess: GetTopTopics.bind(this), template: 'topicList' };
 
-  function getTopTopics(dElm, callback) {
+  function GetTopTopics(dElm, callback) {
     var cached = this.registry.topTopics.cached;
     if (!!cached) { //used cache
       callback( { topics: { topic: this.getFilteredItems.call (this, cached, filters ) } } );
     } else {
-      this.api.getTopTopics(1, 100, topicListOnLoaded.bind(this, callback));
+      this.api.getTopTopics(1, 100, TopicListOnLoaded.bind(this, callback));
     }
   }
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

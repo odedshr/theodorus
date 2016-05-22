@@ -1,15 +1,14 @@
-app = (typeof app !== 'undefined') ? app : {};
 (function communityEnclosure() {
-  /*jshint validthis: true */
   'use strict';
+
   this.registry = this.registry || {};
 
   this.registry.opinionList = { preprocess : (function loadOpinionList  (dElm, callback) {
     var topicId = dElm.getAttribute('data-topic-id');
-    this.api.getTopicOpinions (topicId, opinionListOnLoaded.bind(this, topicId, callback));
+    this.api.getTopicOpinions (topicId, OpinionListOnLoaded.bind(this, topicId, callback));
   }).bind(this) };
 
-  function opinionListOnLoaded (topicId, callback, data) {
+  function OpinionListOnLoaded (topicId, callback, data) {
     var item, viewpoint;
     var getProfileImageURL = this.api.getProfileImageURL;
     var community = this.state.communityJSON;
@@ -71,9 +70,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.frmSetOpinion = { attributes : { onsubmit : setOpinion.bind(this) }};
+  this.registry.frmSetOpinion = { attributes : { onsubmit : SetOpinion.bind(this) }};
 
-  function setOpinion (evt) {
+  function SetOpinion (evt) {
     var dForm = evt.target;
     var data = {
         opinion: this.getFormFields (dForm),
@@ -85,11 +84,11 @@ app = (typeof app !== 'undefined') ? app : {};
     if (data.opinion.id.length === 0) {
       delete data.opinion.id;
     }
-    this.api.setOpinion (data , onOpinionSaved.bind(this, dForm, (data.opinion.id === undefined) ));
+    this.api.setOpinion (data , OpinionSaved.bind(this, dForm, (data.opinion.id === undefined) ));
     return false;
   }
 
-  function onOpinionSaved (dElm, isOpinionAdded, response) {
+  function OpinionSaved (dElm, isOpinionAdded, response) {
     if (response instanceof Error) {
       this.log(response,this.logType.error);
     } else {
@@ -105,4 +104,8 @@ app = (typeof app !== 'undefined') ? app : {};
     }
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));

@@ -1,4 +1,4 @@
-(function serveEncolusre() {
+(function serveEnclosure() {
   var fs = require('fs');
   var less = require('less');
   var deasync = require('deasync');

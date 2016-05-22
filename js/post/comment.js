@@ -1,16 +1,15 @@
-app = (typeof app !== 'undefined') ? app : {};
-(function communityEnclosure() {
-  /*jshint validthis: true */
+(function CommentEnclosure() {
   'use strict';
+
   this.registry = this.registry || {};
 
   this.registry.commentList = { preprocess : (function loadCommentList  (dElm, callback) {
     var opinionId = dElm.getAttribute('data-opinion-id');
     var parentId = dElm.getAttribute('data-comment-id');
-    this.api.getPostComments (opinionId, parentId, commentListOnLoaded.bind(this, opinionId, parentId, callback));
+    this.api.getPostComments (opinionId, parentId, CommentListOnLoaded.bind(this, opinionId, parentId, callback));
   }).bind(this) };
 
-  function commentListOnLoaded ( opinionId, parentId, callback, data) {
+  function CommentListOnLoaded ( opinionId, parentId, callback, data) {
     var item, viewpoint;
     var list = data.comments || [];
     var community = this.state.communityJSON;
@@ -58,9 +57,9 @@ app = (typeof app !== 'undefined') ? app : {};
 
   //////////////////////////////////////////////////////////////////////////////
 
-  this.registry.frmSetComment = { attributes: { onsubmit : setComment.bind(this)} };
+  this.registry.frmSetComment = { attributes: { onsubmit : SetComment.bind(this)} };
 
-  function setComment (evt) {
+  function SetComment (evt) {
     var form = evt.target;
     var comment = this.getFormFields (form);
     var parentType, parentId;
@@ -83,14 +82,14 @@ app = (typeof app !== 'undefined') ? app : {};
           removed: this.getDetachedImages(form)
         }
       };
-      this.api.setComment ( data, onCommentAdded.bind(this, form, parentType, parentId, comment.id === undefined) );
+      this.api.setComment ( data, CommentAdded.bind(this, form, parentType, parentId, comment.id === undefined) );
     } else {
        this.log('bad comment',this.logType.error);
     }
     return false;
   }
 
-  function onCommentAdded (dCommentForm, parentType, parentId, isCommentAdded) {
+  function CommentAdded (dCommentForm, parentType, parentId, isCommentAdded) {
     if (isCommentAdded) {
       var dParent = O.ELM[parentType+'-'+parentId];
       this.updateCount(dParent, 'comment' ,+1);
@@ -100,4 +99,8 @@ app = (typeof app !== 'undefined') ? app : {};
     this.register(O.ELM[''.concat(parentType,'-',parentId,'-comments')]);
   }
 
-return this;}).call(app);
+}).call((function (appName) {
+  var global = typeof window !== 'undefined' ? window : (module ? module.exports : global);
+  if (global[appName] === undefined) { global[appName] = {}; }
+  return global[appName];
+})('app'));
