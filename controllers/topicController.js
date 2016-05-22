@@ -158,23 +158,20 @@
   }
 
   function listByTagTopicQuery (data, tasks) {
-    var topicIds = modelUtils.toVector(data.tags,'subjectId');
-    if (topicIds.length === 0) {
-      return Errors.notFound('tags',JSON.stringify(tasks.tags.load));
+    if (data.tags.length > 0) {
+      tasks.topics.load.id = modelUtils.toVector(data.tags,'subjectId');
     }
-    tasks.topics.load.id = topicIds;
   }
 
   function listByTagCommunityQuery (data, tasks) {
-    var communities = modelUtils.toVector(data.topics,'communityId');
-    if (communities.length === 0) {
-      return Errors.notFound('tags',JSON.stringify(tasks.tags.load));
+    if (data.topics.length > 0) {
+      tasks.communities.load.id = modelUtils.toVector(data.topics,'communityId');
     }
-    tasks.communities.load.id = communities;
   }
 
   function listByTagMembershipQuery (optionalUser, data, tasks) {
-    if (optionalUser) {
+    var communities = tasks.communities.load.id;
+    if (optionalUser && communities.length > 0) {
       tasks.memberships.load = { userId: optionalUser.id, communityId: tasks.communities.load.id };
     }
   }
