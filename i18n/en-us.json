@@ -28,6 +28,11 @@
     "notify.lookForYourJoinEmail": "Check your mailbox for a message from Theodorus (bot@minsara.co.il) with your connection link",
     "notify.failedToMailToken": "Something went wrong and we couldn't email your the link :-(",
     "mailSubject.joinTheConversation": "Join The conversation @ Theodorus",
+    "title.userProfile": "Some details about me...",
+    "label.birthDate": "My date of birth is",
+    "label.gender": "And I see myself as",
+    "notify.failedToSave": "Failed to save :-(",
+    "notify.saveSuccess": "Saved successfully",
     "link.signOut": "Sign Out",
     "link.messages": "Messages",
     "link.me": "Me",
@@ -37,6 +42,16 @@
     "placeholder.communityName": "Tribe's name goes here",
     "label.communityAddDescription": "for people to talk about",
     "placeholder.communityDescription": "What is your tribe about?",
+    "label.ifYouSetBirthdate": "You haven't set your birthdate so you cannot limit the member's age",
+    "label.ifYouSetGender": "You haven't set your gender so you cannot limit the member's gender",
+    "label.limitAgeStart": "The tribe will be for people no younger than",
+    "label.limitAgeMiddle": "and no older than ",
+    "label.limitAgeEnd": "years (leave blank for no limits)",
+    "notify.minAgeMustBeSmallerThanMaxAge": "The minimum age must be smaller than the maximum age",
+    "label.limitGenderStart": "Tribe is",
+    "label.limitGenderFemale": "girls",
+    "label.limitGenderMale": "boys",
+    "label.limitGenderEnd": "only",
     "label.communityAddFounderName": "In this tribe my name will be",
     "placeholder.communityAddFounderName": "(You can have a different alias)",
     "label.communityJoinMemberName": "My name is",
@@ -92,6 +107,7 @@
     "error.imageTooBig": "images must be smaller than [width]x[height]",
     "error.tooLong": "Content is too long",
     "error.words": "words",
-    "error.characters": "characters"
+    "error.characters": "characters",
+    "title.members": "Members"
   }
 }
