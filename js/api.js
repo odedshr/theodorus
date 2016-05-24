@@ -81,7 +81,7 @@
 
   }).bind(this);
   //==================
-  this.api.ifNotError = (function ifNotError(callback, item) {
+  function ErrorHandler(callback, item) {
     if (item instanceof Error) {
       switch(item.status) {
         case 0:   // && item.message instanceof XMLHttpRequestProgressEvent
@@ -90,13 +90,17 @@
         case 401:// unauthorized
           this.handleUnauthorized();
           break;
+        case 404: // not found
+          this.renderPage('notFoundPage');
+          break;
         default:
           this.log(item, this.logType.debug);
       }
     } else {
       callback(item);
     }
-  }).bind(this);
+  }
+  this.api.ifNotError = ErrorHandler.bind(this);
 
   //==================
   function whenAsyncTaskIsDone(taskName, tasksCompleted, callback, output, taskResponse) {
@@ -141,6 +145,10 @@
     this.api.get('user/', callback);
   }).bind(this);
 
+  this.api.setUserProfile = (function setUserProfile(user, callback) {
+    this.api.post('user/', user, callback);
+  }).bind(this);
+
   //================== Membership
   this.api.getAllUserImages = (function getAllUserImages(callback) {
     this.api.get('membership/all/images', callback);
@@ -161,6 +169,11 @@
   this.api.membershipExists = (function membershipExists(data, callback) {
     this.api.post(''.concat('membership/exists'), data, callback);
   }).bind(this);
+
+  function getMemberships(api, communityId, callback) {
+    api.get('community/' + communityId + '/membership/', callback, true);
+  }
+  this.api.getMemberships = getMemberships.bind(this,this.api);
 
   //================== Communities
   this.api.getTopCommunities = (function getTopCommunities(page,size,callback) {

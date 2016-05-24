@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="mePage">
+    <form class="form form-userProfile component" data-register="frmUserProfile">
+      <h1 class="dialog-title title-userProfile">{{#title.userProfile}}</h1>
+      <div class="set-birthDate">
+        <label for="birthDate">{{#label.birthDate}}</label>
+        <input type="date" name="birthDate" id="birthDate" class="dialog-field" value="{{birthDate}}"/>
+      </div>
+      <div class="set-gender">
+        <label>{{#label.gender}}</label>
+        <div class="radio-set">
+          <input type="radio" name="gender" id="gender-undefined"
+                 class="radio-gender radio-gender-undefined" value="undefined"
+                 {{?isGenderUndefined}}checked="checked"{{/isGenderUndefined}}/><!--
+          --><label for="gender-undefined" class="radio-label label-gender"></label><!--
+          --><input type="radio" name="gender" id="gender-female"
+                    class="radio-gender radio-gender-female"
+                    value="female" {{?isGenderFemale}}checked="checked"{{/isGenderFemale}}/><!--
+          --><label for="gender-female" class="radio-label label-gender" data-ico="female"></label><!--
+          --><input type="radio" name="gender" id="gender-male"
+                    class="radio-gender radio-gender-male"
+                    value="male" {{?isGenderMale}}checked="checked"{{/isGenderMale}}/><!--
+          --><label for="gender-male" class="radio-label label-gender"data-ico="male"></label>
+        </div>
+      </div>
+      <div class="dialog-buttons">
+        <button type="submit">{{#btn.ok}}</button>
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
+      </div>
+    </form>
+    <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+  </template>
+</body>
+</html>

@@ -7,9 +7,7 @@
 <body>
 
   <template data-id="communityAddPage">
-    <h1></h1>
     <form class="form form-addCommunity component" data-register="frmAddCommunity">
-
       <h1 class="dialog-title title-addCommunity">{{#title.addCommunity}}</h1>
       <div>
         <label for="communityName" class="required">{{#label.communityAddName}}</label>
@@ -25,6 +23,32 @@
           placeholder="{{#placeholder.communityDescription}}"
           class="dialog-field community-description"></textarea>
       </div>
+      {{?hasBirthDate}}<div>
+        <input type="checkbox" name="limitAge"
+          aria-controls="communityMinAge,communityMaxAge" data-register="disableElements"/>
+        <span>{{#label.limitAgeStart}}</span>
+        <input type="number" id="communityMinAge" name="minAge" max="{{age}}" step="1" disabled="disabled"
+        class="dialog-field ageLimit"/>
+        <span>{{#label.limitAgeMiddle}}</span>
+        <input type="number" id="communityMaxAge" name="maxAge" min="{{age}}" step="1" disabled="disabled"
+         class="dialog-field ageLimit"/>
+        <span>{{#label.limitAgeEnd}}</span>
+      </div>
+      {{/hasBirthDate}}
+      {{?!hasBirthdate}}
+      <div>{{#label.ifYouSetBirthdate}}</div>
+      {{/hasBirthdate}}
+      {{?hasGender}}<div>
+        <input type="checkbox" name="limitGender" id="limitGender" />
+        <label for="limitGender"><span>{{#label.limitGenderStart}}</span>
+          <span>{{?isFemale}}{{#label.limitGenderFemale}}{{/isFemale}}</span>
+          <span>{{?!isFemale}}{{#label.limitGenderMale}}{{/isFemale}}</span>
+        <span>{{#label.limitGenderEnd}}</span></label>
+      </div>
+      {{/hasGender}}
+      {{?!hasGender}}
+      <div>{{#label.ifYouSetGender}}</div>
+      {{/hasGender}}
       <div>
         <label for="founderName" class="required">{{#label.communityAddFounderName}}</label>
         <input type="text" id="founderName" name="founderName" maxlength="100"
@@ -102,21 +126,40 @@
               </div>
           </div>
           {{/isMember}}
-          {{?!isMember}}
+          {{?!isMember}}{{?canJoin}}
           <a class="link-community-join" href="{{joinLink}}"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
-          {{/isMember}}
+          {{/canJoin}}{{/isMember}}
       </div>
 
-      <div class="page-header">
-          {{?isMember}}{{emptyTopic:'frmSetTopic'}}{{/isMember}}
-          <div class="topic-filter">
-            <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
+      <div class="page-content">
+        <article class="community-topics">
+          <div class="page-header">
+              {{?isMember}}{{emptyTopic:'frmSetTopic'}}{{/isMember}}
+              <div class="topic-filter">
+                <input  type="text"
+                        class="topic-filter-value"
+                        placeholder="{{#placeholder.filterTopics}}"
+                        data-register="filterTopics"/>
+              </div>
           </div>
+          <div id="communityTopics" data-register="topicList" aria-role="list" class="community-topics-list"></div>
+        </article>
+
+        <aside  id="communityMemberships"
+                class="community-memberships"
+                data-register="membershipList"
+                aria-role="list">
+        </aside>
       </div>
-      <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
   </template>
 
-  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
+  <template data-id="membershipList">
+    <h3>{{count}} {{#title.members}}</h3>
+    <ul>{{member@members}}<li>
+      <img class="member-image" src="{{image}}" title="{{name}}" alt="{{name}}"/>
+      <span class="member-name">{{name}}</span>
+    </li>{{/member@members}}</ul>
+  </template>
 
   <template data-id="communitySettingsPage">
       <div class="community-header">
@@ -340,10 +383,7 @@
       message
   </template>
 
-  <template data-id="mePage">
-      me
-      <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
-  </template>
+  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
 
   <template data-id="tagCloud">
       <ul class="list tag-cloud" data-msg-empty="{{#label.noTags}}" role="list">{{tag@tags}}<li class="js-item tag tag-size-{{score}}" data-type="tag" data-register="filterByTag" role="button" aria-pressed="false">{{string}}</li>{{/tag@tags}}</ul>
@@ -377,13 +417,45 @@
       </div>
   </template>
 
+  <template data-id="mePage">
+    <form class="form form-userProfile component" data-register="frmUserProfile">
+      <h1 class="dialog-title title-userProfile">{{#title.userProfile}}</h1>
+      <div class="set-birthDate">
+        <label for="birthDate">{{#label.birthDate}}</label>
+        <input type="date" name="birthDate" id="birthDate" class="dialog-field" value="{{birthDate}}"/>
+      </div>
+      <div class="set-gender">
+        <label>{{#label.gender}}</label>
+        <div class="radio-set">
+          <input type="radio" name="gender" id="gender-undefined"
+                 class="radio-gender radio-gender-undefined" value="undefined"
+                 {{?isGenderUndefined}}checked="checked"{{/isGenderUndefined}}/><!--
+          --><label for="gender-undefined" class="radio-label label-gender"></label><!--
+          --><input type="radio" name="gender" id="gender-female"
+                    class="radio-gender radio-gender-female"
+                    value="female" {{?isGenderFemale}}checked="checked"{{/isGenderFemale}}/><!--
+          --><label for="gender-female" class="radio-label label-gender" data-ico="female"></label><!--
+          --><input type="radio" name="gender" id="gender-male"
+                    class="radio-gender radio-gender-male"
+                    value="male" {{?isGenderMale}}checked="checked"{{/isGenderMale}}/><!--
+          --><label for="gender-male" class="radio-label label-gender"data-ico="male"></label>
+        </div>
+      </div>
+      <div class="dialog-buttons">
+        <button type="submit">{{#btn.ok}}</button>
+        <button data-register="btnCancel" >{{#btn.cancel}}</button>
+      </div>
+    </form>
+    <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
+  </template>
+
   <template data-id="commentList">
       {{emptyComment:'frmSetComment'}}
       <ul class="list comment-list" data-msg-empty="{{#label.noComments}}">{{comment@comments}}<li id="comment-{{id}}" class="js-item post comment" data-type="comment" data-id="{{id}}">{{.:commentListItem}}</li>{{/comment@comments}}</ul>
   </template>
 
   <template data-id="commentListItem">
-      <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+      <img class="member-image" src="{{author.image}}" title="{{author.name}}" />
       <div class="next-to-author-image">
           <div class="content js-content" {?isEditable}}data-register="editComment"{/isEditable}}>{{mdContent}}</div>
           {{?isEditable}}{{.:'frmSetComment'}}{{/isEditable}}
@@ -434,7 +506,7 @@
   </template>
 
   <template data-id="opinionListItem">
-    <img class="author-image" src="{{author.image}}" title="{{author.name}}" />
+    <img class="member-image" src="{{author.image}}" title="{{author.name}}" />
     <div class="next-to-author-image">
       <div class="content js-content" {{?isMine}}data-msg-empty="{{#label.noSelfOpinion}}" data-register="editOpinion"{{/isMine}}>{{mdContent}}</div>
       {{?isEditable}}{{.:'frmSetOpinion'}}{{/isEditable}}
@@ -498,7 +570,7 @@
   </template>
 
   <template data-id="topicListItem">
-      <img class="author-image" src="{{author.image}}" title="{{author.name}}" alt="{{author.name}}"/>
+      <img class="member-image" src="{{author.image}}" title="{{author.name}}" alt="{{author.name}}"/>
       <div class="next-to-author-image">
           <div class="content js-content">{{mdContent}}</div>
           {{?isEditable}}{{.:'frmSetTopic'}}{{/isEditable}}

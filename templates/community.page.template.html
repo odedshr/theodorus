@@ -20,20 +20,39 @@
               </div>
           </div>
           {{/isMember}}
-          {{?!isMember}}
+          {{?!isMember}}{{?canJoin}}
           <a class="link-community-join" href="{{joinLink}}"><span>{{#btn.join}}</span></i><span class="email">{{email}}</span><i data-ico="sign-up"></i></a>
-          {{/isMember}}
+          {{/canJoin}}{{/isMember}}
       </div>
 
-      <div class="page-header">
-          {{?isMember}}{{emptyTopic:'frmSetTopic'}}{{/isMember}}
-          <div class="topic-filter">
-            <input type="text" class="topic-filter-value" placeholder="{{#placeholder.filterTopics}}" data-register="filterTopics"/>
+      <div class="page-content">
+        <article class="community-topics">
+          <div class="page-header">
+              {{?isMember}}{{emptyTopic:'frmSetTopic'}}{{/isMember}}
+              <div class="topic-filter">
+                <input  type="text"
+                        class="topic-filter-value"
+                        placeholder="{{#placeholder.filterTopics}}"
+                        data-register="filterTopics"/>
+              </div>
           </div>
+          <div id="communityTopics" data-register="topicList" aria-role="list" class="community-topics-list"></div>
+        </article>
+
+        <aside  id="communityMemberships"
+                class="community-memberships"
+                data-register="membershipList"
+                aria-role="list">
+        </aside>
       </div>
-      <div id="communityTopics" data-register="topicList" class="community-topics-list js-list"></div>
   </template>
 
-  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
+  <template data-id="membershipList">
+    <h3>{{count}} {{#title.members}}</h3>
+    <ul>{{member@members}}<li>
+      <img class="member-image" src="{{image}}" title="{{name}}" alt="{{name}}"/>
+      <span class="member-name">{{name}}</span>
+    </li>{{/member@members}}</ul>
+  </template>
 </body>
 </html>

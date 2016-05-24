@@ -75,7 +75,7 @@ app = (typeof app !== 'undefined') ? app : {};
       }
     },
     birthDate: {},
-    isFemale: {}
+    gender: {}
   };
   models.community = {};
   models.membership = {};

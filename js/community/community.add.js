@@ -16,14 +16,26 @@
         'getMyMemberships': this.api.getMyMemberships.bind(this),
         'getAllUserImages': this.api.getAllUserImages.bind(this)
       },
-      CommunityAddDataLoaded.bind(this,callback));
+      AddCommunityPageCompiler.bind(this,callback));
   }
 
-  function CommunityAddDataLoaded (callback, data) {
-    var memberships = data.getMyMemberships.memberships;
-    var maxName = '', maxCount = 0;
-    var count = {};
-    for (var i = 0, length = memberships.length; i < length; i--) {
+  function AddCommunityPageCompiler (callback, data) {
+    var memberships = data.getMyMemberships.memberships,
+        maxName = '', maxCount = 0,
+        count = {},
+        user = this.state.user,
+        birthDate = user.birthDate,
+        gender = user.gender,
+        output = {
+          founderName : maxName,
+          hasImage: false,
+          hasGender : (gender === 'male' || gender === 'female'),
+          isFemale: gender === 'female',
+          profileImage: '',
+          images : this.getImageList (data.getAllUserImages.images, undefined)
+        };
+
+    for (var i = 0, length = memberships.length; i < length; i++) {
       var name = memberships[i].name;
       var nameCount = count[name];
       nameCount = (count[name] === undefined) ? 1 : nameCount + 1;
@@ -33,22 +45,45 @@
         maxCount = nameCount;
       }
     }
-     callback({
-       founderName : maxName,
-       hasImage: false,
-       profileImage: '',
-       images : this.getImageList (data.getAllUserImages.images, undefined)
-     });
+    output.founderName = maxName;
+
+    if (birthDate !== undefined) {
+      output.hasBirthDate = true;
+      output.age = moment().diff(this.state.user.birthDate, 'years');
+    }
+
+    callback(output);
   }
 
   function AddSubmitted (evt) {
-    var form = evt.target;
-    var data = this.getFormFields (form);
+    var form = evt.target,
+        data = this.getFormFields (form), minAge, maxAge,
+        community = { name : data.name, description: data.description };
+
+    if (data.limitGender === true) {
+      community.gender = this.state.user.gender;
+    }
+    if (data.limitAge === true) {
+      minAge = +data.minAge;
+      if (minAge > 0) {
+        community.minAge = minAge;
+      }
+      maxAge = +data.maxAge;
+      if (maxAge > 0) {
+        community.maxAge = maxAge;
+      }
+      if (minAge > 0 && maxAge > 0 && minAge > maxAge) {
+        this.notify ({
+          notifySystem : { message: O.TPL.translate ('notify.minAgeMustBeSmallerThanMaxAge'), status:'error' }
+        });
+        return;
+      }
+    }
     //TODO: validate input
     if (form.getAttribute('data-status') !== 'sending') {
       form.setAttribute('data-status','sending');
       this.api.addCommunity({
-        community: { name : data.name, description: data.description },
+        community: community,
         founder: { name: data.founderName },
         founderImage: O.ELM.profileImagePreview.src
       }, CommunityAdded.bind(this, form));

@@ -114,3 +114,5 @@ cd /runtime/theodorus-profile-images
 [...]
 - 2016/04/30 - v0.2.2 - add RouteManager and MockRequest to simulate REST-server for testing
 - 2016/05/20 - v0.2.3 - cronJob Scoring, Tags
+- 2016/05/24 - v0.2.4 - Added community age & gender restrictions
+                        DB updates: User.isFemale=>user.gender, community.gender.neutral=>undefined

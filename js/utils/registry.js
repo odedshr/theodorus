@@ -42,10 +42,12 @@ app = (typeof app !== 'undefined') ? app : {};
       this.registerChildrenOf(dElm);
     }
     catch (err) {
-      this.log(err,this.logType.debug);
-      this.log(dElm,this.logType.debug);
-      this.log(templateName,this.logType.debug);
-      this.log(content,this.logType.debug);
+      this.log({
+        error: err,
+        element: dElm,
+        template: templateName,
+        content: content
+      },this.logType.debug);
     }
   }
 

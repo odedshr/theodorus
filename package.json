@@ -1,7 +1,7 @@
 {
   "name": "theodorus.ui",
   "description": "Theodorus.ui is a front-end example for Thedorus",
-  "version": "0.1.0",
+  "version": "0.2.4-client",
   "main": "index.js",
   "private": true,
   "engines": {

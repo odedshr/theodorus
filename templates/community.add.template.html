@@ -6,9 +6,7 @@
 </head>
 <body>
   <template data-id="communityAddPage">
-    <h1></h1>
     <form class="form form-addCommunity component" data-register="frmAddCommunity">
-
       <h1 class="dialog-title title-addCommunity">{{#title.addCommunity}}</h1>
       <div>
         <label for="communityName" class="required">{{#label.communityAddName}}</label>
@@ -24,6 +22,32 @@
           placeholder="{{#placeholder.communityDescription}}"
           class="dialog-field community-description"></textarea>
       </div>
+      {{?hasBirthDate}}<div>
+        <input type="checkbox" name="limitAge"
+          aria-controls="communityMinAge,communityMaxAge" data-register="disableElements"/>
+        <span>{{#label.limitAgeStart}}</span>
+        <input type="number" id="communityMinAge" name="minAge" max="{{age}}" step="1" disabled="disabled"
+        class="dialog-field ageLimit"/>
+        <span>{{#label.limitAgeMiddle}}</span>
+        <input type="number" id="communityMaxAge" name="maxAge" min="{{age}}" step="1" disabled="disabled"
+         class="dialog-field ageLimit"/>
+        <span>{{#label.limitAgeEnd}}</span>
+      </div>
+      {{/hasBirthDate}}
+      {{?!hasBirthdate}}
+      <div>{{#label.ifYouSetBirthdate}}</div>
+      {{/hasBirthdate}}
+      {{?hasGender}}<div>
+        <input type="checkbox" name="limitGender" id="limitGender" />
+        <label for="limitGender"><span>{{#label.limitGenderStart}}</span>
+          <span>{{?isFemale}}{{#label.limitGenderFemale}}{{/isFemale}}</span>
+          <span>{{?!isFemale}}{{#label.limitGenderMale}}{{/isFemale}}</span>
+        <span>{{#label.limitGenderEnd}}</span></label>
+      </div>
+      {{/hasGender}}
+      {{?!hasGender}}
+      <div>{{#label.ifYouSetGender}}</div>
+      {{/hasGender}}
       <div>
         <label for="founderName" class="required">{{#label.communityAddFounderName}}</label>
         <input type="text" id="founderName" name="founderName" maxlength="100"

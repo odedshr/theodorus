@@ -9,6 +9,7 @@ app = (typeof app !== 'undefined') ? app : {};
   function isFormFieldDirty (dElm) {
     switch (dElm.type) {
       case 'checkbox': return dElm.checked !== dElm.defaultChecked;
+      case 'radio': return dElm.checked !== dElm.defaultChecked;
       case 'select-one': return !dElm.options[dElm.selectedIndex].defaultSelected;
       default:
         return dElm.value !== dElm.defaultValue;
@@ -18,6 +19,7 @@ app = (typeof app !== 'undefined') ? app : {};
   function getFormFieldValue (dElm) {
     switch (dElm.type) {
       case 'checkbox': return dElm.checked;
+      case 'radio': return dElm.checked ? dElm.value : undefined;
       case 'select-one': return !dElm.options[dElm.selectedIndex].value;
       default:
         return dElm.value;
@@ -25,17 +27,19 @@ app = (typeof app !== 'undefined') ? app : {};
   }
 
   this.getFormFields = (function getFormFields (formElement, onlyDirty) {
-    var formFields = formElement.elements;
-    var data = {};
-    var errors = [];
-    for (var field in formFields) {
-      if (formFields.hasOwnProperty(field)) {
-        var dElm = formFields[field];
-        if (dElm.name && dElm.name.length > 0 && !onlyDirty || isFormFieldDirty(dElm)) {
-          if (typeof dElm.checkValidation === 'function' && dElm.checkValidation() === false) {
-            errors.push(element);
-          } else if (dElm.name && dElm.name.length > 0) {
-            data[dElm.name] = getFormFieldValue(dElm);
+    var formFields = formElement.elements, keys = Object.keys(formElement.elements),
+        i = 0, length = keys.length,
+        value, data = {},
+        errors = [];
+    for (; i < length; i++) {
+      var dElm = formFields[keys[i]];
+      if (dElm.name && dElm.name.length > 0 && !onlyDirty || isFormFieldDirty(dElm)) {
+        if (typeof dElm.checkValidation === 'function' && dElm.checkValidation() === false) {
+          errors.push(element);
+        } else if (dElm.name && dElm.name.length > 0) {
+          value = getFormFieldValue(dElm);
+          if (value !== undefined) {
+            data[dElm.name] = value;
           }
         }
       }

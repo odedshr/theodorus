@@ -3,17 +3,16 @@
 
   this.registry = this.registry || {};
 
-  this.registry.communityPage = { preprocess: (function registerCommunityPage(dElm, callback) {
+  function RegisterCommunityPage(dElm, callback) {
     var communityId = this.state.community;
     if (communityId !== undefined && communityId.length > 0) {
-      this.api.async({
-          getCommunity : this.api.getCommunity.bind(this, communityId)
-        },
+      this.api.async({ getCommunity : this.api.getCommunity.bind(this, communityId) },
         DataLoaded.bind(this, callback));
     } else {
       this.updateURL('communities', '');
     }
-  }).bind(this) } ;
+  }
+  this.registry.communityPage = { preprocess: RegisterCommunityPage.bind(this) } ;
 
   function DataLoaded(callback, data) {
     var community = data.getCommunity.community;
@@ -28,6 +27,7 @@
       communityId: community.id,
       communityName: community.name,
       isMember: isMember,
+      canJoin: isMember ? true: this.isUserFitForCommunity(this.state.user, community),
       topics: { topic: [] },
       emptyTopic: {
         id: '',
@@ -45,6 +45,23 @@
     }
 
     dataForDisplay.email = this.state.user ? this.state.user.email : '';
+    callback(dataForDisplay);
+  }
+  //=================================// Membershiplist
+  this.registry.membershipList = { preprocess: RegisterMembershipList.bind(this) } ;
+  function RegisterMembershipList(dElm, callback) {
+    this.api.getMemberships(this.state.community, MembershipListCompiler.bind(this, callback));
+  }
+
+  function MembershipListCompiler (callback, data) {
+    var i = 0, members = data.members, length  = data.membersLength,
+        dataForDisplay = {
+          count: length,
+          members: { member: members }
+        };
+        for (; i < length; i++) {
+          this.addImageToMember(members[i]);
+        }
     callback(dataForDisplay);
   }
 

@@ -18,11 +18,27 @@
     }
   }).bind(this) };
 
+  function UserCommunityMatcher (user, community) {
+    var age = moment().diff(user.birthDate, 'years');
+    if (community.minAge !== -1 && age < community.minAge) {
+      return false;
+    }
+    if (community.maxAge !== -1 && age < community.maxAge) {
+      return false;
+    }
+    if (community.gender !== 'undefined' && user.gender !== community.gender) {
+      return false;
+    }
+    return true;
+  }
+  this.isUserFitForCommunity = UserCommunityMatcher.bind(this);
+
   function JoinCommunityDetailsLoaded (callback, data) {
     var community = data.getCommunity.community;
     var membership = data.getCommunity.membership;
 
-    if ((!!membership && membership.status === 'active')) {
+    if ((!!membership && membership.status === 'active') ||
+          !this.isUserFitForCommunity(this.state.user, community)) {
         this.updateURL('community:'+community.id+'/');
     } else {
       // set default values:

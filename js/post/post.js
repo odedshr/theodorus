@@ -89,16 +89,19 @@
 
   //////////////////////////////////////////////////////////////////////////////
 
+  // gets a map of authors and adds them the url
   this.addImagesToAuthors = (function addImagesToAuthors(authors) {
     var id;
     var author;
     var authorIds = Object.keys(authors);
 
     for (var i = 0, length = authorIds.length; i < length; i++) {
-      id = authorIds[i];
-      author = authors[id];
-      author.image = (!!author.hasImage) ? this.api.getProfileImageURL(id) : '';
+      this.addImageToMember(authors[authorIds[i]]);
     }
+  }).bind(this);
+
+  this.addImageToMember = (function addImageToMember (member) {
+    member.image = (!!member.hasImage) ? this.api.getProfileImageURL(member.id) : '';
   }).bind(this);
 
   //////////////////////////////////////////////////////////////////////////////

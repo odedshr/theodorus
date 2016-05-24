@@ -84,10 +84,7 @@
       message
   </template>
 
-  <template data-id="mePage">
-      me
-      <a href="/" data-register="btnSignOut" title="{{#link.signOut}}"><span>{{#link.signOut}}</span></a>
-  </template>
+  <template data-id="selectedText"><span class="selected-text">{{text}}</span></template>
 
   <template data-id="tagCloud">
       <ul class="list tag-cloud" data-msg-empty="{{#label.noTags}}" role="list">{{tag@tags}}<li class="js-item tag tag-size-{{score}}" data-type="tag" data-register="filterByTag" role="button" aria-pressed="false">{{string}}</li>{{/tag@tags}}</ul>

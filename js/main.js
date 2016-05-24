@@ -99,15 +99,18 @@
     return pageTemplate;
   }).bind(this);
 
-  this.renderPage = (function renderPage () {
-    var pageTemplate = this.getPageTemplateName();
+  function PageRenderer (pageTemplate) {
+    if (pageTemplate === undefined || pageTemplate instanceof HashChangeEvent) {
+    pageTemplate = this.getPageTemplateName();
+    }
 
     this.state = this.extend(this.state, this.getMappedArguments());
 
     O.ELM.pageContainer.setAttribute('data-register', pageTemplate);
     this.register(O.ELM.pageContainer);
-  }).bind(this);
-  window.onhashchange = this.renderPage.bind(this);
+  }
+  this.renderPage = PageRenderer.bind(this);
+  window.onhashchange = PageRenderer.bind(this);
 
   //==========================
 
@@ -142,7 +145,7 @@
       }
     }
 
-    this.register(parentNode.closest('.js-list'));
+    this.register(parentNode.closest('[aria-role="list"]'));
   }
 
   this.removeArchiveButton = function removeArchiveButton(type, id) {
@@ -171,6 +174,24 @@
       O.CSS.remove(toggler,'toggled');
       dElm.setAttribute('data-hidden','true');
       dElm.removeAttribute('data-register');
+    }
+  }
+
+  //==========================
+
+  this.registry.disableElements = { attributes : { onclick : ElementsDisabler.bind(this)}};
+
+  function ElementsDisabler (evt) {
+    var dDisabler = evt.target.closest('[aria-controls]'),
+        status = dDisabler.checked,
+        dElms = dDisabler.getAttribute('aria-controls').split(',');
+
+    for (var i=0, length = dElms.length; i < length; i++) {
+      if (status) {
+        O.ELM[dElms[i]].removeAttribute('disabled');
+      } else {
+        O.ELM[dElms[i]].setAttribute('disabled','disabled');
+      }
     }
   }
 
