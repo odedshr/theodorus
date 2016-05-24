@@ -183,7 +183,7 @@
     for (var i = 0, length = topics.length; i < length; i++) {
       topic = topics[i];
       community = communityMap[topic.communityId];
-      if ( community.type !== communityTypeExclusive || membershipMap[community.id]) {
+      if ( community !== undefined && (community.type !== communityTypeExclusive || membershipMap[community.id])) {
         keep.push (topic);
       }
     }

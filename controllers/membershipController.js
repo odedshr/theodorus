@@ -248,7 +248,6 @@
   }
 
   function setPrepareSave (membership, db, data, tasks) {
-    var communityTypes = db.community.model.type;
     var status = db.membership.model.status;
 
     var current = data.current;

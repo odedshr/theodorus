@@ -5,13 +5,15 @@
   var modelUtils = require ( '../helpers/modelUtils.js' );
 
   var status = modelUtils.toEnum(['active', 'suspended', 'archived']);
-  var editableFields = ['birthDate','isFemale'];
-  var jsonMinimalFields = ['id','status','created','modified','lastLogin','email','birthDate','isFemale'];
+  var gender = modelUtils.toEnum(['undefined', 'female', 'male']);
+  var editableFields = ['birthDate','gender'];
+  var jsonMinimalFields = ['id','status','created','modified','lastLogin','email','birthDate','gender'];
   var jsonFields = jsonMinimalFields;
 
   module.exports = {
     name: 'user',
     status: status,
+    gender: gender,
     schema: {
       id: {type: 'text', key: true},
       status: Object.keys(status),
@@ -20,11 +22,11 @@
       lastLogin:  Date,
       email: String,
       birthDate: Date,
-      isFemale: Boolean
+      gender: Object.keys(gender)
     },
     relations: function (model, models) {
     },
-    manualFields: ['birthDate','isFemale'],
+    manualFields: ['birthDate','gender'],
     methods: {
       toJSON: function (isMinimal) {
         return modelUtils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
@@ -37,6 +39,7 @@
       return {
         email : user.email,
         status: status[user.status] ? status[user.status] : status.active,
+        gender: gender[user.gender] ? gender[user.gender] : status.undefined,
         created: now,
         modified: now,
         lastLogin: now

@@ -5,7 +5,7 @@
     return {
       '/community/[communityId]/membership': {
         get: {
-          description: 'Join a community or update membership details',
+          description: 'list community members',
           parameters: { communityId: 'id'},
           response: {'200': { memberships: 'array[memberships]' }},
           handler: controllers.membership.list

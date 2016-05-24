@@ -108,12 +108,22 @@
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function set (authUser, user, db, callback) {
-    sergeant({ user: { table: db.user, load: authUser.id,  beforeSave: sergeant.and(sergeant.stopIfNotFound, setUser.bind(null, user)), save:true, finally: sergeant.json }
+    if (user === undefined) {
+      callback(Errors.missingInput('user'));
+      return;
+    }
+    sergeant({ user: { table: db.user, load: authUser.id,  beforeSave: sergeant.and(sergeant.stopIfNotFound, setUser.bind(null, user)), finally: sergeant.json }
     }, 'user',callback);
   }
 
   function setUser (jUser, data, tasks) {
     tasks.user.save = (sergeant.update(jUser, data.user) > 0);
+    if (tasks.user.save && jUser.isFemale === null) {
+      data.user.isFemale = null;
+      console.log(data.user);
+      console.log(JSON.stringify(data.user));
+      data.user.set('isFemale',null);
+    }
     return true;
   }
 

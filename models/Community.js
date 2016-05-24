@@ -4,12 +4,12 @@
 
   var Encryption = require ( '../helpers/Encryption.js' );
   var Errors = require ( '../helpers/Errors.js' );
-  var utils = require ( '../helpers/modelUtils.js' );
+  var modelUtils = require ( '../helpers/modelUtils.js' );
   var validators = require ( '../helpers/validators.js' );
 
-  var status = { active: 'active', suspended: 'suspended', archived: 'archived' };
-  var gender = { male: 'male', female: 'female', neutral: 'neutral' };
-  var type = { public: 'public', exclusive: 'exclusive', secret: 'secret' };
+  var status = modelUtils.toEnum(['active', 'suspended', 'archived']);
+  var gender = modelUtils.toEnum(['undefined', 'female', 'male']);
+  var type = modelUtils.toEnum(['public', 'exclusive', 'secret']);
 
   var editableFields = ['name','description','topicLength', 'opinionLength','commentLength','minAge','maxAge','gender','type'];
   var jsonMinimalFields = ['id','name','description','members','topics','type','modified','score'];
@@ -51,8 +51,8 @@
         if (+this.maxAge > 0) {
           value = value && userAge && (userAge > this.maxAge);
         }
-        if (this.gender && this.gender !== gender.neutral) {
-          value = value && ((user.isFemale && this.gender === gender.female) || (!user.isFemale && this.gender === gender.male));
+        if (this.gender && this.gender !== gender.undefined) {
+          value = value && (this.gender ===user.gender);
         }
         return value;
       },
@@ -69,9 +69,9 @@
         return isCommunityValid(this);
       },
       toJSON: function (isMinimal) {
-        return utils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
+        return modelUtils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
       },
-      getEditables: utils.simplyReturn.bind({},editableFields)
+      getEditables: modelUtils.simplyReturn.bind({},editableFields)
     },
     validations: {},
     status : status,
@@ -99,23 +99,12 @@
       commentLength: (community.commentLength !== undefined) ? +community.commentLength : 100,
       minAge: (community.minAge !== undefined) ? +community.minAge : -1,
       maxAge: (community.maxAge !== undefined) ? +community.maxAge : -1,
-      gender: gender[community.gender] ? gender[community.gender] : gender.neutral,
+      gender: gender[community.gender] ? gender[community.gender] : gender.undefined,
       type: type[community.type] ? type[community.type]: type.public
     };
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  function isPostLengthOK (message, compareTo) {
-    if (compareTo === 0) {
-      return true;
-    } else {
-      var stringSize = compareTo > 0 ? validators.countWords(message) : validators.countCharacters(message);
-      return stringSize <= Math.abs(compareTo);
-    }
-  }
-
-  //------------------------------------------------------------------------------------------------------------//
 
   function isCommunityValid (community) {
     return isValidCommunityName(community.name);
