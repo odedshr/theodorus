@@ -80,20 +80,20 @@
       it('should failed to update user when not authorized', function (done) {
         testUtils.REST()
           .post('/user')
-          .send({isFemale: true})
+          .send({ gender: 'female' })
           .expect(401, {}, done); //Status code
       });
 
       it('should successfully update a user', function (done) {
         function gotUpdatedUser (data) {
-          assert.ok((data.user.isFemale === true), "user is female");
+          assert.ok((data.user.gender === 'female'), "user is female");
           done();
         }
 
         testUtils.REST()
           .post('/user')
           .set('authorization', token)
-          .send({ user: {isFemale: true}})
+          .send({ user: { gender: 'female' }})
           .expect(200)
           .end(testUtils.parseResponse.bind (null, gotUpdatedUser)); //Status code
       });
