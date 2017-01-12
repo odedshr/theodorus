@@ -1,9 +1,6 @@
 # Compiled source #
 ###################
-theodorus-profile-images
 build
-build.new
-build.old
 *.com
 *.class
 *.dll

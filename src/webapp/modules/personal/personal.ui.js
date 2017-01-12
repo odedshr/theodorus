@@ -1,0 +1,3 @@
+;(function personalView() {
+  'use strict';
+})();

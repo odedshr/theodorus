@@ -1,0 +1,3 @@
+;(function personalPage() {
+  'use strict';
+})();

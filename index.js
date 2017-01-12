@@ -1,71 +1,76 @@
-(function orchestrate() {
+;(function main() {
   'use strict';
 
-  var express = require('express');
-  var bodyParser = require('body-parser');
-  var app = express();
+  var build = require('./etc/framework/build.js');
+  var watch = require('./etc/framework/watch.js');
 
-  var config = require('./helpers/config.js');
-  var db = require('./helpers/db.js');
-  var Errors = require('./helpers/Errors.js');
-  var log = require('./helpers/logger.js');
-  var populate = require('./helpers/RouteManager.js');
+  var config = {
+    mode: process.env.npm_package_config_defaultMode,
+    run: process.env.npm_package_config_defaultIncludeModules,
+    build: process.env.npm_package_config_defaultBuildWepApp,
+    dest: './build/www',
+    source: './src/webapp',
+    // compileSource is under source's root and contain the webApp JS to be compiled
+    compileSource: 'modules',
+    // should be places under compileSource's root; it'll appear at the top of the
+    // compiled file so all other file can assume it is loaded
+    initJsFile: 'init',
+    templatesFile: 'templates.html',
+    templateHtmlSourceFile: 'templates.src.html',
+    indexHtmlSourceFile: 'index.src.html',
+    combinedJsFile: 'code.min.js',
+    combinedCssFile: 'stylesheet.css',
+    minifiedCssFile: 'stylesheet.min.css',
+    packageJson: require('./package.json'), // used to take app.name+ ver
+    buildId: (new Date()).getTime()
+  };
+  var compfileSourceFullPath = config.source + '/' + config.compileSource + '/';
 
-  function setHeaders(req, res, next) {
-    var allowed;
+  addCommandLineArgs(config, ['mode','run','build']);
+  config.isProduction = !config.mode || (config.mode === 'prod');
 
-    if ((allowed = req.headers.origin) !== undefined) {
-      // Website you wish to allow to connect
-      res.setHeader('Access-Control-Allow-Origin', allowed);
-    } else if ((allowed = config('defaultOrigin')) !== undefined){
-      res.setHeader('Access-Control-Allow-Origin', allowed);
-    }
-    // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  build.start(config);
 
-    // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,authorization');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-    res.setHeader('Access-Control-Allow-Credentials', true);
-
-    // Pass to next layer of middleware
-    next();
+  switch (config.mode) {
+    case 'dev':
+      watch.start([
+        {file: config.source + '/**',
+        action: build.copy.bind({}, config),
+        ignore: new RegExp(compfileSourceFullPath.replace(config.source, ''))},
+        {file: compfileSourceFullPath + '**/*.js',
+        action: build.scripts.bind({}, config)},
+        {file: compfileSourceFullPath + '**/*.template.html',
+        action: build.templates.bind({}, config)},
+        {file: compfileSourceFullPath + '**/*.less',
+        action: build.stylesheets.bind({}, config)},
+        {file: compfileSourceFullPath + '/' + config.indexHtmlSourceFile,
+        action: build.html.bind({}, config)}
+      ]);
+      break;
+    default:
+      break;
   }
 
-  try {
-    // Add headers
-    app.use(setHeaders);
-    app.use(bodyParser.json({limit: '50mb'})); // for parsing application/json
-    app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
+  require('./etc/framework/server.js').start(config);
 
-    try {
-      app.use(db.useExpress(config('dbConnectionString', true),config('guidLength')));
+  function addCommandLineArgs(config, argNames) {
+    var params = process.argv.length > 2 ? process.argv.slice(2) : [];
+    var parsed = {};
+
+    for (var i = 0; i < params.length; i++) {
+      var splitted = params[i].split('=');
+      if (splitted.length !== 2) {
+        throw new Error('bad parameter:' + params[i]);
+      } else {
+        parsed[splitted[0]] = splitted[1];
+      }
     }
-    catch (err) {
-      log('failed to connect to DB: ' + config('dbConnectionString'));
-      log(err);
-      throw err;
-    }
 
-    app.use(express.static('./static/www'));
-
-    populate(app, config);
-
-    app.set('port', config('port'));
-    app.set('ip', config('ipAddress'));
-
-    app.listen(app.get('port'), app.get('ip'), function serverStarted() {
-      log('Node server running ' + config('appName') + ' on ' + config('ipAddress') + ':' + config('port'), 'info');
-      if (config('environment') === 'dev') {
-        log('using ' + config('dbConnectionString'));
+    argNames.forEach(function perArg(key) {
+      if (parsed[key] !== undefined) {
+        config[key] = parsed[key];
       }
     });
-  } catch (err) {
-    log('Failed to init app :-(');
-    log(err);
   }
-
 
 })();

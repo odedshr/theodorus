@@ -5,12 +5,12 @@
   var fs = require('fs');
   var request = require('supertest');
   var should = require('should');
-  
-  var testUtils = require('../test/testUtils.js');
+
+  var testUtils = require('./testUtils.js');
 
   describe('UserRouterRouter', function () {
     var email = 'router@test.suite.user';
-    var tokenFile = './user-files/'+email+'-test.json';
+    var tokenFile = testUtils.storedFilesFolder + email + '-test.json';
     var token ='';
 
     after(function afterAllTests() {
@@ -38,7 +38,7 @@
       it('should successfully request authentication token', function (done) {
         function onTokenStored(data) {
           assert.ok(data.output === 'stored', 'token file stored');
-          var file = require('../user-files/' + email + '-test.json');
+          var file = require(testUtils.storedFilesFolder + email + '-test.json');
           assert.ok(file.to === email, 'token sent to right email');
           done();
         }

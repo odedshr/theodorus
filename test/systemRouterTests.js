@@ -6,7 +6,7 @@
   var request = require('supertest');
   var should = require('should');
 
-  var testUtils = require('../test/testUtils.js');
+  var testUtils = require('./testUtils.js');
 
   describe('systemRouterTest', function systemRouterTest () {
     describe('/system/ping', function getSystemPing() {

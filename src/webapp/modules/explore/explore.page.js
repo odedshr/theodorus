@@ -1,0 +1,3 @@
+;(function explorePage() {
+  'use strict';
+})();

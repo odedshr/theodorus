@@ -9,14 +9,14 @@
   module.exports.run = run;
 
   function run () {
-    isThoroughMode = true;
+    isThoroughMode = false;
     db(withDB);
   }
 
   module.exports.thorough = thorough;
 
   function thorough () {
-    isThoroughMode = false;
+    isThoroughMode = true;
     db(withDB);
   }
 

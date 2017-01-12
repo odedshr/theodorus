@@ -1,32 +1,39 @@
-(function mockRequestEnclosure (){
+(function mockRequestEnclosure() {
   'use strict';
 
-  var config = require('../helpers/config.js');
-  var Errors = require('../helpers/Errors.js');
-  var populate = require('../helpers/RouteManager.js');
-  var models, db = require('../helpers/db.js');
+  var helpers = '../src/backend/helpers/';
+  var config = require(helpers + 'config.js');
+  var Errors = require(helpers + 'Errors.js');
+  var populate = require(helpers + 'RouteManager.js');
+  var db = require(helpers + 'db.js');
+  var models;
 
-  var urls = { get: [], post: [], put: [], delete: [] };
+  var urls = {get: [], post: [], put: [], delete: []};
   var app = {
-    get: addURL.bind(null,'get'),
-    post: addURL.bind(null,'post'),
-    put: addURL.bind(null,'put'),
-    delete: addURL.bind(null,'delete')
+    get: addURL.bind(null, 'get'),
+    post: addURL.bind(null, 'post'),
+    put: addURL.bind(null, 'put'),
+    delete: addURL.bind(null, 'delete')
   };
 
   populate(app, config);
 
-  function addURL (method, url, handler) {
-    urls[method].push ({url: url, handler: handler });
+  function addURL(method, url, handler) {
+    urls[method].push({url: url, handler: handler});
   }
-  function request (method, url) {
+  function request(method, url) {
     var self = {
       set: set,
       send: send,
       expect: expect,
       end: end
     };
-    var req = { headers: [], params: {}, method: method, url: url, models: models, connection: { remoteAddress: '0.0.0.0' }};
+    var req = {headers: [],
+              params: {},
+              method: method,
+              url: url,
+              models: models,
+              connection: {remoteAddress: '0.0.0.0'}};
     var res = {
       req: req,
       status: setActualStatusCode,
@@ -34,15 +41,16 @@
       end: sendResponse
     };
 
-    var expectedStatusCode, actualStatusCode = 200;
+    var expectedStatusCode;
+    var actualStatusCode = 200;
     var responseDestination;
 
-    function set (key, value) {
+    function set(key, value) {
       req.headers[key] = value;
       return self;
     }
 
-    function send (data) {
+    function send(data) {
       var keys = Object.keys(data);
       while (keys.length) {
         var key = keys.pop();
@@ -51,7 +59,7 @@
       return self;
     }
 
-    function expect (statusCode, data, callback) {
+    function expect(statusCode, data, callback) {
       expectedStatusCode = statusCode;
       if (data) {
         send(data);
@@ -62,7 +70,7 @@
       return self;
     }
 
-    function findContext (routes, url) {
+    function findContext(routes, url) {
       var routesLength = routes.length;
       for (var i = 0; i < routesLength; i++) {
         var route = routes[i];
@@ -73,49 +81,51 @@
       return false;
     }
 
-    function setActualStatusCode (statusCode) {
+    function setActualStatusCode(statusCode) {
       actualStatusCode = statusCode;
       return res;
     }
 
-    function setHeader (statusCode, header) {
+    function setHeader(statusCode, header) {
       actualStatusCode = statusCode;
       return res;
     }
 
-    function sendResponse (data) {
+    function sendResponse(data) {
       var output = {
         status: actualStatusCode,
         expected: expectedStatusCode,
         text: data
       };
 
-      if (expectedStatusCode !== undefined && expectedStatusCode !== actualStatusCode) {
+      if (expectedStatusCode !== undefined &&
+          expectedStatusCode !== actualStatusCode) {
         responseDestination(new Error(data));
       } else {
-        responseDestination (null, output);
+        responseDestination(null, output);
       }
     }
 
-    function endWithModels (callback) {
+    function endWithModels(callback) {
       responseDestination = callback;
       var context = findContext(urls[method], url);
       if (context) {
         context(req, res);
       } else {
-        callback (Errors.notFound('url',url));
+        callback(Errors.notFound('url', url));
       }
     }
 
-    function end (callback) {
+    function end(callback) {
       if (models) {
-        endWithModels (callback);
+        endWithModels(callback);
       } else {
-        db.connect(config('dbConnectionString', true),config('guidLength'), function gotModels (dbModels) {
-          models = dbModels;
-          req.models = models; //fix the current request as well
-          endWithModels (callback);
-        });
+        db.connect(config('dbConnectionString', true), config('guidLength'),
+          function gotModels(dbModels) {
+            models = dbModels;
+            req.models = models; //fix the current request as well
+            endWithModels(callback);
+          });
       }
       return self;
     }
@@ -123,12 +133,12 @@
     return self;
   }
 
-  module.exports = function () {
+  module.exports = function() {
     return {
-      get: request.bind ({}, 'get'),
-      post: request.bind ({}, 'post'),
-      put: request.bind ({}, 'put'),
-      delete: request.bind ({}, 'delete')
+      get: request.bind({}, 'get'),
+      post: request.bind({}, 'post'),
+      put: request.bind({}, 'put'),
+      delete: request.bind({}, 'delete')
     };
   };
 })();

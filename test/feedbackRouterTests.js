@@ -8,13 +8,14 @@
   var should = require('should');
   var winston = require('winston');
 
-  var config = require('../helpers/config.js');
-  var db = require('../helpers/db.js');
+  var helpers = '../src/backend/helpers/';
+  var config = require(helpers + 'config.js');
+  var db = require(helpers + 'db.js');
 
   var dbModels = {};
   var url = config('testsURL');
 
-  describe('communityRouterRouter', function () {
-    describe('PUT /feedback', function () {});
+  describe('communityRouterRouter', function() {
+    describe('PUT /feedback', function() {});
   });
 })();

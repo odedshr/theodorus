@@ -3,17 +3,17 @@
 
   var assert = require('assert');
 
-  var testUtils = require('../test/testUtils.js');
+  var testUtils = require('./testUtils.js');
 
   describe('membershipRouter', function () {
     var founderToken, memberToken, communityId, founderId, memberId;
-    var testId = (new Date()).getTime();
+    var testId = ((new Date()).getTime() + '').substr(0,10);
     var founderEmail = 'founder-'+testId+'@test.suite.membership';
     var memberEmail = 'member-'+testId+'@test.suite.membership';
 
-    var communityName = 'membership-public-'+testId;
-    var founderName = 'membership-public-founder-'+testId;
-    var memberName = 'membership-public-member-'+testId;
+    var communityName = 'mp'+testId; //membership-public
+    var founderName = 'mpf'+testId; //membership-public-founder
+    var memberName = 'mpm'+testId; //membership-public-member
 
     before( function beforeTests (done) {
       createUserFounder(createUserMember.bind(null,createCommunity.bind(null, done)));
@@ -44,9 +44,7 @@
 
     describe('POST /membership/exists/', function () {
       it ('check for existing name', function checkExistingName (done) {
-        function onCheckExistingName (error,response) {
-          assert.equal ( error, null, 'no errors requesting token');
-          var data = JSON.parse(response.text);
+        function onCheckExistingName (data) {
           assert.equal (data.exists, true, 'name exists as it should');
           assert.equal (data.type, 'membership', 'name exists as it should');
           assert.equal (data.parameters.name, founderName, 'name is as sent');
@@ -58,7 +56,7 @@
           .set('authorization', memberToken)
           .send ({membership : { communityId: communityId, name: founderName}})
           .expect(200)
-          .end(onCheckExistingName);
+          .end(testUtils.parseResponse.bind(this, onCheckExistingName));
       });
 
       it ('check for non-existing name', function checkNonExistingName (done) {
@@ -152,7 +150,7 @@
           assert.equal ( error, null, 'no errors requesting token');
           var data = JSON.parse(response.text);
           assert.equal ( data.membersLength, 2, 'community has members');
-          assert.equal ( data.members[0].name, 'membership-public-founder-'+testId, 'member name is as expected');
+          assert.equal ( data.members[0].name, founderName, 'member name is as expected');
           done();
         }
 
@@ -203,7 +201,7 @@
         function onGetMembership (error,response) {
           assert.equal ( error, null, 'no errors requesting token');
           var data = JSON.parse(response.text);
-          assert.equal ( data.membershipSize, 10, 'membership has the right number of properties');
+          assert.equal ( data.membershipSize, 11, 'membership has the right number of properties');
           done();
         }
 

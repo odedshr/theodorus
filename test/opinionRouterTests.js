@@ -3,7 +3,7 @@
 
   var assert = require('assert');
 
-  var testUtils = require('../test/testUtils.js');
+  var testUtils = require('./testUtils.js');
 
 describe('opinionRouterRouter', function () {
   var founderToken, communityId, founderId;
