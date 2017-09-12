@@ -1,0 +1,32 @@
+{
+  "preset": "airbnb",
+  "disallowMultipleVarDecl": false,
+  "maximumLineLength": {
+    "value": 120,
+    "allExcept": ["urlComments"]
+  },
+  "requireMultipleVarDecl": true,
+  "requireVarDeclFirst": true,
+  "requireTrailingComma": false,
+  "requirePaddingNewLineAfterVariableDeclaration": true,
+  "requirePaddingNewLinesAfterBlocks": {
+    "allExcept": ["inCallExpressions"]
+  },
+  "requirePaddingNewlinesBeforeKeywords": [
+    "do",
+    "for",
+    "if",
+    "return",
+    "switch",
+    "try",
+    "while"
+  ],
+  "requirePaddingNewLinesBeforeLineComments": false,
+  "requireSpacesInAnonymousFunctionExpression": {
+    "beforeOpeningCurlyBrace": true
+  },
+  "disallowSpacesInAnonymousFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "safeContextKeyword": ["self", "vm"]
+}

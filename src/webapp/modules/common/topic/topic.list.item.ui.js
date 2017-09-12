@@ -1,3 +1,0 @@
-;(function topicListItemViewEnclosure() {
-  'use strict';
-})();

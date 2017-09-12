@@ -1,0 +1,61 @@
+@import "definitions.less";
+
+@font-size-xxs: 14px;
+@font-size-xs: 16px;
+@font-size-sm: 19px;
+@font-size-md: 21px;
+@font-size-lg: 24px;
+
+.loadingSpinnerSize (@size) {
+  font-size: @size;
+  height: @size;
+  width: @size;
+}
+
+.loading {
+  text-align: center;
+  padding-top: 25vh;
+}
+.loading-animation:before {
+  .useIcon(@icon-spinner);
+}
+
+.loading-animation {
+  .animation(spin, 2000ms, infinite, linear);
+  display: inline-block;
+  margin: 0;
+
+  @media @screen-less-than-xs { .loadingSpinnerSize(@font-size-xxs); }
+  @media @screen-only-xs { .loadingSpinnerSize(@font-size-xs); }
+  @media @screen-only-sm { .loadingSpinnerSize(@font-size-sm); }
+  @media @screen-only-md { .loadingSpinnerSize(@font-size-md); }
+  @media @screen-lg-and-up { .loadingSpinnerSize(@font-size-lg); }
+}
+
+.loading-label {
+  display: inline-block;
+  vertical-align: top;
+
+  @media @screen-less-than-xs { font-size: @font-size-xxs; }
+  @media @screen-only-xs { font-size: @font-size-xs; }
+  @media @screen-only-sm { font-size: @font-size-sm; }
+  @media @screen-only-md { font-size: @font-size-md; }
+  @media @screen-lg-and-up { font-size: @font-size-lg; }
+}
+
+@-ms-keyframes spin {
+  from { -ms-transform: rotate(0deg); }
+  to { -ms-transform: rotate(360deg); }
+}
+@-moz-keyframes spin {
+  from { -moz-transform: rotate(0deg); }
+  to { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+  from { -webkit-transform: rotate(0deg); }
+  to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -3,7 +3,7 @@
 
   var moment = require('moment');
   var config = require('../helpers/config.js');
-  var models, db = require('../helpers/db.js');
+  var models, db = require('../helpers/db/db.js');
 
   var minutesInTwoDays = 60 * 48;
   var hoursInOneWeek = 24 * 7;

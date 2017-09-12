@@ -1,18 +1,21 @@
 ;(function buildCopyEnclosure() {
-  var fs = require('fs');
+  'use strict';
 
-  var tools = require('./build.tools.js');
+  var fs = require('fs'),
+      tools = require('./build.tools.js');
 
   //--------------------------------------------------------------------------------------------- js
 
   function buildCopy(config) {
+    var files;
+
     try {
-      var files = tools.getFileList(config.source, {mask: config.source});
+      files = tools.getFileList(config.source, { mask: config.source });
 
       files.forEach(function copyItem(item) {
         // if item is a file in compileSource, the index will be 1 due to the '/'
         if (item.indexOf('/.') !== 0 && item.indexOf(config.compileSource) !== 1) {
-          tools.ensureFolderExistance(config.dest, item);
+          tools.ensureFolderExistence(config.dest + '/' + tools.getFolderOfFile(item));
 
           fs.createReadStream(config.source + '/' + item)
             .pipe(fs.createWriteStream(config.dest + '/' + item));

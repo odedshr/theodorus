@@ -1,0 +1,33 @@
+@import "definitions.less";
+
+.text-field {
+  position: relative;
+}
+
+.text-field:before {
+  background-color: white;
+  bottom: 0;
+  color: @clr-red-darkest;
+  content: attr(data-error);
+  font-size: @font-size-small;
+  margin: 0 0 4px 4px;
+  padding: 2px;
+  position: absolute;
+  left: 0;
+}
+
+.text-field[data-count]:after {
+  background-color: white;
+  bottom: 0;
+  color: @clr-border;
+  content: attr(data-count);
+  font-size: @font-size-small;
+  margin: 0 12px 4px 0;
+  padding: 2px;
+  position: absolute;
+  right: 0;
+}
+
+.text-field[data-count][data-error]:after {
+  color: @clr-red-darkest;
+}

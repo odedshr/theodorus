@@ -1,0 +1,52 @@
+@import "definitions.less";
+
+.button {
+  .drop-shadow(0, 3px, 0, 0.5);
+  .rounded(4px);
+  background-color: @clr-white;
+  border: 2px solid @clr-border-dark;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 500;
+  margin: 0;
+  min-width: 44px;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+
+  span {
+    pointer-events: none;
+  }
+}
+
+.button[aria-checked="true"] {
+  .drop-shadow(0, 2px, 0, 0.5);
+  transform: translateY(1px);
+}
+
+.button:not(:first-child) {
+  margin-left: 5px;
+}
+
+.button:disabled {
+  border-color: @clr-blue-bright;
+  color: @clr-blue-brightest;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button:hover:not(:disabled) {
+  background: @clr-blue-brightest;
+  text-decoration: none;
+}
+
+.button:focus {
+  border: 5px double @clr-border-dark;
+  outline: 0;
+  padding: 2px 7px;
+}
+
+.button:active {
+  .transform(translateY(4px));
+  .box-shadow(1px, 1px, 2px, @clr-gull-grey);
+}

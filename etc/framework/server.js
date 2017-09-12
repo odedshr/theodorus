@@ -1,15 +1,15 @@
+//cSpell:words guid
 ;(function server() {
   'use strict';
 
-  var express = require('express');
-  var bodyParser = require('body-parser');
-  var app = express();
-  var backend = '../../src/backend/';
-  var config = require(backend + 'helpers/config.js');
-  var db = require(backend + 'helpers/db.js');
-  var Errors = require(backend + 'helpers/Errors.js');
-  var log = require(backend + 'helpers/logger.js');
-  var populate = require(backend + 'helpers/RouteManager.js');
+  const express = require('express'),
+        bodyParser = require('body-parser'),
+        app = express(),
+        backEnd = '../../src/backEnd/',
+        config = require(backEnd + 'helpers/config.js'),
+        db = require(backEnd + 'helpers/db/db.js'),
+        log = require(backEnd + 'helpers/logger.js'),
+        populate = require(backEnd + 'helpers/RouteManager.js');
 
   // -----------------------------------------------------------------------------------------------
 
@@ -44,13 +44,14 @@
 
   function start(instanceConfig) {
     //TODO: this should be var in instanceConfig
-    var developPattern = /^\/src/;
+    var developPattern = /^\/src/g;
+
     try {
       // Add headers
       app.use(setHeaders);
-      app.use(bodyParser.json({limit: '50mb'})); // for parsing application/json
+      app.use(bodyParser.json({ limit: '50mb' })); // for parsing application/json
       // for parsing application/x-www-form-urlencoded
-      app.use(bodyParser.urlencoded({extended: true}));
+      app.use(bodyParser.urlencoded({ extended: true }));
 
       try {
         app.use(db.useExpress(config('dbConnectionString', true),
@@ -62,39 +63,44 @@
         throw err;
       }
 
-      app.use('/', function(req, res, next) {
+      app.use('/', function preventAccessToSource(req, res, next) {
+        // not in debug mode but trying to access src files
         if (instanceConfig.isProduction && req.url.match(developPattern)) {
           return res.status(403).end('403 Forbidden');
         }
+
         next();
       });
 
       (function initWebApp(app, config) {
-        var webappFolder = config('webAppFolder');
-        if (webappFolder !== undefined) {
-          log('using ' + webappFolder + ' as web-app');
-          app.use(express.static(webappFolder));
+        var webAppFolder = config('webAppFolder');
+
+        if (webAppFolder !== undefined) {
+          log('using ' + webAppFolder + ' as web-app');
+          app.use(express.static(webAppFolder));
         } else {
           log('web-app not available');
         }
-      })(app, config);
 
-      populate(app, config);
+        populate(app, config);
+
+        app.use('/', function onPageNotFound(req, res) {
+          res.sendFile(process.cwd() + '/' + webAppFolder + '/index.html');
+        });
+      })(app, config);
 
       app.set('port', config('port'));
       app.set('ip', config('ipAddress'));
 
       app.listen(app.get('port'), app.get('ip'), function serverStarted() {
-        log('Node server running ' +
-            config('name') + ' on ' +
-            config('ipAddress') + ':' +
-            config('port'), 'info');
+        log('Node server running ' + config('name') + ' on ' + config('ipAddress') + ':' + config('port'));
+
         if (config('environment') === 'dev') {
           log('using ' + config('dbConnectionString'));
         }
       });
     } catch (err) {
-      log('Failed to init app :-(');
+      log(' Failed to init app :-(');
       log(err);
     }
   }

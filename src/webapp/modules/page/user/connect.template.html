@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Templates</title>
+</head>
+<body>
+  <template data-id="signInForm">
+    <form class="sign-in-form"
+          data-template="signInForm">
+        <label class="sign-in-form-email-label" for="signInEmail">{{#label.email}}</label>
+        <input aria-describedby="sign-in-form-email-error"
+            class="sign-in-form-email-field"
+            id="signInEmail"
+            name="email"
+            placeholder="{{#placeholder.email}}"
+            type="email" />
+        <div class="sign-in-form-email-error"
+            id="signInEmailError"></div>
+        <button class="sign-in-form-submit">{{#btn.join}}</button>
+        <div class="sign-in-form-email-response" id="signInEmailResponse"></div>
+    </form>
+  </template>
+  <template data-id="signInFormResponse">
+    {{?isSent}}Email is sent!{{/isSent}}
+    {{?!isSent}}Something went wrong{{/isSent}}
+  </template>
+
+  <template data-id="joinMail">
+      <div style="text-align:center;"><img src="https://raw.githubusercontent.com/odedshr/theodorus/gh-pages.src/img/logo.png" height="64" width="64" /></div>
+      <div>
+        <h1>Join The conversation!<h1>
+          <a href="{{baseURL}}/user/connect:[authToken]/redirect:{{redirect}}">Click here</a>
+      </div>
+      <div>This link will expire at {{expire}}.</div>
+  </template>
+
+  <template data-id="inviteMail">
+      <div>TBD</div>
+  </template>
+
+    <template data-id="connectionErrorPage">
+      <h2>Connection Error</h2>
+      {{?isExpired}}Token has expired{{/isExpired}}
+      {{?isBadInput}}Bad Input{{/isBadInput}}
+  </template>
+</body>
+</html>

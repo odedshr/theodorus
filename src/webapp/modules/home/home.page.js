@@ -1,3 +1,0 @@
-;(function homePage() {
-  'use strict';
-})();

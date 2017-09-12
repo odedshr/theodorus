@@ -1,0 +1,106 @@
+@import "definitions.less";
+
+html body {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2NkwAIYqSx4+dat/wAKMQOMnQkJRwAAAABJRU5ErkJggg==) repeat;
+  font-family: 'Titillium Web', sans-serif;
+  margin: 0;
+  min-width: 240px;
+  width: 100vw;
+}
+
+.app-container {
+  background: white url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHElEQVQYV2NkIBIwEqmOYVQh3pAiKngu37r1HwAS9gOReD1V6wAAAABJRU5ErkJggg==) repeat;
+  min-height: 100vh;
+
+  @media only screen and (min-width: @screen-sm-min) {
+    align-items: stretch;
+    align-content: start;
+    display: flex;
+    display: -webkit-flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: center;
+  }
+  @media only screen and (min-width: @screen-md-min) {
+    border: none;
+    width: 100%;
+  }
+
+  @media only screen and (min-width: @screen-lg-min) {
+    border: solid @clr-border;
+    border-width: 0 1px;
+    max-width: 1180px; //20px for scrollbar
+    margin: 0 auto;
+  }
+}
+
+.app-container-communities {
+  background-color: @clr-blue-brightest;
+  box-sizing: border-box;
+  order: 0;
+  padding: 5px;
+
+  @media only screen and (min-width: @screen-sm-min) {
+    align-items: stretch;
+    align-content: start;
+    display: flex;
+    display: -webkit-flex;
+    flex: 0 0 200px;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 100vh;
+  }
+}
+
+.app[data-env="debug"]:before {
+  color: @clr-background-dark;
+  display: block;
+  height: 0.1rem;
+  position:absolute;
+  width: 0.1rem;
+
+  @media only screen and (max-width: @screen-xxs-max) { content: "xxs" }
+  @media @screen-only-xs { content: "xs"; }
+  @media @screen-only-sm { content: "sm"; }
+  @media @screen-only-md { content: "md"; }
+  @media @screen-lg-and-up { content: "lg"; }
+}
+
+.app-container-main {
+  background-color: white;
+  box-sizing: border-box;
+  flex: 1 0 374px;
+  min-height: 100vh;
+  order: 1;
+  padding: 5px;
+}
+
+.app-container-user {
+  background-color: @clr-blue-brightest;
+  box-sizing: border-box;
+  order: 3;
+  padding: 5px;
+
+  @media only screen and (min-width: @screen-sm-min) {
+    align-items: stretch;
+    align-content: start;
+    display: flex;
+    display: -webkit-flex;
+    flex: 0 0 200px;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 100vh;
+  }
+}
+
+.community-members {
+  flex: 1 1 auto;
+  margin: 5px 0;
+  overflow: auto;
+}
+
+.user-actions {
+  flex: 0 0 auto;
+}

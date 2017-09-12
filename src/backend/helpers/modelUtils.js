@@ -1,62 +1,73 @@
 (function modelUtilsEnclosure() {
   'use strict';
 
-  function toJSON (item, fields) {
+  function toJSON(item, fields) {
     var output = {};
-    for (var i = 0, length = fields.length; i < length; i++) {
-      var key = fields[i];
-      output[key] = item[key];
-    }
+
+    fields.forEach(function perField(field) {
+      output[field] = item[field];
+    });
+
     return output;
   }
 
-  function simplyReturn (value) {
+  function simplyReturn(value) {
     return value;
   }
 
-  function toList (list, jsonFunction) {
-    var length = list.length;
-    var items = new Array(length);
+  function toList(list, jsonFunction) {
+    var items = [];
 
     if (jsonFunction === undefined) {
       jsonFunction = 'toJSON';
     }
 
-    for (var i = 0; i < length; i++) {
-      items[i] = list[i][jsonFunction]();
-    }
+    list.forEach(function perItem(item) {
+      if (typeof item[jsonFunction] === 'function') {
+        items.push(item[jsonFunction]());
+      } else {
+        items.push(item);
+      }
+    });
+
     return items;
   }
 
-  function toMap (list, indexedBy) {
+  function toMap(list, indexedBy) {
+    var map = {};
+
     if (indexedBy === undefined) {
       indexedBy = 'id';
     }
-    var map = {};
-    for (var i = 0, length = list ? list.length : 0; i < length; i++) {
-      var item = list[i];
+
+    list.forEach(function perItem(item) {
       map[item[indexedBy]] = item;
-    }
-    return  map;
+    });
+
+    return map;
   }
 
-  function toVector (list, indexedBy) {
+  function toVector(list, indexedBy) {
+    var map = {};
+
     if (indexedBy === undefined) {
       indexedBy = 'id';
     }
-    var map = {};
-    for (var i = 0, length = list ? list.length : 0; i < length; i++) {
-      map[list[i][indexedBy]] = true;
-    }
+
+    list.forEach(function perItem(item) {
+      map[item[indexedBy]] = true;
+    });
+
     return Object.keys(map);
   }
 
-  function toEnum (array) {
+  function toEnum(strings) {
     var map = {};
-    for (var i = 0, length = array.length; i < length; i++) {
-      var value = array[i];
-      map[value] = value;
-    }
+
+    strings.forEach(function perItem(item) {
+      map[item] = item;
+    });
+
     return map;
   }
 

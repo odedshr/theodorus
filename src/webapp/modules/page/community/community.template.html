@@ -1,0 +1,35 @@
+<html>
+  <body>
+    <template data-id="communityPage">
+      <div id="appContainer" class="app-container">
+        <div class="app-container-main">
+          <h2><a href="/community/{{id}}">{{name}}</a></h2>
+          <div class="community-posts"
+                data-template="postList"
+                data-community="{{id}}"
+                data-is-member="{{isMember}}"></div>
+        </div>
+        <div class="app-container-communities"
+             data-template="communityList"></div>
+        <div class="app-container-user">
+          {{?isConnected}}
+            {{?isMember}}Hello member{{/isMember}}
+            {{?isNotMemberButCanJoin}}
+            <a class="page-header-link community-header-link-join" href="{{joinLink}}">
+              <span class="community-header-link-join-label">{{#btn.join}}</span>
+              <span class="community-header-member-email">{{email}}</span>
+            </a>
+            {{/isNotMemberButCanJoin}}
+          {{/isConnected}}
+          {{?!isConnected}}
+            {{.:'signInForm'}}
+          {{/isConnected}}
+          <div class="community-members">member list</div>
+          {{?isConnected}}
+          <div class="user-actions">Settings | Sign out</div>
+          {{/isConnected}}
+        </div>
+      </div>
+    </template>
+  </body>
+</html>

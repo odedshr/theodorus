@@ -1,21 +1,48 @@
+//cSpell:words backend
 ;(function buildToolsEnclosure() {
-  var fs = require('fs');
+  'use strict';
 
-  var color = require('./console-colour.js');
+  var fs = require('fs'),
+      logger = require('../../src/backend/helpers/logger.js');
+
+  //------------------------------------------------------------------------------------------------
+
+  function getScriptFileList(config, mask) {
+    var compileSrcFullPath = config.source + '/' + config.compileSource,
+        initJsFileFullPath = compileSrcFullPath + '\/' + config.initJsFile,
+        reAllJSExceptAppLoader = new RegExp('^(?!' + initJsFileFullPath + ').*\\.js$'),
+        files = getFileList(config.source + '/' +
+                            config.compileSource,
+                            { mask: (mask ? mask : ''),
+                              filter: reAllJSExceptAppLoader });
+
+    // config.initJsFile is the name of the js file that should be loaded before
+    // all other modules. Name includes only filename with no extension.
+    if (fs.existsSync(initJsFileFullPath + '.js')) {
+      files.unshift(initJsFileFullPath.replace(mask, '') + '.js');
+    }
+
+    return files;
+  }
+
   //------------------------------------------------------------------------------------------------
 
   function getFileList(folder, options) {
-    var files = fs.readdirSync(folder);
-    var output = [];
+    var files = fs.readdirSync(folder),
+        output = [],
+        curPath;
+
     if (options === undefined) {
       options = {};
     }
+
     if (options.mask === undefined) {
       options.mask = '';
     }
 
     while (files.length) {
-      var curPath = folder + '/' + files.pop();
+      curPath = folder + '/' + files.pop();
+
       if (fs.lstatSync(curPath).isDirectory()) {
         output = output.concat(getFileList(curPath, options));
       } else if (options.filter === undefined ||
@@ -31,12 +58,12 @@
 
   function ensureEmptyFolder(path) {
     if (!fs.existsSync(path)) {
-      fs.mkdirSync(path);
+      ensureFolderExistence(path);
     } else if (fs.lstatSync(path).isDirectory()) {
       fs.readdirSync(path).forEach(function perFile(file) {
         if (fs.existsSync(file)) {
           if (fs.lstatSync(file).isDirectory()) {
-            deleteFolderRecursive(path+'/'+file);
+            deleteFolderRecursive(path + '/' + file);
           } else {
             fs.unlinkSync(file);
           }
@@ -48,10 +75,13 @@
   }
 
   function deleteFolderRecursive(path) {
-    if( fs.existsSync(path) ) {
-      fs.readdirSync(path).forEach(function(file,index){
-        var curPath = path + "/" + file;
-        if(fs.lstatSync(curPath).isDirectory()) { // recurse
+    var curPath;
+
+    if (fs.existsSync(path)) {
+      fs.readdirSync(path).forEach(function(file) {
+        curPath = path + '/' + file;
+
+        if (fs.lstatSync(curPath).isDirectory()) { // recursive
           deleteFolderRecursive(curPath);
         } else { // delete file
           fs.unlinkSync(curPath);
@@ -67,11 +97,10 @@
 
   //------------------------------------------------------------------------------------------------
 
-  function ensureFolderExistance(rootFolder, item) {
-    var folders = item.split('/');
-    var path = rootFolder;
-    folders.shift(); // items starts with '/' so first item is empty string
-    folders.pop(); // pop the file itself
+  function ensureFolderExistence(folder) {
+    var folders = folder.replace(/^\.\//, '').split('/'),
+        path = '.';
+
     folders.forEach(function perFolder(folder) {
       path += '/' + folder;
 
@@ -79,6 +108,14 @@
         fs.mkdirSync(path);
       }
     });
+  }
+
+  function getFolderOfFile(file) {
+    var folders = file.split('/');
+
+    folders.pop();
+
+    return folders.join('/');
   }
   //------------------------------------------------------------------------------------------------
 
@@ -90,33 +127,27 @@
 
   //------------------------------------------------------------------------------------------------
 
-  function getFormattedTime(time) {
-    return time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds();
-  }
-
   function execAndLogMethod(method) {
-    var time = new Date();
-    var methodName = method.name.replace(/bound /g, '');
-    console.log('[' + color.blue + getFormattedTime(time) +
-                      color.reset + '] starting ' +
-                      color.cyan + methodName +
-                      color.reset + '...');
+    var time = new Date(),
+        methodName = method.name.replace(/bound /g, '');
+
+    logger('Starting ' + logger.color.cyan + methodName + logger.color.reset + '...');
+
     method();
-    console.log('[' + color.blue + getFormattedTime(time) +
-                      color.reset + '] finished ' +
-                      color.cyan + methodName, ' (' +
-                      color.green + (Date.now() - time.getTime()) / 1000, 's' +
-                      color.reset + ')' +
-                      color.reset);
+    logger('Finished ' + logger.color.cyan + methodName + logger.color.reset +
+           ' (' + logger.color.green + (Date.now() - time.getTime()) / 1000, 's' +
+                  logger.color.reset + ')');
   }
 
   //------------------------------------------------------------------------------------------------
 
   module.exports = {
     ensureEmptyFolder: ensureEmptyFolder,
-    ensureFolderExistance: ensureFolderExistance,
+    ensureFolderExistence: ensureFolderExistence,
+    getFolderOfFile: getFolderOfFile,
     isFolderExists: isFolderExists,
     getFileList: getFileList,
+    getScriptFileList: getScriptFileList,
     onError: onError,
     execAndLogMethod: execAndLogMethod
   };

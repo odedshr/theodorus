@@ -1,18 +1,20 @@
+//cSpell:words backend
 ;(function watch() {
-  var chokidar = require('chokidar');
+  'use strict';
 
-  var tools = require('./build.tools.js');
-  var color = require('./console-colour.js');
+  var chokidar = require('chokidar'),
+      tools = require('./build.tools.js'),
+      logger = require('../../src/backend/helpers/logger.js');
 
   function logWatch(verb, method, target) {
-    console.log(' - ' + target + ' ' + color.yellow + verb + color.reset);
+    logger(' - ' + target + ' ' + logger.color.yellow + verb + logger.color.reset);
     tools.execAndLogMethod(method.bind({}, target));
   }
 
   function watch(file, onChange, onAddOrRemove, ignore) {
-    console.log(' now watching ' + file +
+    logger('Watching ' + file +
                 (ignore ? ' (ignoring ' + ignore + ')' : ''));
-    chokidar.watch(file, {ignored: ignore, ignoreInitial: true})
+    chokidar.watch(file, { ignored: ignore, ignoreInitial: true })
       .on('change', logWatch.bind({}, 'changed', onChange))
       .on('add', logWatch.bind({}, 'added', onAddOrRemove))
       .on('unlink', logWatch.bind({}, 'removed', onAddOrRemove));

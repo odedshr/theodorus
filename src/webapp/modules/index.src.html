@@ -10,27 +10,27 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link href="https://fonts.googleapis.com/css?family=Titillium+Web&subset=latin,latin-ext" rel="stylesheet" type="text/css">
 
-    {{stylesheet@stylesheets}}<link rel="stylesheet" href="{{stylesheet}}" />
+    {{stylesheet@stylesheets}}<link rel="stylesheet" href="/{{stylesheet}}" />
     {{/stylesheet@stylesheets}}
-</head>
-<body>
-  <div id="app" class="app" data-register="app" data-env="{{environment}}">
-      <noscript>Please enable javascript to view this site.</noscript>
-      <div class="loading">
-          <i class="loading-animation"></i>
-          <span class="loading-label">{{#label.loading}}</span>
-      </div>
-  </div>
+    <script type="text/javascript">
+        var server = '{{server}}',
+            buildId = '{{buildId}}',
+            appName = '{{#app.name}}';
+    </script>
+    <script type="text/javascript" language="JavaScript" src="/vendor/html2canvas.js"></script>
+    <script type="text/javascript" language="JavaScript" src="/vendor/marked.min.js"></script>
+    {{?isDebug}}<script type="text/javascript"language="JavaScript" src="/vendor/moment.min.js"></script>{{/isDebug}}
+    {{?!isDebug}}<script type="text/javascript"language="JavaScript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>{{/isDebug}}
+    {{script@scripts}}<script type="text/javascript" language="JavaScript" src="{{script}}"></script>
+    {{/script@scripts}}
+  </head>
+  <body>
+    <div id="app" class="app" data-register="app" data-env="{{environment}}">
+        <noscript>Please enable javascript to view this site.</noscript>
+        <div class="loading">
+            <i class="loading-animation"></i>
+            <span class="loading-label">{{#label.loading}}</span>
+        </div>
+    </div>
   </body>
-  <script type="text/javascript">
-      var server = '{{server}}';
-      var buildId = '{{buildId}}';
-  </script>
-  <script type="text/javascript" language="JavaScript" src="vendor/o.min.js"></script>
-  <script type="text/javascript" language="JavaScript" src="vendor/html2canvas.js"></script>
-  <script type="text/javascript" language="JavaScript" src="vendor/marked.min.js"></script>
-  {{?isDebug}}<script type="text/javascript"language="JavaScript" src="vendor/moment.min.js"></script>{{/isDebug}}
-  {{?!isDebug}}<script type="text/javascript"language="JavaScript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>{{/isDebug}}
-  {{script@scripts}}<script type="text/javascript" language="JavaScript" src="{{script}}"></script>
-  {{/script@scripts}}
 </html>

@@ -1,0 +1,26 @@
+<html>
+  <body>
+    <template data-id="setPostForm">
+      <form class="section form form-setPost"
+            data-template="setPostForm"
+            aria-live="{{isEditMode}}">
+        <input type="hidden" name="id" value="{{id}}" />
+        <input type="hidden" name="communityId" value="{{communityId}}" />
+        <input type="hidden" name="parentId" value="{{parentId}}" />
+        <div class="form-field post-content-edit" data-max-length="{{maxPostLength}}">
+          <textarea aria-describedby="postContentErrors"
+                    class="form-field-input post-content-edit-value"
+                    id="postContent"
+                    name="content"
+                    placeholder="{{#placeholder.addPost}}"
+                    required="required">{{content}}</textarea>
+          <div id="postContentErrors" class="field-message"></div>
+        </div>
+        <!--.:'setAttachments'}}-->
+        <div class="form-buttons">
+          <button class="button form-button form-button-add" type="submit">{{#btn.add}}</button>
+        </div>
+      </form>
+    </template>
+  </body>
+</html>

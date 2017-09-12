@@ -6,7 +6,7 @@
 */
 
 (function(window, document, exports, undefined){
-
+'use strict';
 /* build: `node build.js modules=text,serialization,parser,gradient,pattern,shadow,freedrawing,image_filters,serialization no-es5-compat minifier=uglifyjs` */
 /*! Fabric.js Copyright 2008-2014, Printio (Juriy Zaytsev, Maxim Chernyak) */
 
@@ -7126,7 +7126,7 @@ fabric.Pattern = fabric.util.createClass(/** @lends fabric.Pattern.prototype */ 
     },
 
     /**
-     * Pans viewpoint relatively
+     * Pans review relatively
      * @param {fabric.Point} point (position vector) to move by
      * @return {fabric.Canvas} instance
      * @chainable true

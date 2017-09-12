@@ -1,3 +1,0 @@
-;(function communityPage() {
-  'use strict';
-})();

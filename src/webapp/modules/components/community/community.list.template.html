@@ -1,0 +1,45 @@
+<html>
+  <body>
+    <template data-id="communityList">
+        {{filters:'communityFilters'}}
+        <ul id="communityList"
+             aria-live="true"
+             aria-role="list"
+             class="list communities-list">
+          {{community@communities}}
+            {{community:'communityListItem'}}
+          {{/community@communities}}
+          <li class="empty-list">no communities to display</li> 
+        </ul>
+        {{?isConnected}}{{addCommunityForm:'addCommunityForm'}}{{/isConnected}}
+    </template>
+
+    <template data-id="communityListItem">
+      <li class="community-list-item" aria-role="community">
+        <img  class="entity-image community-image"
+              src="{{image}}"
+              title="{{name}}" />
+        {{?isMember}}<i class="icon-user community-item-member" title="{{#label.memberSince}} {{memberSinceRelative}}"></i>{{/isMember}}
+        <div class="community-item-details">
+          <a href="/community/{{id}}" class="community-item-name markDown">{{mdName}}</a>
+          <div class="statistics communities-item-statistics">
+
+            
+            <span class="stat" data-value="{{posts}}" data-unit="{{#unit.post}}" data-units="{{#unit.posts}}"></span>
+            <span class="stat" data-value="{{members}}" data-unit="{{#unit.member}}" data-units="{{#unit.members}}"></span>
+          </div>
+        </div>
+      </li>
+    </template>
+
+    <template data-id="communityFilters">
+      <form class="list-filter" aria-role="search">
+        <input type="text" name="mdName+mdDescription"
+               class="list-header-filter-value"
+               placeholder="{{#placeholder.filterCommunities}}"
+               value="{{filters.mdName+mdDescription}}"/>
+      </form>
+    </template>
+
+  </body>
+</html>

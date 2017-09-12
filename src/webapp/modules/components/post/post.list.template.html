@@ -1,0 +1,112 @@
+<html>
+  <body>
+    <template data-id="postList">
+        {{?isMember}}{{.:'setPostForm'}}{{/isMember}}
+        {{filters:'postFilters'}}
+        <ul id="postList"
+             aria-live="true"
+             aria-role="list"
+             class="list post-list">{{post@posts}}{{post:'postListItem'}}{{/post@posts}}
+          <li class="empty-list">no posts to display</li>    
+        </ul>
+    </template>
+
+    <template data-id="postListItem">
+      <li id="post-{{id}}"
+          class="js-item post"
+          data-template="post"
+          aria-role="post"
+          data-id="{{id}}">
+        <img class="entity-image post-image"
+             src="{{author.image}}"
+             title="{{author.name}}"
+             alt="{{author.name}}"/>
+        <div class="next-to-author-image">
+            <div class="post-content markDown js-content">{{mdContent}}</div>
+            {{?isEditable}}{{.:'setPostForm'}}{{/isEditable}}
+            <ul class="details">
+              {{?hasCommunity}}<!--
+           --><li class="detail community"><a href="#community:{{community.id}}">{{community.name}}</a></li><!--
+           -->{{/hasCommunity}}<!--
+           --><li class="detail author-name">{{author.name}}</li>
+              <li class="detail time" title="{{time}}">{{relativeTime}}</li>
+              {{?history}}<!--
+           --><li class="detail action-history" data-ico="history"
+                  aria-controls="post-{{id}}-history"></li><!--
+           -->{{/history}}
+            </ul>
+        </div>
+        <div class="statistics post-item-statistics">
+          {{statistics:'postStatistics'}}
+        </div>
+        {{?isMember}}<div class="actions">
+          <button class="button action-comment"
+                  aria-controls="post-{{id}}-comments">
+            <span class="action-label">{{#action.comment}}</span>
+          </button>
+          <button class="button action-follow"
+                  aria-checked="{{isFollowed}}"
+                  aria-controls="post-{{id}}">
+            <span class="action-label">{{#action.follow}}</span>
+          </button>
+          <button class="button action-endorse"
+                  aria-checked="{{isEndorsed}}"
+                  aria-controls="post-{{id}}">
+            <span class="action-label">{{#action.endorse}}</span>
+          </button>
+          <button class="button action-read"
+                  aria-checked="{{isRead}}"
+                  aria-controls="post-{{id}}">
+            <span class="action-label">{{#action.markAsRead}}</span>
+          </button>
+          <button class="button action-report"
+                  aria-hidden="true">
+            <span class="action-label">{{#action.report}}</span>
+          </button>
+          {{?isEditable}}<!--
+       --><button class="button action-edit"
+                  aria-controls="post-{{id}}">
+            <span class="action-label">{{#action.edit}}</span>
+          </button>
+          <button class="button action-archive"
+                  aria-controls="post-{{id}}">
+            <span class="action-label">{{#action.remove}}</span>
+          </button>{{/isEditable}}
+        </div>{{/isMember}}
+        <div  id="post-{{id}}-comments"
+              aria-expanded="false"
+              class="post-comments js-list"
+              aria-live="polite"
+              data-role="comments"
+              data-post="{{id}}"
+              data-level="{{level}}"></div>
+        {{?history}}<ul id="post-{{id}}-history"
+                        aria-expanded="false"
+                        class="post-comments js-list"
+                        data-role="history"
+                        data-post="{{id}}">
+          {{post@history}}{{post:'postListItem'}}{{/post@history}}
+        </ul>{{/history}}
+      </li>
+    </template>
+
+    <template data-id="postFilters">
+      <form class="list-filter" aria-role="search">
+      </form>
+    </template>
+
+    <template data-id="postStatistics">
+        <dl class="stat-comment" data-value="{{replies}}" data-unit="{{#unit.comment}}" data-units="{{#unit.comments}}">
+            <dd>{{replies}}</dd><dt>{{#unit.comments}}</dt></dl>
+          <dl class="stat-read" data-value="{{read}}" data-unit="{{#unit.reader}}" data-units="{{#unit.readers}}">
+            <dd>{{read}}</dd><dt>{{#unit.readers}}</dt></dl>
+          <dl class="stat-follow" data-value="{{follow}}" data-unit="{{#unit.follower}}" data-units="{{#unit.followers}}">
+            <dd>{{follow}}</dd><dt>{{#unit.followers}}</dt></dl>
+          <dl class="stat-endorse" data-value="{{endorse}}" data-unit="{{#unit.endorser}}" data-units="{{#unit.endorsers}}">
+            <dd>{{endorse}}</dd><dt>{{#unit.endorsers}}</dt></dl>
+          <dl class="stat-report" data-value="{{report}}" data-unit="{{#unit.report}}" data-units="{{#unit.reports}}">
+            <dd>{{report}}</dd><dt>{{#unit.reports}}</dt></dl>
+      </template>
+
+  </body>
+</html>

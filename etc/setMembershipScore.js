@@ -3,7 +3,7 @@
 
   var date = require('../etc/dateScore.js');
   var config = require('../helpers/config.js');
-  var models, db = require('../helpers/db.js').quickAndDirty;
+  var models, db = require('../helpers/db/db.js').quickAndDirty;
   var isThoroughMode = true;
 
   module.exports.run = run;

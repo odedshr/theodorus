@@ -1,10 +1,12 @@
 ;(function buildEnclosure() {
-  var buildCopy = require('./build.copy.js');
-  var buildStylesheets = require('./build.stylesheets.js');
-  var buildScripts = require('./build.scripts.js');
-  var buildTemplates = require('./build.templates.js');
-  var buildHTML = require('./build.html.js');
-  var tools = require('./build.tools.js');
+  'use strict';
+
+  var buildCopy = require('./build.copy.js'),
+      buildStylesheets = require('./build.stylesheets.js'),
+      buildScripts = require('./build.scripts.js'),
+      buildTemplates = require('./build.templates.js'),
+      buildHTML = require('./build.html.js'),
+      tools = require('./build.tools.js');
 
   //------------------------------------------------------------------------------------------------
   function build(config) {

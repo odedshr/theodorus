@@ -1,0 +1,48 @@
+[
+  {
+    "id": 0,
+    "queries": [
+      "don't run this"
+    ]
+  },
+  {
+    "id": 1,
+    "queries": [
+      "ALTER TABLE community ADD COLUMN isAnonymousAllowed BOOLEAN"
+    ]
+  },
+  {
+    "id": 1.1,
+    "queries": [
+      "ALTER TABLE membership ADD COLUMN alias STRING"
+    ]
+  },
+  {
+    "id": 1.2,
+    "queries": [
+      "ALTER TABLE community ADD COLUMN postLength INTEGER",
+      "ALTER TABLE community REMOVE COLUMN topicLength INTEGER",
+      "ALTER TABLE community REMOVE COLUMN opinionLength INTEGER",
+      "ALTER TABLE community REMOVE COLUMN commentLength INTEGER"
+    ]
+  },
+  {
+    "id": 1.3,
+    "queries": [
+      "ALTER TABLE community ADD COLUMN posts INTEGER",
+      "ALTER TABLE community REMOVE COLUMN topics INTEGER"
+    ]
+  },
+  {
+    "id": 1.4,
+    "queries": [
+      "ALTER TABLE post ADD COLUMN parentId STRING"
+    ]
+  },
+  {
+    "id": 1.5,
+    "queries": [
+      "ALTER TABLE post REMOVE COLUMN starReplies STRING"
+    ]
+  }
+]

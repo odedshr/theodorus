@@ -1,0 +1,24 @@
+@import "definitions.less";
+
+.markDown {
+  display: block;
+}
+
+.markDown > p { display: inline-block; }
+.markDown em { font-style: italic; }
+.markDown strong { font-weight: bolder; }
+.markDown code { font-family: monospace; }
+.markDown ol { list-style-type: decimal; margin-left: 1rem; }
+.markDown ul { list-style-type: disc; margin-left: 1rem; }
+
+.markDown-selected {
+  background-color: @clr-yellow-darkest;
+}
+
+.markDown-tag {
+  background-color: @clr-blue-brightest;
+  border: 1px solid @clr-blue;
+  border-radius: 5px;
+  font-size: 90%;
+  padding: 0 2px;
+}

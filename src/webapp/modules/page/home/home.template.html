@@ -1,0 +1,17 @@
+<html>
+  <body>
+    <template data-id="homePage">
+      <div id="appContainer" class="app-container">
+        <div class="app-container-main"></div>
+        <div class="app-container-communities"
+             data-template="communityList"></div>        
+        <div class="app-container-user">
+          {{?isConnected}}Connected{{/isConnected}}
+          {{?!isConnected}}
+            {{.:'signInForm'}}
+          {{/isConnected}}
+        </div>
+      </div>
+    </template>
+  </body>
+</html>

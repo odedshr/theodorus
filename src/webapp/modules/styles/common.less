@@ -1,0 +1,50 @@
+body {
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+img {
+  font-size: 0.5rem;
+  overflow: hidden;
+}
+
+// <div class="list"></div><div class="after-empty-list">I will show this instead</div>
+.list:not(:empty) + .after-empty-list {
+  display: none;
+}
+
+.list .empty-list:not(:first-child) {
+  display: none;
+}
+
+//  <div data-msg-empty="I will show this text instead"><div>
+div:empty[data-msg-empty]:after {
+  content: attr(data-msg-empty);
+  display: inline-block;
+} 
+
+.stat, dl[data-value] {
+  display: inline-block;
+
+  &:not(:last-child):after {
+    content: " |";
+  }
+
+  &[data-value=""] {
+    display: none;
+  }
+  
+  &[data-value="1"]:before {
+    content: attr(data-value) " " attr(data-unit);
+    display: inline-block;
+  }
+  
+  &:not([data-value="1"]):before {
+    content: attr(data-value) " "  attr(data-units);
+    display: inline-block;
+  }
+
+  dd, dt {
+    display: none;
+  }
+}

@@ -1,0 +1,23 @@
+<html>
+  <body>
+    <template data-id="addCommunityForm">
+      <form aria-describedby="addCommunityErrors" 
+            class="add-community"
+            data-template="addCommunityForm"
+            id="addCommunity">
+        <input type="hidden" name="founderAlias" value="{{defaultFounderName}}" />
+        <div class="add-community-row">
+          <input class="add-community-name"
+                maxlength="{{maxNameLength}}"
+                minlength="{{minNameLength}}"
+                name="communityName"
+                placeholder="Add Community"
+                required="required"
+                type="text">
+          <button class="button">Add</button>
+        </div>
+        <div id="addCommunityErrors" class="field-message add-community-message" title="{{#label.addCommunity}}"></div>
+      </form>
+    </template>
+  </body>
+</html>

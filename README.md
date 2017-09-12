@@ -65,7 +65,7 @@ to educate people to participate in the political debate and encourage them to e
 The following items should be configured as a environment variables (that way they are hidden by anyone plainly looking
 at your code). Use the command line (or terminal console) to set them:
 E.g. setenv THEODORUS_MAIL_SERVICE Gmail
-You can also write them to your config.json which is much easier, but less secured. Please not that environment variables
+You can also write them to your config.json which is much easier, but less secured. Please note that environment variables
  overrides config.json
 
 * process.env.THEODORUS_MODE : "dev", "test", "prod"

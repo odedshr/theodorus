@@ -183,8 +183,8 @@
       }
     }
     if (changes > 0) {
-      if (target.modifed) {
-        target.modifed = new Date();
+      if (target.modified) {
+        target.modified = new Date();
       }
     }
     return {

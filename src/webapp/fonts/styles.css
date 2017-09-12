@@ -2,11 +2,11 @@
 
 @font-face {
   font-family: "thedorus";
-  src:url("fonts/thedorus.eot");
-  src:url("fonts/thedorus.eot?#iefix") format("embedded-opentype"),
-    url("fonts/thedorus.woff") format("woff"),
-    url("fonts/thedorus.ttf") format("truetype"),
-    url("fonts/thedorus.svg#thedorus") format("svg");
+  src:url("/fonts/thedorus.eot");
+  src:url("/fonts/thedorus.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/thedorus.woff") format("woff"),
+    url("/fonts/thedorus.ttf") format("truetype"),
+    url("/fonts/thedorus.svg#thedorus") format("svg");
   font-weight: normal;
   font-style: normal;
 
