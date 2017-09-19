@@ -40,7 +40,7 @@
     },
 
     getCommunitySpec: function getCommunitySpec() {
-      var communityNameSpec = scope.models.community.name;
+      var communityNameSpec = scope.Community.spec.name;
 
       return {
         minNameLength: communityNameSpec.min,

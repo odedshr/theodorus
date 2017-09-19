@@ -1,8 +1,10 @@
 /* global appName */
-;(function MembershipClosure(scope) {
+;(function MembershipClosure(expose/*, scope*/) {
   'use strict';
 
-  var definition = {
+  function Membership() {}
+
+  Membership.spec = {
     status: ['invited', 'requested', 'declined', 'rejected', 'active', 'unfit', 'quit', 'archived'],
     name: {
       min: 4,
@@ -14,28 +16,22 @@
     }
   };
 
-  if (scope.isBackEnd) {
-    module.exports = definition;
-  } else {
-    if (scope.models === undefined) {
-      scope.models = {};
-    }
+  expose(Membership);
 
-    scope.onReady(function() {
-      scope.models.membership = definition;
-    });
-  }
-
-})(window[appName] || (function getNodeJSScope() {
+})(function expose(module) {
   'use strict';
 
-  return {
-    isBackEnd: true,
-    models: {
-      community: require('./Community.model.js')
-    },
-    error: require('../helpers/Errors.js'),
-    validate: require('../helpers/validation.js')
-  };
-
-})());
+  if (module.exports) {
+    // back-end
+    module.exports = module;
+  } else if (window[appName].onReady) {
+    // loading after initial load
+    window[appName].onReady(function addModuleWhenReady() { window[appName][module.name] = module; });
+  } else {
+    // load straight away
+    window[appName][module.name] = module;
+  }
+}, window ? window[appName] : {
+  error: require('../helpers/Errors.js'),
+  validate: require('../helpers/validation.js')
+});

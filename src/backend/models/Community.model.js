@@ -1,3 +1,4 @@
+// cSpell:words webapp
 ;(function communityModelClosure() {
   'use strict';
 
@@ -5,9 +6,11 @@
       modelUtils = require('../helpers/modelUtils.js'),
       validations = require('../helpers/validations.js'),
 
-      status = modelUtils.toEnum(['active', 'suspended', 'archived']),
-      gender = modelUtils.toEnum(['undefined', 'female', 'male']),
-      type = modelUtils.toEnum(['public', 'exclusive', 'secret']),
+      Community = require('../../webapp/modules/models/community.model.js'),
+
+      status = modelUtils.toEnum(Community.spec.status),
+      gender = modelUtils.toEnum(Community.spec.gender),
+      type = modelUtils.toEnum(Community.spec.type),
 
       editableFields = ['name',
                         'description',
