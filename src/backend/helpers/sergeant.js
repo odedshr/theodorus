@@ -1,509 +1,358 @@
-;(function SergeantHelperEnclosure() {
-  'use strict';
-  var Errors = require('../helpers/Errors.js'),
-      tryCatch = require('../helpers/tryCatch.js');
+import { Errors } from 'groundup';
 
-  // Sergeant({ tasks }, [ taskOrder, callback ]);
-  // tasks { [taskName] : { table: db[tableName]
-  //                        before:function
-  //                        load:{parameters},
-  //                        data:{object},
-  //                        beforeSave:function,
-  //                        save:{boolean}
-  //                        after:function,
-  //                        finally: enum}
-  // order of operation: before, load, beforeSave, save, after, finally
-  // finally runs after all tasks completed
-  // save will use task.data and if not available, will check for repository.data, else will fail
-  // save's output is the saved value
-  // before/beforeSaving,after return - true=continue,
-  //                                    false/undefined/null=skip this task,
-  //                          error=stop sergeant and return error
-  // finally = [delete,json ,jsonMap:#indexBy#]
+// Sergeant({ tasks }, [ taskOrder, callback ]);
+// tasks { [taskName] : { table: db[tableName]
+//                        before:function
+//                        load:{parameters},
+//                        data:{object},
+//                        beforeSave:function,
+//                        save:{boolean}
+//                        after:function,
+//                        finally: enum}
+// order of operation: before, load, beforeSave, save, after, finally
+// finally runs after all tasks completed
+// save will use task.data and if not available, will check for repository.data, else will fail
+// save's output is the saved value
+// before/beforeSaving,after return - true=continue,
+//                                    false/undefined/null=skip this task,
+//                          error=stop sergeant and return error
+// finally = [delete,json ,jsonMap:#indexBy#]
 
-  function main(tasks, taskOrder, callback) {
-    if (typeof taskOrder === 'string') {
-      taskOrder = taskOrder.split(',');
-    }
-
-    taskOrder.forEach(function perTaskName(taskName) {
-      if (tasks[taskName] === undefined) {
-        callback(Errors.badInput('task', taskName));
-      }
-    });
-
-    taskOrder = taskOrder.reverse();
-    next(tasks, taskOrder, {}, eventually.bind(null, tasks, taskOrder.slice(0), callback), callback);
+function main(tasks, taskOrder) {
+  if (taskOrder === undefined) {
+    taskOrder = Object.keys(tasks);
+  } else if (typeof taskOrder === 'string') {
+    taskOrder = taskOrder.split(',');
   }
 
-  function next(tasks, taskOrder, output, onSuccess, onError) {
-    var taskName,
-        task,
-        boundedNext,
-        boundedAfter,
-        boundedRemove,
-        boundedSave,
-        boundedBeforeSave,
-        boundedLoad;
-
-    if (taskOrder.length === 0) {
-      onSuccess(output);
-
-      return;
+  taskOrder.forEach(taskName => {
+    if (tasks[taskName] === undefined) {
+      throw new Errors.BadInput('task', taskName);
     }
+  });
 
-    taskName = taskOrder.pop();
+  const output = {};
+
+  return new Promise(resolve => resolve())
+    .then(() => handleNextTask(tasks, Array.from(taskOrder).reverse(), output))
+    .then(eventually(tasks, Array.from(taskOrder), output))
+    .catch(err => { console.trace('Sergeant', err); return err; });
+}
+
+function handleNextTask(tasks, taskOrder, output) {
+  if (taskOrder.length === 0) {
+    return output;
+  }
+
+  const taskName = taskOrder.pop(),
     task = tasks[taskName];
 
-    if (task === undefined) {
-      onError(Errors.systemError('task-not-found', [taskName]));
-    }
-
-    boundedNext = next.bind(null, tasks, taskOrder, output, onSuccess, onError);
-    boundedAfter = prepareData.bind(null, task.after, output, tasks, taskName, onError, boundedNext, boundedNext);
-    boundedRemove = doRemove.bind(null, output, tasks, taskName, onError, boundedAfter);
-    boundedSave = doSave.bind(null, output, tasks, taskName, onError, boundedRemove);
-    boundedBeforeSave = prepareData.bind(null, task.beforeSave, output, tasks,
-      taskName, onError, boundedNext, boundedSave);
-    boundedLoad = doLoad.bind(null, output, tasks, taskName, onError, boundedNext, boundedBeforeSave);
-
-    prepareData(task.before, output, tasks, taskName, onError, boundedNext, boundedLoad);
+  if (task === undefined) {
+    throw new Errors.System('task-not-found', [taskName]);
   }
 
-  function prepareData(method, data, tasks, taskName, stop, skip, next) {
-    var result = method ? method(data, tasks, taskName) : true;
+  return prepareDate(task.before, output, tasks, taskName)
+    .then(proceed => {
+      return proceed && doLoad(output, tasks, taskName)
+        .then(() => prepareDate(task.beforeSave, output, tasks, taskName)
+          .then(proceed => {
+            return proceed && doSave(output, tasks, taskName)
+              .then(() => doRemove(tasks, taskName))
+              .then(() => prepareDate(task.after, output, tasks, taskName));
+          })
+        );
+    })
+    .then (() => handleNextTask(tasks, taskOrder, output));
+}
 
-    if (result instanceof Error) {
-      stop(result);
+function prepareDate(method, data, tasks, taskName) {
+  return new Promise(resolve => resolve())
+    .then(() => (!method || method(data, tasks, taskName)))
+}
 
-      return;
-    }
+function doLoad(data, tasks, taskName) {
+  const task = tasks[taskName];
 
-    if (result === false) {
-      skip();
-    } else if (typeof result === 'object') {
-      result(next, stop);
-    } else {
-      next();
-    }
-  }
-
-  function doLoad(data, tasks, taskName, stop, skip, next) {
-    tryCatch(function tryCatchDoLoad() {
-      var task = tasks[taskName],
-          boundedOnLoaded = onLoaded.bind(null, data, tasks, taskName, stop, next);
-
+  return new Promise(resolve => resolve())
+    .then(() => {
       switch (typeof task.load) {
         case 'undefined':
-          return next();
+          return false;
         case 'string':
-          return task.table.get(task.load, boundedOnLoaded);
+          return task.table.get(task.load);
         case 'function':
-          return task.load(data, tasks, taskName, boundedOnLoaded);
+          return task.load(data, tasks, taskName);
         default:
           if (task.table) {
-            if (task.multiple) {
-              return task.table.find(task.load, task.multiple, boundedOnLoaded);
-            } else {
-              return task.table.one(task.load, boundedOnLoaded);
-            }
+            return task.table.query(task.load, task.multiple);
           } else {
-            throw Errors.notFound('table', task);
+            throw new Errors.NotFound('table', task);
           }
       }
-    }, stop);
-  }
+    })
+    .then(result => {
+      if (result instanceof Error) {
+        throw new Errors.systemError(error, ['load-error', JSON.stringify(tasks[taskName])]);
+      }
 
-  function onLoaded(data, tasks, taskName, onError, onSuccess, error, item) {
-    if (error && error.literalCode !== 'NOT_FOUND') {
-      onError(Errors.systemError(error, ['load-error', JSON.stringify(tasks[taskName])]));
+      data[taskName] = result;
+      return true;
+    });
+}
+
+function doSave(repository, tasks, taskName) {
+  const task = tasks[taskName];
+
+  if (task.save === true) {
+    if (task.table === undefined) {
+      throw new Errors.MissingInput('saveTask.' + taskName + '.table');
+    }
+
+    let item = task.data;
+
+    if (item === undefined || item === null) {
+      item = repository[taskName];
+    }
+
+    if (item === undefined || item === null) {
+      throw new Errors.missingInput(JSON.stringify(task));
+    }
+
+    const items = Array.isArray(item) ? item : [item];
+
+    return Promise.all(items.map(item => task.table.set(item)));
+  }
+}
+
+//------------------------------------------------------------------------------------------------------------------//
+
+function doRemove(tasks, taskName) {
+  const task = tasks[taskName];
+
+  if (task.save === true && !!task.remove) {
+    if (task.table === undefined) {
+      throw new Errors.MissingInput('removeTask.' + taskName + '.table');
+    }
+
+   let item = task.remove;
+
+   const items = Array.isArray(item) ? item : [items];
+
+   return Promise.all(items.map(item => task.table.set(item)));
+  }
+}
+
+//------------------------------------------------------------------------------------------------------------------//
+
+function eventually(tasks, tasksOrder, data) {
+  tasksOrder.forEach(taskName => {
+    const task = tasks[taskName];
+
+    if (task.finally) {
+      data[taskName] = task.finally(data, tasks, taskName);
+    }
+  });
+
+  return data;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadFromData(taskToLoadFrom, data, tasks, taskName) {
+  data[taskName] = data[taskToLoadFrom];
+
+  return true;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function remove(data, tasks, taskName) {
+  delete data[taskName];
+
+  return true;
+}
+
+function json(data, tasks, taskName, isMinimal) {
+  const item = data[taskName];
+
+  if (item) {
+    if (Array.isArray(item)) {
+      if (isMinimal === undefined) {
+        isMinimal = true;
+      }
+
+      data[taskName] = item.map(element => toJSON(element, isMinimal));
     } else {
-      data[taskName] = item;
-      onSuccess();
+      data[taskName] = toJSON(item, (isMinimal !== undefined) ? isMinimal : false);
     }
   }
 
-  function doSave(repository, tasks, taskName, stop, next) {
-    var task = tasks[taskName], item, boundedOnSaved, counter;
+  return true;
+}
 
-    if (task.save === true) {
-      if (task.table === undefined) {
-        return stop(Errors.missingInput('saveTask.' + taskName + '.table'));
-      }
+function minimalJson(data, tasks, taskName) {
+  return json(data, tasks, taskName, true);
+}
 
-      item = task.data;
+function fullJson(data, tasks, taskName) {
+  return json(data, tasks, taskName, false);
+}
 
-      if (item === undefined || item === null) {
-        item = repository[taskName];
-      }
+function toJSON(item, isMinimal = false) {
+  if (item === undefined || item === false || item === null) {
+    return item;
+  } else if (item.toJSON) {
+    return item.toJSON(isMinimal);
+  } else if (item instanceof Object) {
+    return JSON.stringify(item);
+  } else {
+    return item;
+  }
+}
 
-      if (item === undefined || item === null) {
-        stop(Errors.missingInput(JSON.stringify(task)));
+/**
+ * Convert data[taskName] to a map of its items, indexed by a unique id
+ * @param {String} indexBy
+ * @param {Map} data
+ * @param {Map} tasks
+ * @param {String} taskName
+ */
+function jsonMap(indexBy, data, tasks, taskName) {
+  var item,
+      jsonItem,
+      map = {};
 
-        return;
-      }
-
-      if (!Array.isArray((item))) {
-        item = [item];
-      }
-
-      if (item.length === 0) {
-        next();
-      } else {
-        counter = { left: item.length };
-        boundedOnSaved = onSaved.bind(null, repository, tasks, taskName, stop, next, counter);
-
-        item.forEach(function perSubItem(subItem) {
-          task.table.set(subItem, boundedOnSaved);
-        });
-      }
-    } else {
-      next();
-    }
+  if (arguments.length === 3) {
+    taskName = arguments[2];
+    tasks = arguments[1];
+    data = arguments[0];
+    indexBy = 'id';
+  } else if (indexBy === undefined) {
+    indexBy = 'id';
   }
 
-  function onSaved(data, tasks, taskName, onError, onSuccess, counter, error, item) {
-    if (error) {
-      delete counter.left;
-      onError(Errors.systemError(error, ['save-error', JSON.stringify(tasks[taskName])]));
-    } else if (counter.left !== undefined) {
-      data[taskName] = item;
+  item = data[taskName];
 
-      if (--counter.left === 0) {
-        onSuccess();
-      }
-    }
-  }
+  if (item) {
+    forceToArray(item).forEach(element => {
+      var key;
 
-  //------------------------------------------------------------------------------------------------------------------//
+      jsonItem  = toJSON(element, true);
+      key = jsonItem[indexBy] ? jsonItem[indexBy] : item[indexBy];
 
-  function doRemove(data, tasks, taskName, stop, next) {
-    var task = tasks[taskName], item, boundedOnRemoved, counter;
-
-    if (task.save === true && !!task.remove) {
-      if (task.table === undefined) {
-        return stop(Errors.systemError('remove-task-with-no-table'));
-      }
-
-      item = task.remove;
-
-      if (!Array.isArray((item))) {
-        item = [item];
-      }
-
-      if (item.length === 0) {
-        next();
-      } else {
-        counter = { left: item.length };
-        boundedOnRemoved = onRemoved.bind(null, tasks[taskName], stop, next, counter);
-
-        item.forEach(function perSubItem(subItem) {
-          subItem.remove(boundedOnRemoved);
-        });
-      }
-    } else {
-      next();
-    }
-  }
-
-  function onRemoved(task, onError, onSuccess, counter, error) {
-    if (error) {
-      delete counter.left;
-      onError(Errors.systemError(error, ['remove-error', JSON.stringify(task)]));
-    } else if (counter.left !== undefined) {
-      if (--counter.left === 0) {
-        onSuccess();
-      }
-    }
-  }
-
-  //------------------------------------------------------------------------------------------------------------------//
-
-  function eventually(tasks, tasksOrder, callback, data) {
-    var runCallback = true;
-
-    tasksOrder.forEach(function perTaskName(taskName) {
-      var task = tasks[taskName],
-          result;
-
-      if (task.finally) {
-        result = task.finally(data, tasks, taskName);
-
-        if (result instanceof Error) {
-          data[taskName] = result;
-        } else if (typeof result === 'object') {
-          result(callback.bind(null, data));
-          callback = result;
-          runCallback = false;
-        }
-      }
+      map[key] = jsonItem;
     });
 
-    if (runCallback) {
-      callback(data);
-    }
+    data[taskName] = map;
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
 
-  function loadFromData(taskToLoadFrom, data, tasks, taskName) {
-    data[taskName] = data[taskToLoadFrom];
+/**
+ * Convert data[taskName] to a map of its items, grouped into arrays by a common key
+ * @param {String} groupBy
+ * @param {Map} data
+ * @param {Map} tasks
+ * @param {String} taskName
+ */
+function jsonGroup(groupBy, data, tasks, taskName) {
+  var item = data[taskName],
+    map = {};
 
-    return true;
-  }
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  function remove(data, tasks, taskName) {
-    delete data[taskName];
-
-    return true;
-  }
-
-  function json(data, tasks, taskName, isMinimal) {
-    var item = data[taskName],
-        list;
-
-    if (item) {
-      if (Array.isArray(item)) {
-        list = [];
-
-        item.forEach(function perSubItem(subItem) {
-          list.push(toJSON(subItem, (isMinimal !== undefined) ? isMinimal : true));
-        });
-
-        data[taskName] = list;
-      } else {
-        data[taskName] = toJSON(item, (isMinimal !== undefined) ? isMinimal : false);
-      }
-    }
-
-    return true;
-  }
-
-  function minimalJson(data, tasks, taskName) {
-    return json(data, tasks, taskName, true);
-  }
-
-  function fullJson(data, tasks, taskName) {
-    return json(data, tasks, taskName, false);
-  }
-
-  function toJSON(item, isMinimal) {
-    if (item === undefined || item === false || item === null) {
-      return item;
-    } else if (item.toJSON) {
-      return item.toJSON(isMinimal);
-    } else if (item instanceof Object) {
-      return JSON.stringify(item);
-    } else {
-      return item;
-    }
-  }
-
-  function jsonMap(indexBy, data, tasks, taskName) {
-    var item,
-        jsonItem,
-        map = {};
-
-    if (arguments.length === 3) {
-      taskName = arguments[2];
-      tasks = arguments[1];
-      data = arguments[0];
-      indexBy = 'id';
-    }
-
-    item = data[taskName];
-
-    if (item) {
-      if (!Array.isArray(item)) {
-        item = [item];
-      }
-
-      if (indexBy === undefined) {
-        indexBy = 'id';
-      }
-
-      item.forEach(function perSubItem(subItem) {
-        var key;
-
-        jsonItem  = toJSON(subItem, true);
-        key = jsonItem[indexBy] ? jsonItem[indexBy] : item[indexBy];
-
-        map[key] = jsonItem;
-      });
-
-      data[taskName] = map;
-    }
-  }
-
-  function jsonGroup(groupBy, data, tasks, taskName) {
-    var item = data[taskName],
-        jsonItem, map = {};
-
-    if (item) {
-      if (!Array.isArray(item)) {
-        item = [item];
-      }
-
-      item.forEach(function perSubItem(subItem) {
-        var key;
-
-        jsonItem  = toJSON(subItem, true);
+  if (item) {
+    forceToArray(item).forEach(element => {
+      let jsonItem  = toJSON(element, true),
         key = jsonItem[groupBy] ? jsonItem[groupBy] : item[groupBy];
 
-        if (map[key] === undefined) {
-          map[key] = [];
-        }
-
-        map[key].push(jsonItem);
-      });
-
-      data[taskName] = map;
-    }
-  }
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  /* How to use DelayedReturn?
-
-   function syncFunction () {
-     var callback = sergeant.DelayedReturn();
-     asyncFunction(callback.input);
-     return callback.output;
-   }
-
-    function main (onSuccess, onError) {
-      var result = syncFunction();
-      if (typeof result === 'object') {
-        result (onSuccess, onError);
-      } else {
-        onSuccess (result)
+      if (map[key] === undefined) {
+        map[key] = [];
       }
-    }
 
-  * */
-  function DelayedReturn() {
-    var storedResult,
-        gotResult = false,
-        callbackToRunAtTheEnd;
-
-    return {
-      input: function(result) {
-        storedResult = result;
-        gotResult = true;
-
-        if (callbackToRunAtTheEnd) {
-          callbackToRunAtTheEnd(storedResult);
-        }
-      },
-
-      output: function(callback) {
-        callbackToRunAtTheEnd = callback;
-
-        if (gotResult) {
-          callbackToRunAtTheEnd(storedResult);
-        }
-      }
-    };
-  }
-
-  function DelayedReturnWrapper() {
-    return new DelayedReturn();
-  }
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  function internalAnd(conditions, data, tasks, currentTask) {
-    var i = 0,
-        count = conditions.length,
-        result;
-
-    while (i < count) {
-      result = conditions[i++](data, tasks, currentTask);
-
-      if (result !== true) {
-        return result;
-      }
-    }
-
-    return true;
-  }
-
-  function and(/* methods */) {
-    return internalAnd.bind(null, Array.prototype.slice.call(arguments));
-  }
-
-  function exists(value) {
-    return (value !== undefined && value !== null && (!Array.isArray(value) || value.length > 0));
-  }
-
-  function stopIfNotFound(data, tasks, currentTask) {
-    return exists(data[currentTask]) ? true : Errors.notFound(currentTask, tasks[currentTask].load);
-  }
-
-  function stopIfFound(data, tasks, currentTask) {
-    return !exists(data[currentTask]) ? true : Errors.alreadyExists(currentTask, tasks[currentTask].load);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  function internalUpdate(source, target) {
-    var fields = target.getEditables ? target.getEditables() : Object.keys(target),
-        changes = 0;
-
-    Object.keys(fields).forEach(function perKey(key) {
-      var newValue = source[fields[key]];
-
-      if ((newValue !== undefined) && (newValue !== target[fields[key]])) {
-        target[fields[key]] = newValue;
-        changes++;
-      }
+      map[key].push(jsonItem);
     });
 
-    if (changes > 0) {
-      if (target.modified) {
-        target.modified = new Date();
-      }
+    data[taskName] = map;
+  }
+}
+
+function forceToArray(element) {
+  return (Array.isArray(item) ? item : [item]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function and(data, tasks, currentTask, conditions) {
+  return conditions.every(condition => condition(data, tasks, currentTask));
+}
+
+function exists(value) {
+  return (value !== undefined && value !== null && (!Array.isArray(value) || value.length > 0));
+}
+
+function stopIfNotFound(data, tasks, currentTask) {
+  return exists(data[currentTask]) || new Errors.NotFound(currentTask, tasks[currentTask].load);
+}
+
+function stopIfFound(data, tasks, currentTask) {
+  return !exists(data[currentTask]) || new Errors.AlreadyExists(currentTask, tasks[currentTask].load);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function internalUpdate(source, target) {
+  const fields = target.getEditables ? target.getEditables() : Object.keys(target);
+  let changes = 0;
+
+  Object.keys(fields).forEach(key => {
+    var newValue = source[fields[key]];
+
+    if ((newValue !== undefined) && (newValue !== target[fields[key]])) {
+      target[fields[key]] = newValue;
+      changes++;
     }
+  });
 
-    return {
-      changeCount: changes,
-      subject: target
-    };
-  }
-
-  function update(source, target) {
-    return internalUpdate(source, target).changeCount;
-  }
-
-  function updateAndSave(source, target, callback) {
-    var updateResult = internalUpdate(source, target);
-
-    if (updateResult.changes > 0) {
-      updateResult.subject.save(onSaved.bind(null, callback));
-    } else {
-      callback(updateResult.subject.toJSON());
+  if (changes > 0) {
+    if (target.modified) {
+      target.modified = new Date();
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  return {
+    changeCount: changes,
+    subject: target
+  };
+}
 
-  module.exports = main;
+function update(source, target) {
+  return internalUpdate(source, target).changeCount;
+}
 
+function updateAndSave(source, target, callback) {
+  const updateResult = internalUpdate(source, target);
+
+  if (updateResult.changes > 0) {
+    return updateResult.subject.save().then(onSaved);
+  } else {
+    return updateResult.subject.toJSON();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export {
+  main as default,
   //before/beforeSave/after
-  module.exports.stopIfNotFound = stopIfNotFound;
-  module.exports.stopIfFound = stopIfFound;
-  module.exports.and = and;
-
+  stopIfNotFound,
+  stopIfFound,
+  and,
   //load functions
-  module.exports.loadFromData = loadFromData;
-
+  loadFromData,
   //finally
-  module.exports.json = json;
-  module.exports.fullJson = fullJson;
-  module.exports.minimalJson = minimalJson;
-  module.exports.jsonMap = jsonMap;
-  module.exports.jsonGroup = jsonGroup;
-  module.exports.remove = remove;
+  json,
+  fullJson,
+  minimalJson,
+  jsonMap,
+  jsonGroup,
+  remove,
 
-  module.exports.update = update;
-  module.exports.updateAndSave = updateAndSave;
-  module.exports.DelayedReturn = DelayedReturnWrapper;
-})();
+  update,
+  updateAndSave,
+};

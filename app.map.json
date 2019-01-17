@@ -1,0 +1,21 @@
+{
+  "ductTape": {
+    "source": "src",
+    "target": ".bin",
+    "entries": {
+      "*": ["../app.map.json", "../package.json"],
+      "server.js": {
+        "source": ["backend/index.js"],
+        "external": ["crypto", "fs", "querystring", "url"],
+        "minify": false
+      },
+      "www/index.html": ["webapp/modules/index.src.html"],
+      "www/index.js": ["webapp/index.js"],
+      "www/service-worker.js": ["webapp/service-worker.js"],
+      "www/service-worker-dummy.js": ["webapp/service-worker-dummy.js"],
+      "www/main.css": ["webapp/modules/styles/app.less"],
+      "www/": ["webapp/static"],
+      "www/vendor/": ["webapp/vendor"]
+    }    
+  }
+}

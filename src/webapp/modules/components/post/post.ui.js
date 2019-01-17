@@ -13,6 +13,7 @@
       this._assign(dElm, '.action-report', this._setAttribute.bind(this, 'report', 'unreport'));
       this._assign(dElm, '.action-read', this._setAttribute.bind(this, 'read', 'unread'));
       this._assign(dElm, '.action-archive', this.archive);
+
       try {
         this._assign(dElm, '.action-history', this.toggleSection);
       }

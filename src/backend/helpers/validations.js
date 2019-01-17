@@ -1,43 +1,52 @@
-(function validationsClosure() {
-  'use strict';
-  var marked = require('marked'),
-      Errors = require('../helpers/Errors.js'),
+import marked from 'marked';
+import { Errors } from 'groundup';
 
-      emailPatternString = '((([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]' +
-                           '{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,})))',
-      maskedIdPattern  = '([\\w\\d\\-]+)',
-      urlParameterPattern = new RegExp('\\[([^#]+?)\\]', 'g'),
-      tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
-      tagOrComment = new RegExp('<(?:' + '!--(?:(?:-*[^->])*--+|-?)' + '|script\\b' + tagBody +
-        '>[\\s\\S]*?</script\\s*' + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*' + '|/?[a-z]' + ')>', 'gi');
+const emailPattern = '((([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]' +
+                          '{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,})))',
+    maskedIdPattern  = '([\\w\\d\\-]+)',
+    urlParamPattern = new RegExp('\\[([^#]+?)\\]', 'g'),
+    tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
+    tagOrComment = new RegExp('<(?:' + '!--(?:(?:-*[^->])*--+|-?)' + '|script\\b' + tagBody +
+      '>[\\s\\S]*?</script\\s*' + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*' + '|/?[a-z]' + ')>', 'gi');
 
-  function isValidEmail(username) {
-    if (username.match(emailPatternString)) {
+function toText(string) {
+  // convert to markDown + remove all html tags + split connected words
+  return marked((string || '').trim())
+                              .replace(/<(?:.|\n)*?>/gm, '')
+                              .replace(/[^(\s\w)]+/gm, ' ')
+                              .replace(/\n$/, '');
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Validations {
+  isValidEmail(email) {
+    if (email.match(emailPattern)) {
       return true;
     }
   }
 
-  function isValidPassword(password) {
+  isValidPassword(password) {
     return (password || '').length > 0;
   }
 
-  function isValidStringLength(key, value, isRequired, minLength, maxLength) {
+  isValidStringLength(key, value, minLength, maxLength, isRequired = false) {
     if (value === undefined && isRequired) {
-      return Errors.missingInput(key);
+      return new Errors.MissingInput(key);
     } else if (value < minLength) {
-      return Errors.tooShort(key, value);
+      return new Errors.TooShort(key, value);
     } else if (value > maxLength) {
-      return Errors.tooLong(key, value);
+      return new Errors.TooLong(key, value);
     }
 
     return true;
   }
 
-  function isValidEntityName(key, value) {
-    return (value && value.match(/[\s@#]/) === null) ? true : Errors.badInput(key, value);
+  isValidEntityName(value) {
+    return (value && value.match(/[\s@#]/) === null) ? true : new Errors.BadInput(key, value);
   }
 
-  function sanitizeString(string) {
+  sanitizeString(string) {
     if (string === undefined) {
       return '';
     }
@@ -45,41 +54,23 @@
     return string.replace(tagOrComment, '').replace(/<(?:.|\n)*?>/gm, '');
   }
 
-  function toText(string) {
-    // convert to markDown + remove all html tags + split connected words
-    return marked((string || '').trim())
-                                .replace(/<(?:.|\n)*?>/gm, '')
-                                .replace(/[^(\s\w)]+/gm, ' ')
-                                .replace(/\n$/, '');
-  }
-
-  function countWords(string) {
+  countWords(string) {
     return toText(string).replace(/\s+/g, ' ').replace(/\s$/, '').split(' ').length;
   }
 
-  function countCharacters(string) {
+  countCharacters(string) {
     return toText(string).length;
   }
 
-  function isPostLengthOK(message, compareTo) {
+  isPostLengthOK(message, compareTo) {
     if (compareTo) {
       return (compareTo >= 0 ? countWords(message) : countCharacters(message)) <= Math.abs(compareTo);
     }
 
     return true;
   }
+}
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const validations = new Validations();
 
-  exports.emailPatternString = emailPatternString;
-  exports.maskedIdPattern = maskedIdPattern;
-  exports.urlParameterPattern = urlParameterPattern;
-  exports.isValidEmail = isValidEmail;
-  exports.isValidPassword = isValidPassword;
-  exports.isValidStringLength = isValidStringLength;
-  exports.isValidEntityName = isValidEntityName;
-  exports.sanitizeString = sanitizeString;
-  exports.countWords = countWords;
-  exports.countCharacters = countCharacters;
-  exports.isPostLengthOK = isPostLengthOK;
-})();
+export { validations as default, emailPattern, maskedIdPattern, urlParamPattern };

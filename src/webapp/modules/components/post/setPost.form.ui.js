@@ -11,11 +11,13 @@
     },
 
     submitForm: function submitForm(dElm) {
+      var fields, post;
+
       try {
-        var fields = scope.form.getFields(dElm),
-            post = {
-              content: fields.content
-            };
+        fields = scope.form.getFields(dElm);
+        post = {
+          content: fields.content
+        };
 
         if (scope.validate.id(fields.id)) {
           post.id = fields.id;
@@ -42,7 +44,7 @@
       if (scope.error.isError(response)) {
         console.log('error', response);
       } else {
-        console.log('TODO: update community list!!!!', response);
+        scope.event.fire('community-updated', response.community);
       }
 
     }

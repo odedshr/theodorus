@@ -55,13 +55,35 @@
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
+  function filter(list, criteria) {
+    var matches = [];
+
+    list.forEach(function perItem(item) {
+      var match = true,
+          key;
+
+      for (key in criteria) {
+        match = match && (item[key]) !== criteria[key];
+      }
+
+      if (match) {
+        matches.push(item);
+      }
+    });
+
+    return matches;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
   function Objects() {}
 
   Objects.prototype = {
     clone: clone,
     extend: extend,
     obtain: obtain,
-    pick: pick
+    pick: pick,
+    filter: filter
   };
 
   scope.objects = new Objects();

@@ -1,0 +1,12 @@
+[
+  {
+    "id": 0,
+    "queries": [
+      "CREATE TABLE `versions` (`id` int(11) NOT NULL AUTO_INCREMENT, `version` decimal(10,0) DEFAULT NULL, `updatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), KEY `IDX_version` (`version`)) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;",
+      "CREATE TABLE `users` (`id` varchar(36) NOT NULL DEFAULT 'uuid()' COMMENT '{ readOnly: true, required: false }',`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '{ readOnly: true, required: false }',`modified` datetime DEFAULT NULL COMMENT '{ readOnly: true, required: false }',`lastLogin` datetime DEFAULT NULL COMMENT '{ readOnly: true, required: false }',`status` enum('active','archived','suspended') NOT NULL DEFAULT 'active' COMMENT '{ readOnly: true, required: true }',`gender` enum('female','male','other','n/a') NOT NULL DEFAULT 'n/a' COMMENT '{ readOnly: false, required: false }',`email` varchar(255) DEFAULT NULL COMMENT '{ pattern: ‘((([^<>()[\\\\]\\\\\\\\.,;:\\\\s@\\\\\"]+(\\\\.[^<>()[\\\\]\\\\\\\\.,;:\\\\s@\\\\\"]+)*)|(\\\\\".+\\\\\"))@((\\\\[[0-9]{1,3}\\\\.[0-9]{1,3}\\\\.[0-9]{1,3}\\\\.[0-9]{1,3}\\\\])|(([a-zA-Z\\\\-0-9]+\\\\.)+[a-zA-Z]{2,})))}’, readonly: false }',`birthDate` datetime DEFAULT NULL COMMENT '{ readOnly: false, required: false }',PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+      "INSERT INTO versions (version) VALUES (0);"
+    ]
+  }
+]
+
+

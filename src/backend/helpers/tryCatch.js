@@ -1,15 +1,17 @@
-(function tryCatchEnclosure() {
-  'use strict';
-  var log = require('../helpers/logger.js');
+'use strict';
 
-  module.exports = function tryCatch (func,callback) {
-    try {
-      func();
-    } catch (err) {
-      log(err, 'fatal');
-      if (typeof callback === 'function') {
-        callback(err);
-      }
+import log from './logger.js';
+
+function tryCatch(func, callback) {
+  try {
+    func();
+  } catch (err) {
+    log(err, 'fatal');
+
+    if (typeof callback === 'function') {
+      callback(err);
     }
-  };
-})();
+  }
+}
+
+export default tryCatch;

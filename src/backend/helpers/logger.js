@@ -1,186 +1,116 @@
-;(function loggerEnclosure() {
-  'use strict';
+import { colors } from 'groundup';
 
-  function Logger() {
-    this.config = {
-      output: {
-        console: {
-          minLevel: 'log',
-          color: true,
-          write: this._writeToConsole.bind(this)
-        }
-      },
-      prefix: [this.getTimeStamp.bind(this), this.getProcessId.bind(this)],
-      suffix: []
-    };
+const levels = {
+    info: 0,
+    log: 1,
+    warn: 2,
+    error: 3
+  },
+  symbol = [`${colors.FgGreen}✔${colors.Reset}︎`, '✅', '⚠️', '❗'];
 
-    this.main = this.log.bind(this, 'log');
-    this.main.config = this.config;
-    this.main.color = this.colors;
-    this.main.info = this.log.bind(this, 'info');
-    this.main.log = this.log.bind(this, 'log');
-    this.main.warn = this.log.bind(this, 'warn');
-    this.main.error = this.log.bind(this, 'error');
+function zeroPad(num) {
+  return ('0' + num).slice(-2);
+}
 
-    return this.main;
+class Logger {
+  constructor() {
+    this.colored = true;
+    this.thresholdLevel = 0;
+    this.console = console;
+    this.prefix = [this.getLevelSymbol.bind(this), this.getTimeStamp.bind(this), this.getProcessId.bind(this)];
   }
 
-  Logger.prototype = {
-    _levels: {
-      log: 0,
-      info: 1,
-      warn: 2,
-      error: 3
-    },
+  log(levelName, ...params) {
+    const level = levels[levelName];
 
-    log: function log(level/*, arguments */) {
-      var i, key,
-          output,
-          prefix = this.config.prefix || [],
-          suffix = this.config.suffix || [];
+    if (level >= this.thresholdLevel) {
+      const items = params
+        .map(item => {
+          if (item === undefined) {
+            return 'undefined'
+          } else if (item === null) {
+            return 'null'
+          } else if (item instanceof Error) {
+            if (typeof (item.getStackTrace) === 'function') {
+              return item.getStackTrace()
+            } else {
+              const stackContainer = {};
 
-      //push out level
-      Array.prototype.shift.call(arguments);
+              Error.captureStackTrace(stackContainer);
 
-      for (key in this.config.output) {
-        output = this.config.output[key];
-
-        if (this._levels[level] >= this._levels[output.minLevel]) {
-          for (i = 0; i < prefix.length; i++) {
-            Array.prototype.unshift.call(arguments, prefix[i](level, output.color));
+              return `${ stackContainer.stack }\n${ item.toString() }\n${ JSON.stringify(item, null, 2) }`;
+            }
+          } else if (item.toString) {
+            return item.toString();
           }
 
-          for (i = 0; i < suffix.length; i++) {
-            Array.prototype.push.call(arguments, suffix[i](level, output.color));
-          }
+          return item;
+        });
 
-          output.write.call(this, level, arguments);
-        }
-      }
-    },
-
-    getTimeStamp: function getTimeStamp(level, colored) {
-      var now = new Date(),
-          time = ('0' + now.getHours()).slice(-2) + ':' +
-                 ('0' + now.getMinutes()).slice(-2) + ':' +
-                 ('0' + now.getSeconds()).slice(-2),
-          date = now.getFullYear() + '/' +
-                 ('0' + (now.getMonth() + 1)).slice(-2) + '/' +
-                 ('0' + now.getDate()).slice(-2),
-          output = this.colors.dim;
-
-      if (colored) {
-        switch (level) {
-          case 'info': output = this.colors.bgBlue; break;
-          case 'warn': output = this.colors.bgMagenta; break;
-          case 'error': output = this.colors.bgRed; break;
-        }
-        output += date + ' ' + this.colors.yellow + time + this.colors.reset;
-      } else {
-        output = date + ' ' + time;
-      }
-
-      return output;
-    },
-
-    getProcessId: function getProcessId(level, colored) {
-      var id = process.pid,
-          colorSet;
-
-      if (colored) {
-        colorSet = this.colorSets[id % this.colorSets.length];
-
-        return this.colors[colorSet[0]] + this.colors[colorSet[1]] + id + this.colors.reset;
-      }
-
-      return id;
-    },
-
-    colorSets: [['bgBlack', 'white'],
-                ['bgBlack', 'red'],
-                ['bgBlack', 'green'],
-                ['black', 'blue'],
-                ['bgBlack', 'yellow'],
-                ['bgBlack', 'magenta'],
-                ['bgBlack', 'cyan'],
-                ['bgWhite', 'red'],
-                ['bgWhite', 'green'],
-                ['bgWhite', 'blue'],
-                ['bgWhite', 'magenta'],
-                ['bgWhite', 'cyan'],
-                ['bgWhite', 'black']],
-
-    colors: (function initColors() {
-      var key,
-        palette = {
-          reset: 0,
-          bright: 1,
-          dim: 2,
-          underline: 4,
-          inverse: 7,
-          black: 30,
-          red: 31,
-          green: 32,
-          yellow: 33,
-          blue: 34,
-          magenta: 35,
-          cyan: 36,
-          white: 37,
-          bgBlack: 40,
-          bgRed: 41,
-          bgGreen: 42,
-          bgYellow: 43,
-          bgBlue: 44,
-          bgMagenta: 45,
-          bgCyan: 46,
-          bgWhite: 47,
-        },
-        keys = Object.keys(palette);
-
-      while (keys.length) {
-        key = keys.pop();
-        palette[key] = '\x1B[' + palette[key] + 'm';
-      }
-
-      return palette;
-    })(),
-
-    _writeToConsole: function _writeToConsole(level, args) {
-      var i;
-
-      for (i = 0; i < args.length; i++) {
-        if (args[i] instanceof Error && args[i].stack) {
-          Array.prototype.splice.call(this, args, i, 1, this._getFlattenStack(args[i]));
-        }
-      }
-
-      console[level].apply({}, args);
-    },
-
-    _getFlattenStack: function getFlattenStack(error) {
-      var stack = error.message,
-          ptr;
-
-      if (typeof error.stack.replace === 'function') {
-        stack = '\n' + JSON.stringify(error.stack.replace(/^[^\(]+?[\n$]/gm, '')
-            .replace(/^\s+at\s+/gm, '')
-            .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
-            .split('\n'), null, 4);
-      } else {
-        ptr = error;
-
-        while (ptr.stack) {
-          if (ptr.stack.message) {
-            stack = stack.concat('\n' + ptr.stack.message);
-          }
-
-          ptr = ptr.stack;
-        }
-      }
-
-      return stack;
+      items.unshift(this.prefix.map(method => method(level)).join(' '));
+      this.console[levelName](...items);
     }
-  };
+  }
 
-  module.exports = new Logger();
-})();
+  getLevelSymbol(level) {
+    return `${symbol[level]} `;
+  }
+
+  getTimeStamp() {
+    const now = new Date(),
+      time = `${zeroPad(now.getHours())}:${zeroPad(now.getMinutes())}:${zeroPad(now.getSeconds())}`,
+      date = `${now.getFullYear()}/${zeroPad(now.getMonth())}/${zeroPad(now.getDate())}`;
+
+    return `${date} ${time}`;
+  }
+
+  getProcessId() {
+    const id = process.pid;
+
+    if (this.colored) {
+      return `${colors.getSet(id)}${id}${colors.Reset}`;
+    }
+
+    return id;
+  }
+
+  getFlattenStack(error) {
+    let stack = error.toString ? error.toString() : error.message,
+        ptr;
+
+    if (typeof error.stack.replace === 'function') {
+      stack = '\n' + JSON.stringify(error.stack.replace(/^[^\(]+?[\n$]/gm, '')
+          .replace(/^\s+at\s+/gm, '')
+          .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
+          .split('\n'), null, 4);
+    } else {
+      ptr = error;
+
+      while (ptr.stack) {
+        if (ptr.stack.message) {
+          stack = stack.concat('\n' + ptr.stack.message);
+        }
+
+        ptr = ptr.stack;
+      }
+    }
+
+    return stack;
+  }
+}
+
+class Facade {
+  constructor() {
+    this.logger = new Logger();
+  }
+
+  info() { this.logger.log('info', ...arguments); }
+
+  log() {  this.logger.log('log', ...arguments); }
+
+  warn() {  this.logger.log('warn', ...arguments); }
+
+  error() {  this.logger.log('error', ...arguments); }
+}
+
+export default new Facade();

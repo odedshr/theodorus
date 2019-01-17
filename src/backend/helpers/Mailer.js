@@ -1,67 +1,69 @@
-;(function MailerClosure() {
-  'use strict';
+import nodemailer from 'nodemailer';
+import directTransport from 'nodemailer-direct-transport';
+import { hostname } from 'os';
+import { Errors, colors } from 'groundup';
+import logger from './logger.js';
 
-  var nodemailer = require('nodemailer');
+class Mailer {
+  //https://nodemailer.com/smtp/
+  /**
+   * 
+   * @param {Object} smtpConfig -  { host, port, secure, auth:{ user, password} }
+   * @param {Object} fileMananger - FileMangerInstace 
+   */
+  constructor({ smtp: smtpConfig, name: appName, appEmail }, fileMananger) {
+    this.appName = appName;
+    this.appEmail = appEmail;
 
-  var Errors = require('../helpers/Errors.js');
-  var log = require('../helpers/logger.js');
-  var transporter;
-  var directTransport;
-  var files;
-
-  function init(mailConfiguration, fileMananger) {
-    if (mailConfiguration !== undefined) {
-      log('configuring mailer to [' + mailConfiguration + ']');
+    if (smtpConfig !== undefined) {
+      logger.info(`configuring mailer to ${colors.FgYellow}${config.host}${colors.Reset}`);
     } else {
-      log('configuring mailer to send from local machine (not recommended)');
-      directTransport = require('nodemailer-direct-transport');
-      mailConfiguration = directTransport({
-          // should be the hostname machine IP address resolves to
-          name: require('os').hostname()
+      logger.warn('configuring mailer to send from local machine (not recommended)');
+      // should be the hostname machine IP address resolves to
+      smtpConfig = directTransport({ name: hostname() });
+    }
+    this.transporter = nodemailer.createTransport(smtpConfig);
+  
+    this.files = fileMananger;
+  }
+
+  send(to, from, subject, text, html) {
+    return new Promise((resolve, reject) => {
+      if (to === undefined) {
+        reject(new Errors.MissingInput('mail.to'));
+      }
+
+      if (subject === undefined) {
+        reject(new Errors.MissingInput('mail.subject'));
+      }
+
+      const onBehalf = (from && from.length > 0) ? `on behalf of ${from}` : '',
+        mailOptions = {
+        from: `${this.appName}${onBehalf} <${this.appEmail}>`,
+        to,
+        subject,
+        text,
+        html
+      };
+
+      if (to.indexOf('@test.suite') > -1 && files !== undefined) {
+        files.set(`${to}-${subject.replace(/\s/g, '_')}.json`, JSON.stringify(mailOptions));
+        resolve({ output: 'stored' });
+      } else if (this.transporter !== undefined) {
+        this.transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            reject(new Errors.System(error));
+          }
+          resolve({ output: 'sent', details: info });
         });
-    }
-    transporter = nodemailer.createTransport(mailConfiguration);
-
-    if (fileMananger !== undefined) {
-      files = fileMananger;
-    }
-
-    return {
-      send: send
-    };
+      } else {
+        logger.warn(JSON.stringify('variable THEODORUS_MAIL not set'));
+        logger.info(JSON.stringify(mailOptions));
+        resolve({ output: 'not-sent', details: info });
+      }
+    })
+    .catch(err => err);
   }
+}
 
-  function send(To, From, Subject, text, html, callback) {
-    if (To === undefined) {
-      callback(Errors.missingInput('mail.to'));
-    }
-    if (Subject === undefined) {
-      callback(Errors.missingInput('mail.subject'));
-    }
-    var mailOptions = {
-      from: 'Theodorus' +
-            ((From && From.length > 0) ? ' on behalf of ' + From : '') +
-            ' <bot@minsara.co.il>',
-      to: To,
-      subject: Subject,
-      text: text,
-      html: html
-    };
-
-    if (To.indexOf('@test.suite') > -1 && files !== undefined) {
-      files.set(To + '-' + Subject.replace(/\s/g, '_') + '.json', JSON.stringify(mailOptions));
-      callback({output: 'stored'});
-    } else if (transporter !== undefined) {
-      transporter.sendMail(mailOptions, onMailSent.bind({}, callback));
-    } else {
-      log(JSON.stringify('variable THEODORUS_MAIL not set'));
-      log(JSON.stringify(mailOptions));
-    }
-  }
-
-  function onMailSent(callback, error, info) {
-    callback(error ? new Error(error) : {output: 'sent', details: info});
-  }
-
-  module.exports = init;
-})();
+export default Mailer;

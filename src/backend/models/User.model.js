@@ -1,49 +1,90 @@
-;(function UserClosure() {
-  'use strict';
+import modelUtils from '../helpers/modelUtils.js';
+import Sequelize from 'sequelize';
 
-  var modelUtils = require ( '../helpers/modelUtils.js' );
+class User {
+  constructor(userData) {
+    let now = new Date ();
 
-  var status = modelUtils.toEnum(['active', 'suspended', 'archived']);
-  var gender = modelUtils.toEnum(['undefined', 'female', 'male']);
-  var editableFields = ['birthDate','gender'];
-  var jsonMinimalFields = ['id','status','created','modified','lastLogin','email','birthDate','gender'];
-  var jsonFields = jsonMinimalFields;
+    return {
+      email : userData.email,
+      status: status[userData.status] || status.active,
+      gender: gender[userData.gender] || gender.undefined,
+      created: now,
+      modified: now,
+      lastLogin: now
+    };
+  }
+}
 
-  module.exports = {
-    name: 'user',
-    status: status,
-    gender: gender,
-    schema: {
-      id: {type: 'text', key: true},
-      status: Object.keys(status),
-      created: Date,
-      modified: Date,
-      lastLogin:  Date,
-      email: String,
-      birthDate: Date,
-      gender: Object.keys(gender)
+const name = "user",
+  status = modelUtils.toEnum(['active', 'suspended', 'archived']),
+  gender = modelUtils.toEnum(['undefined', 'female', 'male']),
+  schema = {
+    id: {
+      db: { type: Sequelize.STRING, primaryKey: true },
+      editable: false,
+      required: true
     },
-    relations: function () {
+    status: {
+      db: Sequelize.ENUM(...Object.keys(status)),
+      editable: false,
+      required: true,
     },
-    manualFields: ['birthDate','gender'],
-    methods: {
-      toJSON: function (isMinimal) {
-        return modelUtils.toJSON(this, isMinimal ? jsonMinimalFields : jsonFields);
-      },
-      getEditables: modelUtils.simplyReturn.bind({},editableFields)
+    created: {
+      db: Sequelize.DATE,
+      editable: false,
+      required: true,
     },
-    validations: {},
-    getNew: function getNew ( user) {
-      var now = new Date ();
-      return {
-        email : user.email,
-        status: status[user.status] ? status[user.status] : status.active,
-        gender: gender[user.gender] ? gender[user.gender] : status.undefined,
-        created: now,
-        modified: now,
-        lastLogin: now
-      };
+    modified: {
+      db: Sequelize.DATE,
+      editable: false,
+      required: true,
+    },
+    lastLogin: {
+      db: Sequelize.DATE,
+      editable: false,
+      required: true,
+    },
+    email: String,
+    birthDate: {
+      db: Sequelize.DATE,
+      editable: false,
+      required: true,
+    },
+    email: {
+      db: Sequelize.STRING,
+      editable: true,
+      required: true,
+    },
+    status: {
+      db: Sequelize.ENUM(...Object.keys(gender)),
+      editable: true,
+      required: true,
     }
+  },
+  allFields = Object.keys(schema).map(key => schema[key]),
+  onlyRequired = modelUtils.filterFieldsBy(schema, field => field.editable),
+  editableFields = modelUtils.filterFieldsBy(schema, field => field.editable),
+  
+  methods = {
+    toJSON(isMinimal) { return modelUtils.toJSON(this, isMinimal ? onlyRequired : allFields) },
+    getEditables() { return editableFields; }
   };
 
-})();
+function getNew(userData) {
+  return new User(userData);
+}
+
+export default{
+  User,
+  name,
+  status,
+  gender,
+  schema,
+  getNew,
+  editableFields,
+  methods,
+
+  relations() {},
+  validations: {},
+};

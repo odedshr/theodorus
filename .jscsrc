@@ -1,4 +1,5 @@
 {
+  "excludeFiles": [".bin/server.js"],
   "preset": "airbnb",
   "disallowMultipleVarDecl": false,
   "maximumLineLength": {

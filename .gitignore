@@ -46,3 +46,7 @@ environment_variables.json
 node_modules
 user-files
 npm-debug.log
+
+# configuration files should not be shared
+.env
+.TODO

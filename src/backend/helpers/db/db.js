@@ -1,123 +1,100 @@
-;(function dbClosure() {
-  'use strict';
-
-  var orm = require('orm'),
-      tryCatch = require('../../helpers/tryCatch.js'),
-      log = require('../../helpers/logger.js'),
-      guid = require('../../helpers/db/Guid.js'),
-      guidLength = 2,
-      findGuidAttemps = 10;
-
-  function setModels(db, models, callback) {
-    require('./dbUpdater.js')(db.driver,
-                                   setModelOnceDBIsUpToDate.bind({}, db, models, callback));
+import mysql from 'mysql2';
+import { Errors } from 'groundup';
+import UserDB from './user.db';
+class Transaction {
+  constructor(connectionSettings) {
+    this.connection = mysql.createConnection(connectionSettings);
   }
 
-  function setModelOnceDBIsUpToDate(db, models, callback) {
-    tryCatch(function tryCatchSetModels() {
-      var modelRelations = {},
-          srcModels = require('../../helpers/models.js');
+  query(query) {
+    return new Promise((resolve, reject) => {
+      this.connection.query(query, (err, results, fields) => (err ? reject(err) : resolve({ results, fields})));
+    });
+  }
 
-      Object.keys(srcModels).forEach(function perKey(key) {
-        var model = srcModels[key];
+  end() {
+    this.connection.close();
+  }
+}
+class DB {
+  constructor(connectionSettings) {
+    if (connectionSettings === undefined) {
+      throw new Errors.MissingInput('connectionSettings');
+    }
+    this.connectionSettings = connectionSettings;
+    this.user = new UserDB(this);
+    this.getTablesSpecs([this.user]);
+  }
 
-        try {
-          models[model.name] = db.define(model.name, model.schema, {
-            methods: model.methods,
-            validations: model.validations
-          });
-          models[model.name].model = model;
-          models[model.name].set = setDBItem.bind(null, models[model.name]);
-        } catch (err) {
-          log(err);
-          log(model.name + ': ' + JSON.stringify(model.schema));
+  getTablesSpecs(models) {
+    const tableNames = models.map(model => `"${model.table}"`).join(','),
+      modelByTableName = models.reduce((map, model) => {
+        map[model.table] = model;
+        return map;
+      }, {});
+
+    return this.query(
+      `SELECT table_name, column_name, is_nullable, column_type, column_comment
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE table_name IN (${tableNames})
+      AND table_schema = "${this.connectionSettings.database}";`
+    )
+    .then(({ results }) => results.forEach(row => {
+      modelByTableName[row.table_name].defineColumn(row.column_name, row);
+    }))
+    .catch(err => console.trace(err));
+  }
+
+  withTransaction(action) {
+    let transaction;
+    return new Promise(resolve => resolve())
+      .then(() => { transaction = new Transaction(this.connectionSettings); })
+      .then(() => action(transaction))
+      .then(() => transaction.end());
+  }
+
+  query(query, existingConnection) {
+    return new Promise((resolve, reject) => {
+      const connection = existingConnection ? existingConnection : mysql.createConnection(this.connectionSettings);
+      connection.query(query, (err, results, fields) => {
+        if (!existingConnection) {
+          connection.close();
         }
-
-        if (model.relations) {
-          modelRelations[model.name] = model.relations;
-        }
-      });
-
-      //all models are defined, connect relations between them:
-      Object.keys(modelRelations).forEach(function perModelRelation(modelName) {
-        modelRelations[modelName](models[modelName], models);
-      });
-
-      db.sync(function dbSynced(err) {
         if (err) {
-          throw err;
-        } else if (callback !== undefined) {
-          callback();
+          err.query = query;
+          return reject(err);
         }
+        resolve({ results, fields});
       });
-    }, function(err) {
-      log(err);
-      callback();
+      ;
     });
   }
 
-  function useExpress(connectionString, guidSectionCount) {
-    if (guidSectionCount) {
-      guidLength = guidSectionCount;
-    }
+  insert(table, dataObject, columns, existingConnection) {
+    const keys = Object.keys(dataObject),
+      values = keys.map(key => `${this.formatValue(dataObject[key], columns[key])}`),
+      query = `INSERT INTO ${table} (ID, ${keys.join(',')}) VALUES (uuid(), ${values.join(',')});`
 
-    return orm.express(connectionString, {
-      define: setModels
-    });
+    return this.query(query, existingConnection);
   }
 
-  function connect(connectionString, guidSectionCount, callback) {
-    if (guidSectionCount) {
-      guidLength = guidSectionCount;
-    }
-
-    orm.connect(connectionString, function connected(err, db) {
-      var models = {};
-
-      if (err) {
-        console.error(err);
-        process.exit();
-      }
-
-      setModels(db, models, function gotModels() {
-        callback(models);
-      });
-    });
+  update(table, dataObject, columns, existingConnection) {
+    const values = Object
+      .keys(dataObject)
+      .map(key => (key!==id) ? `${key} = ${this.formatValue(dataObject[key], columns[key])}` : undefined),
+      query = `UPDATE INTO ${table} SET (${values.join(',')}) WHERE ID="${dataObject.id}";`
+    
+    return this.query(query, existingConnection);
   }
 
-  function setDBItem(table, item, callback, attempts) {
-    var id;
-
-    if (item.id && item.save) {
-      item.save(callback);
-    } else {
-      if (attempts > findGuidAttemps) {
-        guidLength++;
-      }
-
-      id = guid(guidLength);
-
-      table.get(id, checkIdAvailability.bind(null, id, table, item, callback, attempts));
+  formatValue(value, column = {}){
+    switch (column.type) {
+      case 'datetime':
+        return `"${value.toJSON().slice(0, 19).replace('T', ' ')}"`;
+      default:
+        return typeof value === 'string' ? `"${value}"` : value; 
     }
   }
+}
 
-  function checkIdAvailability(id, table, item, callback, attempts, error) {
-    if (error && error.literalCode === 'NOT_FOUND') {
-      item.id = id;
-      table.create(item, callback);
-    } else {
-      setDBItem(table, item, callback, ((attempts ? attempts : 0) + 1));
-    }
-  }
-
-  function quickAndDirty(callback) {
-    var config = require('../helpers/config.js');
-
-    connect(config('dbConnectionString', true), config('guidLength'), callback);
-  }
-
-  module.exports.useExpress = useExpress;
-  module.exports.setModels = setModels;
-  module.exports.connect = connect;
-  module.exports.quickAndDirty = quickAndDirty;
-})();
+export default DB;
