@@ -42,7 +42,7 @@
     "less-plugin-autoprefix": "^2.0.0",
     "marked": "^0.7.0",
     "mysql2": "^1.6.4",
-    "nodemailer": "^4.7.0",
+    "nodemailer": "^6.4.16",
     "nodemailer-direct-transport": "^3.3.2",
     "os": "^0.1.1",
     "rollup": "^1.1.0",
